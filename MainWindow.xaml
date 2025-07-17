@@ -184,7 +184,7 @@
                             </Button>
 
                             <!-- 2. 精选 -->
-                            <Button Style="{StaticResource NavButtonStyle}">
+                            <Button Style="{StaticResource NavButtonStyle}" Click="FeaturedButton_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <!-- Icon: MusicNote -->
                                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="" VerticalAlignment="Center" FontSize="20"/>
