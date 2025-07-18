@@ -85,6 +85,20 @@
             <Setter Property="Padding" Value="15,8"/>
         </Style>
 
+        <!-- 标签边框的基础样式 -->
+        <Style x:Key="SongTagBorderStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- 标签文字的基础样式 -->
+        <Style x:Key="SongTagTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="9"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
     </Window.Resources>
     <!-- 主容器，使用圆角边框包裹 -->
     <Border CornerRadius="8"
@@ -175,7 +189,7 @@
                         <StackPanel Width="250" VerticalAlignment="Top" Margin="0,20,0,0">
 
                             <!-- 1. 推荐 (选中状态) -->
-                            <Button Style="{StaticResource SelectedNavButtonStyle}" Click="NavigationButton_Click">
+                            <Button Style="{StaticResource SelectedNavButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <!-- Icon: 使用 Segoe MDL2 Assets 字体中的 Home 字符 -->
                                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="" VerticalAlignment="Center" FontSize="20"/>
@@ -184,7 +198,7 @@
                             </Button>
 
                             <!-- 2. 精选 -->
-                            <Button Style="{StaticResource NavButtonStyle}" Click="FeaturedButton_Click">
+                            <Button Style="{StaticResource NavButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <!-- Icon: MusicNote -->
                                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="" VerticalAlignment="Center" FontSize="20"/>
@@ -349,7 +363,7 @@
                         <!-- 歌曲列表 -->
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-
+                 
                     <!-- 歌单头部信息 -->
                     <Grid ShowGridLines="True" Grid.Row="0"
                           Margin="30">
@@ -464,6 +478,34 @@
                                                 Width="80"/>
                             </GridView>
                         </ListView.View>
+
+                        <!-- 自定义每一行的外观 (ItemContainerStyle) -->
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Focusable" Value="False"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListViewItem">
+                                            <Border x:Name="Bd" Padding="10,8" Background="Transparent" BorderBrush="Transparent" BorderThickness="1,0,1,1">
+                                                <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#2A2A2A"/>
+                                                </Trigger>
+                                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#242424"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+
+
+
                     </ListView>
 
 

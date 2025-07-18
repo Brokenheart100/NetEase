@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="NetEase.Carousel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             mc:Ignorable="d" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             d:DesignHeight="200" d:DesignWidth="600">
+
+    <Grid ShowGridLines="True">
+        <!-- 1. 图片展示区 -->
+        <!-- 使用 ItemsControl 动态生成图片 -->
+        <ItemsControl x:Name="ImageItemsControl">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <!-- Grid 面板让所有图片在同一位置重叠 -->
+                    <Grid ShowGridLines="True"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <!-- 每个数据项都将生成一个Image，默认隐藏 -->
+                    <Image Source="{Binding}" Stretch="UniformToFill" Visibility="Collapsed"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- 2. 分页圆点区 -->
+        <!-- 使用另一个 ItemsControl 动态生成圆点 -->
+        <ItemsControl x:Name="IndicatorItemsControl" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,20">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <!-- StackPanel 让所有圆点水平排列 -->
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <!-- 每个数据项都将生成一个圆点(Border) -->
+                    <Border x:Name="IndicatorDot" Width="10" Height="10" CornerRadius="5" Margin="5,0"
+                            Background="#99FFFFFF" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- “新歌首发”标签保持不变 -->
+        <Border VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,20,20"
+                Background="White" CornerRadius="5" Padding="8,4">
+            <TextBlock Text="新歌首发" Foreground="Black" FontSize="12" />
+        </Border>
+    </Grid>
+</UserControl>
