@@ -1,0 +1,651 @@
+﻿<Window x:Class="NetEase.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NetEase"
+        mc:Ignorable="d"
+        xmlns:vm="clr-namespace:NetEase.ViewModels"
+        xmlns:converters="clr-namespace:NetEase.Converters"
+        xmlns:pages="clr-namespace:NetEase.Views.Pages"
+        xmlns:components="clr-namespace:NetEase.Views.Components" d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+        Title="MainWindow"
+        Height="820"
+        Width="1280">
+
+    <Window.Resources>
+
+        <converters:TagToMarginConverter x:Key="TagToMarginConverter"/>
+        <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
+
+        <!-- 数据模板：将ViewModel自动映射到对应的View -->
+        <DataTemplate DataType="{x:Type vm:LocalMusicViewModel}">
+            <pages:LocalMusicView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
+            <pages:FeaturedView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PodcastViewModel}">
+            <pages:PodcastView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MyFavoriteMusicViewModel}">
+            <pages:MyFavoriteMusicView/>
+        </DataTemplate>
+        <!-- 图标字体 -->
+        <FontFamily x:Key="IconFont">Segoe MDL2 Assets</FontFamily>
+        <!-- 右侧导航箭头按钮样式 -->
+        <Style x:Key="NavArrowButtonStyle"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="#3A3A3B"/>
+            <Setter Property="Foreground"
+                    Value="#AEAEAE"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Width"
+                    Value="28"/>
+            <Setter Property="Height"
+                    Value="28"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="14">
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter Property="Foreground"
+                                        Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 默认导航按钮样式 -->
+        <Style x:Key="NavButtonStyle"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="FontSize"
+                    Value="16"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left"/>
+            <Setter Property="Padding"
+                    Value="15,12"/>
+            <Setter Property="Margin"
+                    Value="10,2"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Stretch"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#333333"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 选中的导航按钮样式 -->
+        <Style x:Key="SelectedNavButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Background"
+                    Value="#EC4141"/>
+            <Setter Property="Foreground"
+                    Value="White"/>
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+        </Style>
+
+        <!-- 分区标题文字样式 -->
+        <Style x:Key="SectionHeaderStyle"
+               TargetType="TextBlock">
+            <Setter Property="Foreground"
+                    Value="#888888"/>
+            <Setter Property="FontSize"
+                    Value="13"/>
+            <Setter Property="Margin"
+                    Value="20,25,20,10"/>
+        </Style>
+
+        <!-- 歌单列表项按钮样式 -->
+        <Style x:Key="PlaylistButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Padding"
+                    Value="15,8"/>
+        </Style>
+
+        <!-- 标签边框的基础样式 -->
+        <Style x:Key="SongTagBorderStyle"
+               TargetType="Border">
+            <Setter Property="CornerRadius"
+                    Value="2"/>
+            <Setter Property="Padding"
+                    Value="4,1"/>
+            <Setter Property="Margin"
+                    Value="0,0,4,0"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+        </Style>
+
+        <!-- 标签文字的基础样式 -->
+        <Style x:Key="SongTagTextStyle"
+               TargetType="TextBlock">
+            <Setter Property="FontSize"
+                    Value="9"/>
+            <Setter Property="VerticalAlignment"
+                    Value="Center"/>
+        </Style>
+
+    </Window.Resources>
+    <!-- 主容器，使用圆角边框包裹 -->
+    <Border CornerRadius="8"
+            Background="#212121"
+            BorderBrush="#333"
+            BorderThickness="1"
+            ClipToBounds="True">
+
+        <Grid ShowGridLines="True">
+            <Grid.RowDefinitions>
+                <!-- 顶部自定义标题栏区域 (可选，此处简化，可添加拖动和最小化/关闭按钮) -->
+                <RowDefinition Height="Auto"/>
+                <!-- 主内容区域 -->
+                <RowDefinition Height="*"/>
+                <!-- 底部播放器控制条 -->
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 1. 自定义标题栏 (简化实现) -->
+            <Border Grid.Row="0"
+                    Background="#2C2C2C">
+                <!-- 在这里可以放置 最小化、最大化、关闭 按钮 -->
+                <TextBlock Text="美国音乐"
+                           Foreground="Gray"
+                           VerticalAlignment="Center"
+                           Margin="10,10"/>
+            </Border>
+
+            <!-- 2. 主内容区域 (Grid.Row="1") -->
+            <Grid Grid.Row="1"
+                  ShowGridLines="True">
+                <Grid.ColumnDefinitions>
+                    <!-- 左侧导航栏，固定宽度 -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- 右侧主视图，占据剩余空间 -->
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ========================== -->
+                <!-- 左侧导航栏 (Grid.Column="0") -->
+                <!-- ========================== -->
+
+                <ScrollViewer Grid.Column="0"
+                              VerticalScrollBarVisibility="Auto">
+                    <!-- 整体背景色设置为深灰色 -->
+                    <Grid Background="#2D2D30"
+                          ShowGridLines="True">
+
+                        <!-- 定义按钮样式 -->
+                        <Grid.Resources>
+                            <!-- 默认导航按钮样式 -->
+                            <Style x:Key="NavButtonStyle"
+                                   TargetType="Button">
+                                <Setter Property="Margin"
+                                        Value="0,0,0,5"/>
+                                <Setter Property="Background"
+                                        Value="Transparent"/>
+                                <Setter Property="Foreground"
+                                        Value="#E0E0E0"/>
+                                <Setter Property="BorderThickness"
+                                        Value="0"/>
+                                <Setter Property="FontSize"
+                                        Value="18"/>
+                                <Setter Property="FontFamily"
+                                        Value="Microsoft YaHei UI"/>
+                                <Setter Property="HorizontalContentAlignment"
+                                        Value="Left"/>
+                                <Setter Property="Padding"
+                                        Value="5,5"/>
+                                <Setter Property="Cursor"
+                                        Value="Hand"/>
+                                <Setter Property="Height"
+                                        Value="35"/>
+
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="border"
+                                                    Background="{TemplateBinding Background}"
+                                                    Padding="{TemplateBinding Padding}"
+                                                    CornerRadius="8">
+                                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                  VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <!-- 鼠标悬浮时改变背景色，增加交互感 -->
+                                                <Trigger Property="IsMouseOver"
+                                                         Value="True">
+                                                    <Setter TargetName="border"
+                                                            Property="Background"
+                                                            Value="#4A4A4A"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"
+                                        Value="15"/>
+                                <!-- (可选) 为了避免图标字体的大小也被修改，我们可以加一个触发器 -->
+                                <Style.Triggers>
+                                    <Trigger Property="FontFamily"
+                                             Value="Segoe MDL2 Assets">
+                                        <Setter Property="FontSize"
+                                                Value="20"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <!-- 选中的导航按钮样式，继承自默认样式 -->
+                            <Style x:Key="SelectedNavButtonStyle"
+                                   TargetType="Button"
+                                   BasedOn="{StaticResource NavButtonStyle}">
+                                <Setter Property="Background"
+                                        Value="#F24961"/>
+                                <Setter Property="Foreground"
+                                        Value="White"/>
+                                <Setter Property="FontWeight"
+                                        Value="SemiBold"/>
+                            </Style>
+                        </Grid.Resources>
+
+                        <!-- 使用 StackPanel 实现垂直列布局 -->
+                        <StackPanel Width="170"
+                                    VerticalAlignment="Top"
+                                    Margin="0,20,0,0">
+
+                            <!-- 推荐按钮 -->
+                            <Button Command="{Binding NavigateLocalMusicCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button"
+                                           BasedOn="{StaticResource NavButtonStyle}">
+                                        <Style.Triggers>
+                                            <!-- 当CurrentView是HomeViewModel时，应用选中样式 -->
+                                            <DataTrigger Binding="{Binding CurrentView, Converter={StaticResource TypeToBooleanConverter}, ConverterParameter={x:Type vm:LocalMusicViewModel}}"
+                                                         Value="True">
+                                                <Setter Property="Background"
+                                                        Value="#EC4141"/>
+                                                <Setter Property="Foreground"
+                                                        Value="White"/>
+                                                <Setter Property="FontWeight"
+                                                        Value="SemiBold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontFamily="Segoe MDL2 Assets"
+                                               Text=""
+                                               FontSize="20"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="推荐"
+                                               Margin="15,0,0,0"
+                                               FontSize="15"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 精选按钮 -->
+                            <Button Command="{Binding NavigateFeaturedCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button"
+                                           BasedOn="{StaticResource NavButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView, Converter={StaticResource TypeToBooleanConverter}, ConverterParameter={x:Type vm:FeaturedViewModel}}"
+                                                         Value="True">
+                                                <Setter Property="Background"
+                                                        Value="#EC4141"/>
+                                                <Setter Property="Foreground"
+                                                        Value="White"/>
+                                                <Setter Property="FontWeight"
+                                                        Value="SemiBold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontFamily="{StaticResource IconFont}"
+                                               Text=""
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="精选"
+                                               Margin="15,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 播客按钮 -->
+                            <Button Command="{Binding NavigatePodcastCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button"
+                                           BasedOn="{StaticResource NavButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView, Converter={StaticResource TypeToBooleanConverter}, ConverterParameter={x:Type vm:PodcastViewModel}}"
+                                                         Value="True">
+                                                <Setter Property="Background"
+                                                        Value="#EC4141"/>
+                                                <Setter Property="Foreground"
+                                                        Value="White"/>
+                                                <Setter Property="FontWeight"
+                                                        Value="SemiBold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontFamily="{StaticResource IconFont}"
+                                               Text=""
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="播客"
+                                               Margin="15,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 4. 漫游 -->
+                            <Button Style="{StaticResource NavButtonStyle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- Icon: Infinite -->
+                                    <TextBlock FontFamily="Segoe MDL2 Assets"
+                                               Text=""
+                                               VerticalAlignment="Center"
+                                               FontSize="20"/>
+                                    <TextBlock Text="漫游"
+                                               Margin="15,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 5. 关注 (带通知点) -->
+                            <Button Style="{StaticResource NavButtonStyle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- Icon: Chat -->
+                                    <TextBlock FontFamily="Segoe MDL2 Assets"
+                                               Text=""
+                                               VerticalAlignment="Center"
+                                               FontSize="20"/>
+                                    <TextBlock Text="关注"
+                                               Margin="15,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                    <!-- 通知点 -->
+                                    <Ellipse Fill="#F24961"
+                                             Width="8"
+                                             Height="8"
+                                             Margin="8,0,0,0"
+                                             VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <TextBlock Text="我的"
+                                       Style="{StaticResource SectionHeaderStyle}"
+                                       Margin="10,20,20,10"/>
+
+                            <Button Style="{StaticResource NavButtonStyle}"
+                                    Command="{Binding NavigateFavoriteCommand}">
+                                <Grid ShowGridLines="True">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text=""
+                                               FontFamily="{StaticResource IconFont}"
+                                               FontSize="20"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="我喜欢的音乐"
+                                               Margin="15,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2"
+                                               Text=""
+                                               FontFamily="{StaticResource IconFont}"
+                                               FontSize="16"
+                                               Opacity="0.7"
+                                               VerticalAlignment="Center"
+                                               Margin="15,0,0,0"/>
+                                </Grid>
+                            </Button>
+
+                            <Button Style="{StaticResource NavButtonStyle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text=""
+                                               FontFamily="{StaticResource IconFont}"
+                                               FontSize="20"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="最近播放"
+                                               Margin="15,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource NavButtonStyle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text=""
+                                               FontFamily="{StaticResource IconFont}"
+                                               FontSize="20"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="我的播客"
+                                               Margin="15,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                    <Ellipse Fill="#EC4141"
+                                             Width="6"
+                                             Height="6"
+                                             Margin="5,0,0,-2"
+                                             VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource NavButtonStyle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text=""
+                                               FontFamily="{StaticResource IconFont}"
+                                               FontSize="16"
+                                               VerticalAlignment="Center"
+                                               Cursor="Hand"/>
+                                    <TextBlock Text="更多"
+                                               Margin="15,0,0,0"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Separator Margin="20,10"
+                                       Background="#444"/>
+                            <!-- ======================================================== -->
+                            <!--           在这里添加新的“收藏的歌单”区域               -->
+                            <!-- ======================================================== -->
+                            <Expander IsExpanded="True"
+                                      Foreground="#888888">
+                                <Expander.Header>
+                                    <DockPanel VerticalAlignment="Center">
+                                        <TextBlock Text="收藏的歌单"/>
+                                        <TextBlock Text="{Binding FavoritePlaylists.Count}"
+                                                   Margin="5,0,0,0"/>
+                                    </DockPanel>
+                                </Expander.Header>
+
+                                <!-- 使用 ListBox 来显示歌单，因为它天生支持选中项 -->
+                                <ListBox ItemsSource="{Binding FavoritePlaylists}"
+                                         SelectedItem="{Binding SelectedPlaylist, Mode=TwoWay}"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="Padding"
+                                                    Value="0"/>
+                                            <Setter Property="Height"
+                                                    Value="35"/>
+
+                                            <!-- 左右间距10，上下间距5 -->
+                                            <!-- 根据内容微调 -->
+                                            <Setter Property="Margin"
+                                                    Value="1,5"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                        <Border x:Name="ItemBorder"
+                                                                Background="Transparent"
+                                                                CornerRadius="6"
+                                                                Padding="5,5">
+                                                            <ContentPresenter/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <!-- 鼠标悬浮时变色 -->
+                                                            <Trigger Property="IsMouseOver"
+                                                                     Value="True">
+                                                                <Setter TargetName="ItemBorder"
+                                                                        Property="Background"
+                                                                        Value="#333333"/>
+                                                            </Trigger>
+                                                            <!-- 选中时变色 -->
+                                                            <Trigger Property="IsSelected"
+                                                                     Value="True">
+                                                                <Setter TargetName="ItemBorder"
+                                                                        Property="Background"
+                                                                        Value="#EC4141"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ShowGridLines="True">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- 封面图和VIP角标 -->
+                                                <Grid Grid.Column="0"
+                                                      Width="30"
+                                                      Height="30"
+                                                      ShowGridLines="True">
+                                                    <Border CornerRadius="4">
+                                                        <Border.Background>
+                                                            <ImageBrush ImageSource="{Binding CoverImageUrl}"
+                                                                        Stretch="UniformToFill"/>
+                                                        </Border.Background>
+                                                    </Border>
+                                                    <!-- VIP 角标，使用 Trigger 控制可见性 -->
+                                                    <Border Background="#D93B3B"
+                                                            CornerRadius="2"
+                                                            Padding="3,1"
+                                                            HorizontalAlignment="Left"
+                                                            VerticalAlignment="Top"
+                                                            Margin="-2,-2,0,0">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Visibility"
+                                                                        Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsVip}"
+                                                                                 Value="True">
+                                                                        <Setter Property="Visibility"
+                                                                                Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="VIP"
+                                                                   Foreground="White"
+                                                                   FontSize="9"
+                                                                   FontWeight="Bold"/>
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- 使用单个TextBlock，并设置相关属性 -->
+                                                <TextBlock Grid.Column="1"
+                                                           VerticalAlignment="Center"
+                                                           Margin="10,0,0,0"
+                                                           Foreground="White"
+                                                           Text="{Binding Title}"
+                                                           FontSize="10"
+                                                           TextWrapping="Wrap"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           MaxHeight="20">
+                
+                                                    <!-- (可选) 添加ToolTip以显示完整标题 -->
+                                                    <TextBlock.ToolTip>
+                                                        <ToolTip Content="{Binding Title}"/>
+                                                    </TextBlock.ToolTip>
+
+                                                </TextBlock>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Expander>
+
+
+                        </StackPanel>
+                    </Grid>
+
+                </ScrollViewer>
+                <!-- 右侧主视图：内容由ContentControl根据CurrentView动态显示 -->
+                <ContentControl Grid.Column="1"
+                                Content="{Binding CurrentView}"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch"/>
+
+
+
+            </Grid>
+
+            <!-- 3. 底部播放器控制条 (Grid.Row="2") -->
+            <!-- 直接使用我们创建的 PlayerControlView 控件 -->
+            <!-- 将 PlayerControlView 的 DataContext 绑定到 MainViewModel 的 PlayerControlVM 属性 -->
+            <components:PlayerControlView Grid.Row="2"
+                    DataContext="{Binding PlayerControlVM}"
+                    />
+
+            <MediaElement x:Name="MediaPlayer"
+                          LoadedBehavior="Manual"
+                          UnloadedBehavior="Stop"
+                          Visibility="Collapsed"/>
+        </Grid>
+    </Border>
+</Window>

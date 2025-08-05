@@ -1,0 +1,138 @@
+﻿<UserControl x:Class="NetEase.Views.Components.RankingCardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:NetEase.Views"
+             xmlns:converters="clr-namespace:NetEase.Converters"
+             xmlns:models1="clr-namespace:NetEase.Models"
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+    <UserControl.Resources>
+
+        <!-- 使用新的 converters 前缀来引用转换器 -->
+        <converters:RankStatusToContentConverter x:Key="RankStatusConverter"/>
+        <!-- 基础样式 -->
+        <Style TargetType="TextBlock"
+               x:Key="BaseTextStyle">
+            <Setter Property="Foreground"
+                    Value="#E0E0E0"/>
+            <Setter Property="FontSize"
+                    Value="13"/>
+        </Style>
+        <Style TargetType="TextBlock"
+               x:Key="GrayTextStyle"
+               BasedOn="{StaticResource BaseTextStyle}">
+            <Setter Property="Foreground"
+                    Value="#888888"/>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- 根容器，带圆角和背景 -->
+    <Border Background="#2A2A2D"
+            CornerRadius="8"
+            Padding="20">
+        <Grid ShowGridLines="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- 标题行 -->
+                <RowDefinition Height="*"/>
+                <!-- 内容行 -->
+            </Grid.RowDefinitions>
+
+            <!-- 标题行 -->
+            <DockPanel Grid.Row="0"
+                       Margin="0,0,0,15">
+                <TextBlock Text="{Binding Title}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding UpdateInfo}"
+                           Style="{StaticResource GrayTextStyle}"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Bottom"/>
+            </DockPanel>
+
+            <!-- 内容行 -->
+            <Grid Grid.Row="1"
+                  ShowGridLines="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- 封面 -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- 歌曲列表 -->
+                </Grid.ColumnDefinitions>
+
+                <!-- 封面 -->
+                <Border Grid.Column="0"
+                        Width="100"
+                        Height="100"
+                        CornerRadius="6"
+                        Margin="0,0,20,0">
+                    <Border.Background>
+                        <ImageBrush ImageSource="{Binding CoverImageUrl}"
+                                    Stretch="UniformToFill"/>
+                    </Border.Background>
+                </Border>
+
+                <!-- 歌曲列表 -->
+                <ItemsControl Grid.Column="1"
+                              ItemsSource="{Binding TopSongs}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models1:RankedSong}">
+                            <Grid Margin="0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 排名 -->
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Rank}"
+                                           Style="{StaticResource GrayTextStyle}"
+                                           VerticalAlignment="Center"/>
+
+                                <!-- ======================= 关键修正 ======================= -->
+                                <!-- 使用水平StackPanel来排列歌名和歌手 -->
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+
+                                    <!-- 歌名 TextBlock -->
+                                    <TextBlock Text="{Binding Title}"
+                                               Style="{StaticResource BaseTextStyle}"
+                                               TextTrimming="CharacterEllipsis"/>
+
+                                    <!-- 分隔符 TextBlock -->
+                                    <!-- Margin="5,0" 增加了左右间距 -->
+                                    <TextBlock Text="-"
+                                               Style="{StaticResource GrayTextStyle}"
+                                               Margin="5,0"/>
+
+                                    <!-- 歌手 TextBlock -->
+                                    <TextBlock Text="{Binding Artist}"
+                                               Style="{StaticResource GrayTextStyle}"
+                                               TextTrimming="CharacterEllipsis"/>
+
+                                </StackPanel>
+                                <!-- ===================== 修正结束 ===================== -->
+
+                                <!-- 状态图标 -->
+                                <TextBlock Grid.Column="2"
+                                           DataContext="{Binding Status}"
+                                           Text="{Binding Converter={StaticResource RankStatusConverter}, Path=Text}"
+                                           Foreground="{Binding Converter={StaticResource RankStatusConverter}, Path=Color}"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

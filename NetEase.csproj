@@ -8,4 +8,125 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="CoverImage\0.jpg" />
+    <None Remove="CoverImage\1.jpg" />
+    <None Remove="CoverImage\10.jpg" />
+    <None Remove="CoverImage\11.jpg" />
+    <None Remove="CoverImage\12.jpg" />
+    <None Remove="CoverImage\13.jpg" />
+    <None Remove="CoverImage\14.jpg" />
+    <None Remove="CoverImage\15.jpg" />
+    <None Remove="CoverImage\16.jpg" />
+    <None Remove="CoverImage\17.jpg" />
+    <None Remove="CoverImage\18.jpg" />
+    <None Remove="CoverImage\19.jpg" />
+    <None Remove="CoverImage\2.jpg" />
+    <None Remove="CoverImage\20.jpg" />
+    <None Remove="CoverImage\21.jpg" />
+    <None Remove="CoverImage\22.jpg" />
+    <None Remove="CoverImage\23.jpg" />
+    <None Remove="CoverImage\24.jpg" />
+    <None Remove="CoverImage\25.jpg" />
+    <None Remove="CoverImage\26.jpg" />
+    <None Remove="CoverImage\27.jpg" />
+    <None Remove="CoverImage\28.jpg" />
+    <None Remove="CoverImage\29.jpg" />
+    <None Remove="CoverImage\3.jpg" />
+    <None Remove="CoverImage\30.jpg" />
+    <None Remove="CoverImage\31.jpg" />
+    <None Remove="CoverImage\32.jpg" />
+    <None Remove="CoverImage\33.jpg" />
+    <None Remove="CoverImage\34.jpg" />
+    <None Remove="CoverImage\35.jpg" />
+    <None Remove="CoverImage\36.jpg" />
+    <None Remove="CoverImage\37.jpg" />
+    <None Remove="CoverImage\38.jpg" />
+    <None Remove="CoverImage\39.jpg" />
+    <None Remove="CoverImage\4.jpg" />
+    <None Remove="CoverImage\40.jpg" />
+    <None Remove="CoverImage\41.jpg" />
+    <None Remove="CoverImage\42.jpg" />
+    <None Remove="CoverImage\43.jpg" />
+    <None Remove="CoverImage\44.jpg" />
+    <None Remove="CoverImage\45.jpg" />
+    <None Remove="CoverImage\46.jpg" />
+    <None Remove="CoverImage\47.jpg" />
+    <None Remove="CoverImage\48.jpg" />
+    <None Remove="CoverImage\49.jpg" />
+    <None Remove="CoverImage\5.jpg" />
+    <None Remove="CoverImage\50.jpg" />
+    <None Remove="CoverImage\51.jpg" />
+    <None Remove="CoverImage\52.jpg" />
+    <None Remove="CoverImage\53.jpg" />
+    <None Remove="CoverImage\6.jpg" />
+    <None Remove="CoverImage\7.jpg" />
+    <None Remove="CoverImage\8.jpg" />
+    <None Remove="CoverImage\9.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="CoverImage\0.jpg" />
+    <EmbeddedResource Include="CoverImage\1.jpg" />
+    <EmbeddedResource Include="CoverImage\10.jpg" />
+    <EmbeddedResource Include="CoverImage\11.jpg" />
+    <EmbeddedResource Include="CoverImage\12.jpg" />
+    <Content Include="CoverImage\13.jpg" />
+    <EmbeddedResource Include="CoverImage\14.jpg" />
+    <EmbeddedResource Include="CoverImage\15.jpg" />
+    <EmbeddedResource Include="CoverImage\16.jpg" />
+    <EmbeddedResource Include="CoverImage\17.jpg" />
+    <EmbeddedResource Include="CoverImage\19.jpg" />
+    <EmbeddedResource Include="CoverImage\2.jpg" />
+    <EmbeddedResource Include="CoverImage\20.jpg" />
+    <EmbeddedResource Include="CoverImage\21.jpg" />
+    <EmbeddedResource Include="CoverImage\22.jpg" />
+    <EmbeddedResource Include="CoverImage\23.jpg" />
+    <EmbeddedResource Include="CoverImage\24.jpg" />
+    <EmbeddedResource Include="CoverImage\25.jpg" />
+    <EmbeddedResource Include="CoverImage\26.jpg" />
+    <EmbeddedResource Include="CoverImage\27.jpg" />
+    <EmbeddedResource Include="CoverImage\28.jpg" />
+    <EmbeddedResource Include="CoverImage\29.jpg" />
+    <EmbeddedResource Include="CoverImage\3.jpg" />
+    <EmbeddedResource Include="CoverImage\30.jpg" />
+    <EmbeddedResource Include="CoverImage\31.jpg" />
+    <EmbeddedResource Include="CoverImage\32.jpg" />
+    <EmbeddedResource Include="CoverImage\33.jpg" />
+    <EmbeddedResource Include="CoverImage\34.jpg" />
+    <EmbeddedResource Include="CoverImage\35.jpg" />
+    <EmbeddedResource Include="CoverImage\36.jpg" />
+    <EmbeddedResource Include="CoverImage\37.jpg" />
+    <EmbeddedResource Include="CoverImage\38.jpg" />
+    <EmbeddedResource Include="CoverImage\39.jpg" />
+    <EmbeddedResource Include="CoverImage\4.jpg" />
+    <EmbeddedResource Include="CoverImage\40.jpg" />
+    <EmbeddedResource Include="CoverImage\41.jpg" />
+    <EmbeddedResource Include="CoverImage\42.jpg" />
+    <EmbeddedResource Include="CoverImage\43.jpg" />
+    <EmbeddedResource Include="CoverImage\44.jpg" />
+    <EmbeddedResource Include="CoverImage\45.jpg" />
+    <EmbeddedResource Include="CoverImage\46.jpg" />
+    <EmbeddedResource Include="CoverImage\47.jpg" />
+    <EmbeddedResource Include="CoverImage\48.jpg" />
+    <EmbeddedResource Include="CoverImage\49.jpg" />
+    <EmbeddedResource Include="CoverImage\5.jpg" />
+    <EmbeddedResource Include="CoverImage\50.jpg" />
+    <EmbeddedResource Include="CoverImage\51.jpg" />
+    <EmbeddedResource Include="CoverImage\52.jpg" />
+    <EmbeddedResource Include="CoverImage\53.jpg" />
+    <EmbeddedResource Include="CoverImage\6.jpg" />
+    <EmbeddedResource Include="CoverImage\7.jpg" />
+    <EmbeddedResource Include="CoverImage\8.jpg" />
+    <EmbeddedResource Include="CoverImage\9.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Core" Version="1.1.5" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+
 </Project>

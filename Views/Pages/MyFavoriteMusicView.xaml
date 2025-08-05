@@ -1,0 +1,431 @@
+﻿<UserControl x:Class="NetEase.Views.Pages.MyFavoriteMusicView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:local="clr-namespace:NetEase.Views.Pages" xmlns:viewmodels="clr-namespace:NetEase.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:MyFavoriteMusicViewModel}"
+             x:Name="MyFavoriteMusicPage"
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <!-- 定义按钮样式 -->
+        <Style x:Key="ActionButtonStyle"
+               TargetType="Button">
+            <Setter Property="Foreground"
+                    Value="White"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="BorderBrush"
+                    Value="#555555"/>
+            <Setter Property="Background"
+                    Value="#333333"/>
+            <Setter Property="Padding"
+                    Value="8,8"/>
+            <Setter Property="Margin"
+                    Value="0,0,10,0"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Height"
+                    Value="40"/>
+            <Setter Property="Width"
+                    Value="80"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PlayAllButtonStyle"
+               BasedOn="{StaticResource ActionButtonStyle}"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="#EC4141"/>
+            <Setter Property="BorderBrush"
+                    Value="Transparent"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="15,15"
+          ShowGridLines="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- 头部区域 -->
+            <RowDefinition Height="Auto"/>
+            <!-- Tab区域 -->
+            <RowDefinition Height="*"/>
+            <!-- 歌曲列表 -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. 头部区域 -->
+        <Grid Grid.Row="0"
+              Margin="0,0,0,30"
+              ShowGridLines="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧封面 -->
+            <Border Width="180"
+                    Height="180"
+                    CornerRadius="8"
+                    Margin="0,0,30,0">
+                <Border.Background>
+                    <ImageBrush ImageSource="{Binding CoverImageUrl}"
+                                Stretch="UniformToFill"/>
+                </Border.Background>
+            </Border>
+
+            <!-- 右侧信息 -->
+            <Grid Grid.Column="1"
+                  ShowGridLines="True">
+                <!-- 定义两行，一行占满，一行自适应 -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <!-- 上半部分，占据所有剩余空间 -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 下半部分，高度由按钮决定 -->
+                </Grid.RowDefinitions>
+
+                <!-- 上半部分内容：标题和创建者信息 -->
+                <!-- 放在 Grid.Row="0"，并设置其内容垂直对齐到顶部 -->
+                <StackPanel Grid.Row="0"
+                            VerticalAlignment="Top">
+                    <TextBlock Text="{Binding PlaylistTitle}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="White"/>
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,10,0,20"
+                                VerticalAlignment="Center">
+                        <Ellipse Width="24"
+                                 Height="24">
+                            <Ellipse.Fill>
+                                <ImageBrush ImageSource="E:\\Computer\\VS\\NetEase\\CoverImage\\21.jpg"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <TextBlock Text="{Binding Author}"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="#A0A0A0"/>
+                        <TextBlock Text="{Binding CreateDate}"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="#888888"
+                                   FontSize="12"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 下半部分内容：按钮组，会自动吸附在底部 -->
+                <!-- 放在 Grid.Row="1" -->
+                <StackPanel Grid.Row="1"
+                            Orientation="Horizontal">
+                    <Button Content="▶ 播放全部"
+                            Style="{StaticResource PlayAllButtonStyle}"/>
+                    <Button Content="↓ 下载"
+                            Style="{StaticResource ActionButtonStyle}"/>
+                    <Button Content="···"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Command="{Binding AddLocalFolderCommand}"   
+                            Width="40"/>
+                    <Button Content="➕添加本地文件夹" 
+                            Style="{StaticResource ActionButtonStyle}"
+                            Command="{Binding AddLocalFolderCommand}"
+                            Width="150"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- 2. Tab 切换区域 -->
+        <TabControl Grid.Row="1"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    Padding="0">
+            <TabItem Header="歌曲">
+                <TabItem.HeaderTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}"
+                                   FontSize="16"
+                                   Margin="0,0,15,5"
+                                   Foreground="White"/>
+                    </DataTemplate>
+                </TabItem.HeaderTemplate>
+            </TabItem>
+            <TabItem Header="评论">
+                <TabItem.HeaderTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}"
+                                   FontSize="16"
+                                   Margin="0,0,15,5"/>
+                    </DataTemplate>
+                </TabItem.HeaderTemplate>
+            </TabItem>
+        </TabControl>
+
+        <!-- 3. 歌曲列表 -->
+        <ListView Grid.Row="2"
+                  ItemsSource="{Binding Songs}"
+                  MouseDoubleClick="ListView_MouseDoubleClick"
+                  AlternationCount="2"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  HorizontalContentAlignment="Stretch"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  Foreground="White">
+            <ListView.View>
+                <GridView>
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="GridViewColumnHeader">
+                            <Setter Property="Foreground"
+                                    Value="#888888"/>
+                            <Setter Property="Background"
+                                    Value="Transparent"/>
+                            <Setter Property="BorderThickness"
+                                    Value="0"/>
+                            <Setter Property="Padding"
+                                    Value="10,5"/>
+                        </Style>
+                    </GridView.ColumnHeaderContainerStyle>
+
+                    <GridViewColumn Header="#"
+                                    Width="40">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <!-- 用Grid来重叠两个状态 -->
+                                <Grid Height="50"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center">
+                                    <!-- 普通状态：序号 -->
+                                    <TextBlock x:Name="IndexText"
+                                               Text="{Binding Index, StringFormat='{}{0:D2}'}"
+                                               Foreground="#999999"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"/>
+                                    <!-- 悬浮状态：播放按钮 -->
+                                    <TextBlock x:Name="PlayIcon"
+                                               Text="▶"
+                                               FontFamily="Segoe MDL2 Assets"
+                                               Foreground="White"
+                                               FontSize="14"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               Opacity="0"/>
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <!-- 当父级 ListViewItem 被悬浮时... -->
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListViewItem}, Path=IsMouseOver}"
+                                                 Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetName="IndexText"
+                                                                     Storyboard.TargetProperty="Opacity"
+                                                                     To="0"
+                                                                     Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetName="PlayIcon"
+                                                                     Storyboard.TargetProperty="Opacity"
+                                                                     To="1"
+                                                                     Duration="0:0:0.2"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetName="IndexText"
+                                                                     Storyboard.TargetProperty="Opacity"
+                                                                     To="1"
+                                                                     Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetName="PlayIcon"
+                                                                     Storyboard.TargetProperty="Opacity"
+                                                                     To="0"
+                                                                     Duration="0:0:0.2"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <!-- ====================== 修正第二列：标题/操作图标 ====================== -->
+                    <GridViewColumn Header="标题"
+                                    Width="350">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <!-- 同样用Grid来重叠 -->
+                                <Grid ShowGridLines="True">
+                                    <!-- 正常显示的标题内容 -->
+                                    <StackPanel x:Name="TitleContent"
+                                                Orientation="Horizontal">
+                                        <Border Width="50"
+                                                Height="50"
+                                                CornerRadius="4">
+                                            <Border.Background>
+                                                <ImageBrush ImageSource="{Binding CoverImage}"
+                                                            Stretch="UniformToFill"/>
+                                            </Border.Background>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center"
+                                                    Margin="10,0,0,0">
+                                            <TextBlock Foreground="White">
+                                    <Run Text="{Binding Title}"/>
+                                    <Run Text="{Binding Subtitle}"
+                                                Foreground="#999999"/>
+                                            </TextBlock>
+                                            <ItemsControl ItemsSource="{Binding Tags}"
+                                                          Margin="0,5,0,0">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="{Binding BorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="3"
+                                                                Background="{Binding Background}"
+                                                                Padding="3,1"
+                                                                Margin="0,0,4,0">
+                                                            <TextBlock Text="{Binding Text}"
+                                                                       Foreground="{Binding Foreground}"
+                                                                       FontSize="9"/>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- 悬浮时显示的操作图标，初始透明 -->
+                                    <StackPanel x:Name="ActionIcons"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Right"
+                                                Opacity="0">
+                                        <Button Content=""
+                                                FontFamily="Segoe MDL2 Assets"
+                                                Foreground="White"
+                                                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                                                ToolTip="添加到播放列表"/>
+                                        <Button Content=""
+                                                FontFamily="Segoe MDL2 Assets"
+                                                Foreground="White"
+                                                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                                                ToolTip="评论"/>
+                                        <Button Content=""
+                                                FontFamily="Segoe MDL2 Assets"
+                                                Foreground="White"
+                                                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                                                ToolTip="更多"/>
+                                    </StackPanel>
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <!-- 当父级 ListViewItem 被悬浮时... -->
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListViewItem}, Path=IsMouseOver}"
+                                                 Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <!-- 标题内容淡出，操作图标淡入 -->
+                                                    <DoubleAnimation Storyboard.TargetName="TitleContent"
+                                                                     Storyboard.TargetProperty="Opacity"
+                                                                     To="0.3"
+                                                                     Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetName="ActionIcons"
+                                                                     Storyboard.TargetProperty="Opacity"
+                                                                     To="1"
+                                                                     Duration="0:0:0.2"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetName="TitleContent"
+                                                                     Storyboard.TargetProperty="Opacity"
+                                                                     To="1"
+                                                                     Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetName="ActionIcons"
+                                                                     Storyboard.TargetProperty="Opacity"
+                                                                     To="0"
+                                                                     Duration="0:0:0.2"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="专辑"
+                                    DisplayMemberBinding="{Binding Album}"
+                                    Width="250"/>
+                    <GridViewColumn Header="喜欢"
+                                    Width="60">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="❤"
+                                           FontSize="16"
+                                           Foreground="#EC4141"
+                                           HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="时长"
+                                    DisplayMemberBinding="{Binding Duration}"
+                                    Width="80"/>
+                </GridView>
+            </ListView.View>
+
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListViewItem">
+                             
+                                <Border x:Name="Bd" 
+                                        Padding="0,8" 
+                                        Background="Transparent">
+
+
+                                    <!-- GridViewRowPresenter 负责显示列内容，保持不变 -->
+                                    <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#40333333"/>
+                                    </Trigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=(ItemsControl.AlternationIndex)}" Value="1" />
+                                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter TargetName="Bd" Property="Background" Value="#202022"/>
+                                    </MultiDataTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+    </Grid>
+</UserControl>
