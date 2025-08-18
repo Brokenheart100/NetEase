@@ -1,10 +1,5 @@
-﻿using NetEase.Models;
-using NetEase.Services;
-using NetEase.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,19 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using TagLib.Mpeg;
 
 namespace NetEase.Views.Pages
 {
     /// <summary>
-    /// MyFavoriteMusicView.xaml 的交互逻辑
+    /// SignUpView.xaml 的交互逻辑
     /// </summary>
-    public partial class MyFavoriteMusicView : UserControl
+    public partial class SignUpView : UserControl
     {
-        public MyFavoriteMusicView()
+        public SignUpView()
         {
             InitializeComponent();
-
         }
     }
 }

@@ -5,7 +5,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-             xmlns:local="clr-namespace:NetEase.Views.Pages" xmlns:viewmodels="clr-namespace:NetEase.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:MyFavoriteMusicViewModel}"
+             xmlns:local="clr-namespace:NetEase.Views.Pages" 
+             xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
+             xmlns:converters="clr-namespace:NetEase.Converters"
+             d:DataContext="{d:DesignInstance Type=viewmodels:MyFavoriteMusicViewModel}"
              x:Name="MyFavoriteMusicPage"
              mc:Ignorable="d"
              d:DesignHeight="450"
@@ -56,6 +59,48 @@
             <Setter Property="BorderBrush"
                     Value="Transparent"/>
         </Style>
+
+
+        <Style x:Key="IconButtonStyle"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Width"
+                    Value="32"/>
+            <Setter Property="Height"
+                    Value="32"/>
+            <Setter Property="FontSize"
+                    Value="18"/>
+            <Setter Property="FontFamily"
+                    Value="Segoe MDL2 Assets"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Margin"
+                    Value="0,0,1,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <!-- 我们需要一个模板来确保背景真正受我们控制 -->
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver"
+                         Value="True">
+                    <Setter Property="Foreground"
+                            Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <converters:WidthConverter x:Key="WidthConverter"/>
     </UserControl.Resources>
 
     <Grid Margin="15,15"
@@ -160,7 +205,7 @@
                         <TextBlock Text="{Binding}"
                                    FontSize="16"
                                    Margin="0,0,15,5"
-                                   Foreground="White"/>
+                                   Background="White"/>
                     </DataTemplate>
                 </TabItem.HeaderTemplate>
             </TabItem>
@@ -176,17 +221,30 @@
         </TabControl>
 
         <!-- 3. 歌曲列表 -->
-        <ListView Grid.Row="2"
+        <Grid Grid.Row="2" ShowGridLines="True">
+            <ListView 
+            x:Name="SongListView"
                   ItemsSource="{Binding Songs}"
-                  MouseDoubleClick="ListView_MouseDoubleClick"
                   AlternationCount="2"
                   Background="Transparent"
                   BorderThickness="0"
                   HorizontalContentAlignment="Stretch"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   Foreground="White">
-            <ListView.View>
+                <ListView.Style>
+                    <Style TargetType="ListView">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListView.Style>
+                <ListView.View >
                 <GridView>
+                  
+                    <!-- 填充剩余空间 -->
                     <GridView.ColumnHeaderContainerStyle>
                         <Style TargetType="GridViewColumnHeader">
                             <Setter Property="Foreground"
@@ -216,43 +274,51 @@
                                                HorizontalAlignment="Center"/>
                                     <!-- 悬浮状态：播放按钮 -->
                                     <TextBlock x:Name="PlayIcon"
-                                               Text="▶"
+                                               Text="&#xE768;"
                                                FontFamily="Segoe MDL2 Assets"
                                                Foreground="White"
                                                FontSize="14"
                                                VerticalAlignment="Center"
                                                HorizontalAlignment="Center"
                                                Opacity="0"/>
+                                    <StackPanel x:Name="SpectrumAnimation"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"
+                                                Opacity="0">
+                                        <Rectangle x:Name="Bar1" Width="3" Height="5" Fill="#EC4141" Margin="1,0"/>
+                                        <Rectangle x:Name="Bar2" Width="3" Height="10" Fill="#EC4141" Margin="1,0"/>
+                                        <Rectangle x:Name="Bar3" Width="3" Height="7" Fill="#EC4141" Margin="1,0"/>
+                                    </StackPanel>
                                 </Grid>
                                 <DataTemplate.Triggers>
-                                    <!-- 当父级 ListViewItem 被悬浮时... -->
-                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListViewItem}, Path=IsMouseOver}"
-                                                 Value="True">
+                                    <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                        <!-- 当 IsPlaying 为 True 时 -->
                                         <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <DoubleAnimation Storyboard.TargetName="IndexText"
-                                                                     Storyboard.TargetProperty="Opacity"
-                                                                     To="0"
-                                                                     Duration="0:0:0.2"/>
-                                                    <DoubleAnimation Storyboard.TargetName="PlayIcon"
-                                                                     Storyboard.TargetProperty="Opacity"
-                                                                     To="1"
-                                                                     Duration="0:0:0.2"/>
+                                            <BeginStoryboard x:Name="sb_play">
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <!-- 隐藏序号和播放图标 -->
+                                                    <DoubleAnimation Storyboard.TargetName="IndexText" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/>
+                                                    <DoubleAnimation Storyboard.TargetName="PlayIcon" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/>
+                                                    <!-- 显示频谱动画控件 -->
+                                                    <DoubleAnimation Storyboard.TargetName="SpectrumAnimation" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1"/>
+
+                                                    <!-- 频谱条动画 -->
+                                                    <DoubleAnimation Storyboard.TargetName="Bar1" Storyboard.TargetProperty="Height" From="3" To="15" Duration="0:0:0.3" AutoReverse="True"/>
+                                                    <DoubleAnimation Storyboard.TargetName="Bar2" Storyboard.TargetProperty="Height" From="15" To="5" Duration="0:0:0.5" AutoReverse="True" BeginTime="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetName="Bar3" Storyboard.TargetProperty="Height" From="5" To="12" Duration="0:0:0.4" AutoReverse="True" BeginTime="0:0:0.4"/>
                                                 </Storyboard>
                                             </BeginStoryboard>
                                         </DataTrigger.EnterActions>
                                         <DataTrigger.ExitActions>
+                                            <!-- 当 IsPlaying 变回 False 时 -->
+                                            <StopStoryboard BeginStoryboardName="sb_play"/>
                                             <BeginStoryboard>
                                                 <Storyboard>
-                                                    <DoubleAnimation Storyboard.TargetName="IndexText"
-                                                                     Storyboard.TargetProperty="Opacity"
-                                                                     To="1"
-                                                                     Duration="0:0:0.2"/>
-                                                    <DoubleAnimation Storyboard.TargetName="PlayIcon"
-                                                                     Storyboard.TargetProperty="Opacity"
-                                                                     To="0"
-                                                                     Duration="0:0:0.2"/>
+                                                    <!-- 隐藏频谱动画控件 -->
+                                                    <DoubleAnimation Storyboard.TargetName="SpectrumAnimation" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/>
+                                                    <!-- 恢复显示序号 -->
+                                                    <DoubleAnimation Storyboard.TargetName="IndexText" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1"/>
                                                 </Storyboard>
                                             </BeginStoryboard>
                                         </DataTrigger.ExitActions>
@@ -262,7 +328,6 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
 
-                    <!-- ====================== 修正第二列：标题/操作图标 ====================== -->
                     <GridViewColumn Header="标题"
                                     Width="350">
                         <GridViewColumn.CellTemplate>
@@ -284,8 +349,8 @@
                                                     Margin="10,0,0,0">
                                             <TextBlock Foreground="White">
                                     <Run Text="{Binding Title}"/>
-                                    <Run Text="{Binding Subtitle}"
-                                                Foreground="#999999"/>
+                                    <Run Text="{Binding Artist}" Foreground="#999999"/>
+
                                             </TextBlock>
                                             <ItemsControl ItemsSource="{Binding Tags}"
                                                           Margin="0,5,0,0">
@@ -302,7 +367,7 @@
                                                                 Background="{Binding Background}"
                                                                 Padding="3,1"
                                                                 Margin="0,0,4,0">
-                                                            <TextBlock Text="{Binding Text}"
+                                                                <TextBlock Text="{Binding Text}"
                                                                        Foreground="{Binding Foreground}"
                                                                        FontSize="9"/>
                                                         </Border>
@@ -318,21 +383,11 @@
                                                 VerticalAlignment="Center"
                                                 HorizontalAlignment="Right"
                                                 Opacity="0">
-                                        <Button Content=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                Foreground="White"
-                                                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                                ToolTip="添加到播放列表"/>
-                                        <Button Content=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                Foreground="White"
-                                                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                                ToolTip="评论"/>
-                                        <Button Content=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                Foreground="White"
-                                                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                                ToolTip="更多"/>
+                                        <!-- 初始不可见 -->
+                                        <Button Content="&#xE896;" ToolTip="下载" Style="{StaticResource IconButtonStyle}"/>
+                                        <Button Content="&#xECC8;" ToolTip="添加到播放列表" Style="{StaticResource IconButtonStyle}"/>
+                                        <Button Content="&#xE712;" ToolTip="评论" Style="{StaticResource IconButtonStyle}"/>
+                                        <Button Content="&#xE712;" ToolTip="更多" Style="{StaticResource IconButtonStyle}"/>
                                     </StackPanel>
                                 </Grid>
                                 <DataTemplate.Triggers>
@@ -376,9 +431,17 @@
 
                     <GridViewColumn Header="专辑"
                                     DisplayMemberBinding="{Binding Album}"
-                                    Width="250"/>
+                                    >
+                    <GridViewColumn.Width>
+                        <Binding Path="ActualWidth" 
+                                 ElementName="SongListView" 
+                                 Converter="{StaticResource WidthConverter}"
+                                 ConverterParameter="530"/>
+
+                    </GridViewColumn.Width>
+                    </GridViewColumn>
                     <GridViewColumn Header="喜欢"
-                                    Width="60">
+                                    Width="50">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="❤"
@@ -390,22 +453,23 @@
                     </GridViewColumn>
                     <GridViewColumn Header="时长"
                                     DisplayMemberBinding="{Binding Duration}"
-                                    Width="80"/>
+                                    Width="70"/>
                 </GridView>
             </ListView.View>
 
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Padding" Value="10,8"/>
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListViewItem">
-                             
+
                                 <Border x:Name="Bd" 
-                                        Padding="0,8" 
-                                        Background="Transparent">
-
-
-                                    <!-- GridViewRowPresenter 负责显示列内容，保持不变 -->
+                                        Background="Transparent"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        Padding="{TemplateBinding Padding}">
                                     <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                                 </Border>
 
@@ -427,5 +491,23 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
+            <!-- 3b. 加载指示器 -->
+            <!-- 它只在 IsLoading 为 True 时可见 -->
+            <ProgressBar IsIndeterminate="True" 
+                         Width="50" Height="50"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center">
+                <ProgressBar.Style>
+                    <Style TargetType="ProgressBar">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ProgressBar.Style>
+            </ProgressBar>
+        </Grid>
     </Grid>
 </UserControl>

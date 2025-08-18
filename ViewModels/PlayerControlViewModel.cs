@@ -1,47 +1,130 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NetEase.Models;
 using NetEase.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Windows.Input;
 
 namespace NetEase.ViewModels
 {
     public partial class PlayerControlViewModel : BaseViewModel
     {
-        // 使用 [ObservableProperty] 自动生成属性和通知
+        private readonly PlayerService _playerService;
+
+        // --- 属性 ---
         [ObservableProperty]
         private Song _currentSong;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(VolumeIcon))]
+        private double _playbackVolume;
+
+        [ObservableProperty]
+        private string _playPauseIcon;
 
         [ObservableProperty]
         private double _currentProgress;
 
         [ObservableProperty]
-        private string _currentTime="00:00";
+        private string _currentTime;
 
         [ObservableProperty]
-        private string _totalTime = "00:00"; // 歌曲总时长
+        private string _totalTime;
 
-        [ObservableProperty]
-        private bool _isPlaying;
-
-        // 关键标志位：表示用户是否正在拖动滑块
         public bool IsDragging { get; set; } = false;
+        private double _lastPlaybackVolume;
 
-        // 当 CurrentProgress 属性值改变时，CommunityToolkit 会自动调用此方法
-        // 我们利用它来在用户拖动滑块时发送“寻道”请求
-        partial void OnCurrentProgressChanged(double value)
+        public string VolumeIcon
         {
-            // 仅当是用户拖动行为导致的值变化时，才发送寻道请求
-            if (IsDragging)
+            get
             {
-                PlayerService.Instance.Seek(value);
+                if (PlaybackVolume == 0) return "\uE992";
+                if (PlaybackVolume < 0.33) return "\uE993";
+                if (PlaybackVolume < 0.66) return "\uE994";
+                return "\uE995";
             }
         }
 
-        // --- 新增：当新歌曲开始播放时，重置状态的方法 ---
+        // --- 命令 ---
+        public ICommand MuteCommand { get; }
+        public ICommand TogglePlayPauseCommand { get; }
+        public ICommand NextSongCommand { get; }
+        public ICommand PreviousSongCommand { get; }
+
+        public PlayerControlViewModel(PlayerService playerService)
+        {
+            _playerService = playerService;
+
+            // 1. 初始化所有命令，全部使用注入的 _playerService 实例
+            MuteCommand = new RelayCommand(ToggleMute);
+            TogglePlayPauseCommand = new RelayCommand(_playerService.TogglePlayPause);
+            NextSongCommand = new RelayCommand(_playerService.PlayNextSong);
+            PreviousSongCommand = new RelayCommand(_playerService.PlayPreviousSong);
+
+            // 2. 初始化所有状态
+            _playbackVolume = 1.0;
+            _lastPlaybackVolume = 1.0;
+
+            // 3. 订阅服务事件
+            _playerService.PlaybackStatusChanged += OnPlaybackStatusChanged;
+            _playerService.CurrentSongChanged += OnCurrentSongChanged; // **添加了对 CurrentSongChanged 的订阅**
+            _playerService.ProgressUpdated += OnProgressUpdated; // 新增订阅
+            // 4. 初始化UI状态
+            ResetForNewSong();
+            OnPlaybackStatusChanged(); // 设置正确的初始图标
+        }
+        // 新增事件处理器
+        private void OnProgressUpdated(TimeSpan currentTime, TimeSpan totalTime)
+        {
+            if (!IsDragging)
+            {
+                CurrentProgress = currentTime.TotalSeconds / totalTime.TotalSeconds * 100;
+                CurrentTime = currentTime.ToString(@"mm\:ss");
+                TotalTime = totalTime.ToString(@"mm\:ss");
+            }
+        }
+        // --- 事件处理器 ---
+
+        partial void OnCurrentSongChanged(Song newSong)
+        {
+            CurrentSong = newSong;
+        }
+
+
+
+        private void OnPlaybackStatusChanged()
+        {
+            // 关键修正：使用注入的 _playerService 实例来获取状态
+            switch (_playerService.CurrentStatus)
+            {
+                case PlaybackStatus.Playing:
+                    PlayPauseIcon = "\uE769"; // Pause icon
+                    break;
+                case PlaybackStatus.Paused:
+                case PlaybackStatus.Stopped:
+                    PlayPauseIcon = "\uE768"; // Play icon
+                    break;
+            }
+        }
+
+        // --- 由 CommunityToolkit.Mvvm 自动调用的 Partial 方法 ---
+
+        partial void OnPlaybackVolumeChanged(double value)
+        {
+            // 关键修正：使用注入的 _playerService 实例
+            _playerService.SetVolume(value);
+        }
+
+        partial void OnCurrentProgressChanged(double value)
+        {
+            if (IsDragging)
+            {
+                // 关键修正：使用注入的 _playerService 实例
+                _playerService.Seek(value);
+            }
+        }
+
+        // --- 公共方法 ---
         public void ResetForNewSong()
         {
             CurrentProgress = 0;
@@ -49,20 +132,18 @@ namespace NetEase.ViewModels
             TotalTime = "00:00";
         }
 
-        public PlayerControlViewModel()
+        // --- 私有命令逻辑 ---
+        private void ToggleMute()
         {
-            // 初始化示例数据
-            CurrentSong = new Song
+            if (PlaybackVolume > 0)
             {
-                CoverImageUrl = "E:\\Computer\\VS\\NetEase\\CoverImage\\36.jpg",
-                Title = "Call of Silence",
-                Artist = "Clear Sky",
-                Duration = "05:10"
-            };
-
-            CurrentProgress = 30; // 假设进度为30%
-            CurrentTime = "00:00 / 05:10";
-            IsPlaying = true;
+                _lastPlaybackVolume = PlaybackVolume;
+                PlaybackVolume = 0;
+            }
+            else
+            {
+                PlaybackVolume = _lastPlaybackVolume > 0 ? _lastPlaybackVolume : 1.0;
+            }
         }
     }
 }
