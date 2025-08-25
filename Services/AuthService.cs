@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace NetEase.Services
 {
@@ -46,7 +47,7 @@ namespace NetEase.Services
         public async Task<(bool Success, LoginResponse Response, string ErrorMessage)> LoginAsync(string email, string password)
         {
             var loginData = new { Email = email, Password = password };
-
+            Debug.WriteLine($"{loginData.Email},{loginData.Password}");
             try
             {
                 var response = await _httpClient.PostAsJsonAsync("api/auth/login", loginData);
@@ -56,9 +57,6 @@ namespace NetEase.Services
                     var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
                     if (!string.IsNullOrEmpty(loginResponse?.Token))
                     {
-                        // 关键修改：直接更新注入的 HttpClient 实例的默认请求头。
-                        // 这个 HttpClient 实例是在 App.xaml.cs 中注册为单例的，
-                        // 所以这个设置将对整个应用程序的后续请求生效。
                         _httpClient.DefaultRequestHeaders.Authorization =
                             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginResponse.Token);
                     }
@@ -98,40 +96,6 @@ namespace NetEase.Services
             }
             return errorMessage;
         }
-        public async Task<List<PlaylistSummaryDto>> GetMyPlaylistsAsync()
-        {
-            try
-            {
-                // 我们先获取 HttpResponseMessage，以便可以检查状态码
-                var response = await _httpClient.GetAsync("api/playlists/my");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    // 如果成功 (2xx)，则反序列化内容
-                    var playlists = await response.Content.ReadFromJsonAsync<List<PlaylistSummaryDto>>();
-                    return playlists ?? new List<PlaylistSummaryDto>();
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    // 如果是 401 未授权，说明 Token 无效或已过期
-                    Debug.WriteLine("Unauthorized access to get playlists. Token might be invalid or expired.");
-                    // 在真实应用中，这里可能会触发一个全局事件，要求用户重新登录
-                }
-                else
-                {
-                    // 其他 HTTP 错误
-                    Debug.WriteLine($"Failed to get playlists. Status code: {response.StatusCode}");
-                }
-
-                // 对于所有失败情况，都返回一个空列表
-                return new List<PlaylistSummaryDto>();
-            }
-            catch (HttpRequestException ex)
-            {
-                // 网络连接层面的错误
-                Debug.WriteLine($"Network error while getting playlists: {ex.Message}");
-                return new List<PlaylistSummaryDto>();
-            }
-        }
+       
     }
 }

@@ -66,53 +66,66 @@
             </Setter>
         </Style>
 
-        <Style x:Key="InputTextBoxWithPlaceholderStyle" TargetType="TextBox">
+        <Style x:Key="InputTextBoxWithPlaceholderStyle"
+                TargetType="TextBox">
             <!-- 您可以继承已有的 TextBox 样式 -->
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#333"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="CaretBrush" Value="Black"/>
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Foreground"
+                    Value="#333"/>
+            <Setter Property="FontSize"
+                    Value="14"/>
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+            <Setter Property="CaretBrush"
+                    Value="Black"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
                         <Grid>
                             <!-- 1. 背景和边框 -->
                             <Border x:Name="border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            SnapsToDevicePixels="True"/>
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    SnapsToDevicePixels="True"/>
 
                             <!-- 2. 占位符文本 (TextBlock) -->
                             <!-- IsHitTestVisible="False" 确保它可以被点击穿透 -->
                             <TextBlock x:Name="PlaceholderText"
-                               Text="{TemplateBinding Tag}"
-                               Foreground="#A0A0A0" 
-                               FontSize="{TemplateBinding FontSize}"
-                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                               Padding="{TemplateBinding Padding}"
-                               Margin="5,0,0,0"
-                               IsHitTestVisible="False"
-                               Visibility="Collapsed"/> 
-                    
-                    <!-- 3. 真正的文本输入区域 -->
-                    <ScrollViewer x:Name="PART_ContentHost"
-                                  Focusable="False"
-                                  HorizontalScrollBarVisibility="Hidden"
-                                  VerticalScrollBarVisibility="Hidden"/>
-                </Grid>
+                                       Text="{TemplateBinding Tag}"
+                                       Foreground="#A0A0A0"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                       Padding="{TemplateBinding Padding}"
+                                       Margin="5,0,0,0"
+                                       IsHitTestVisible="False"
+                                       Visibility="Collapsed"/>
+
+                            <!-- 3. 真正的文本输入区域 -->
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"/>
+                        </Grid>
 
                         <ControlTemplate.Triggers>
                             <!-- 当 TextBox 的 Text 为空时，显示占位符 -->
-                            <Trigger Property="Text" Value="">
-                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible"/>
+                            <Trigger Property="Text"
+                                    Value="">
+                                <Setter TargetName="PlaceholderText"
+                                        Property="Visibility"
+                                        Value="Visible"/>
                             </Trigger>
                             <!-- 当 TextBox 获得焦点时，即使 Text 为空，也隐藏占位符 -->
-                            <Trigger Property="IsFocused" Value="True">
-                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed"/>
+                            <Trigger Property="IsFocused"
+                                    Value="True">
+                                <Setter TargetName="PlaceholderText"
+                                        Property="Visibility"
+                                        Value="Collapsed"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -122,28 +135,28 @@
 
         <Style x:Key="ClickBtn"
                TargetType="Button">
-                    <Setter Property="Background"
-                            Value="#007BFF"/>
-                    <Setter Property="Foreground"
-                            Value="White"/>
-                    <Setter Property="BorderThickness"
-                            Value="0"/>
-                    <Setter Property="Padding"
-                            Value="12,12"/>
-                    <Setter Property="Cursor"
-                            Value="Hand"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}"
-                                        CornerRadius="8">
-                                    <!-- ContentPresenter 用于展示按钮的 Content（文字或其他内容） -->
-                                    <ContentPresenter HorizontalAlignment="Center" 
-                                                      VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
+            <Setter Property="Background"
+                    Value="#007BFF"/>
+            <Setter Property="Foreground"
+                    Value="White"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Padding"
+                    Value="12,12"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8">
+                            <!-- ContentPresenter 用于展示按钮的 Content（文字或其他内容） -->
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
@@ -246,18 +259,27 @@
                 <StackPanel x:Name="LoginPanel">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Visible"/>
+                            <Setter Property="Visibility"
+                                    Value="Visible"/>
                             <Style.Triggers>
                                 <!-- 当 IsRegistering 为 True 时，隐藏登录视图 -->
-                                <DataTrigger Binding="{Binding IsRegistering}" Value="True">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                <DataTrigger Binding="{Binding IsRegistering}"
+                                        Value="True">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
 
-                    <TextBlock Text="Login" FontSize="32" FontWeight="Bold" Foreground="#333"/>
-                    <TextBlock Text="Please enter your details to login" FontSize="14" Foreground="Gray" Margin="0,5,0,20"/>
+                    <TextBlock Text="Login"
+                            FontSize="32"
+                            FontWeight="Bold"
+                            Foreground="#333"/>
+                    <TextBlock Text="Please enter your details to login"
+                            FontSize="14"
+                            Foreground="Gray"
+                            Margin="0,5,0,20"/>
 
                     <Border Style="{StaticResource SignUpInputBoxStyle}">
                         <StackPanel Orientation="Horizontal">
@@ -265,8 +287,9 @@
                                        FontFamily="Segoe MDL2 Assets"
                                        Foreground="Gray"
                                        VerticalAlignment="Center"/>
-                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"  
-                                     Text="{Binding Email}" Tag="Email"/>
+                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
+                                     Text="{Binding Email}"
+                                    Tag="Email"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource SignUpInputBoxStyle}">
@@ -275,21 +298,54 @@
                                        FontFamily="Segoe MDL2 Assets"
                                        Foreground="Gray"
                                        VerticalAlignment="Center"/>
-                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}" 
-                                     Text="{Binding Password}" Tag="Password"/>
+                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
+                                     Text="{Binding Password}"
+                                    Tag="Password"/>
                         </StackPanel>
-                </Border>
+                    </Border>
 
-                    <Button Content="Login" Command="{Binding LoginCommand}" 
+                    <Button Content="Login"
+                            Command="{Binding LoginCommand}"
                             Style="{StaticResource ClickBtn}"
                             HorizontalAlignment="Right"
                             Margin="0,20,0,0"
                             Width="70"
                             Height="30"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,40,0,0">
-                        <TextBlock Text="Don't have an account?" Foreground="Gray"/>
+                    
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- "记住我" CheckBox -->
+                        <CheckBox Grid.Column="0" 
+                                  Content="Remember me"
+                                  IsChecked="{Binding RememberUsername}"
+                                  VerticalAlignment="Center"/>
+
+                        <!-- 忘记密码链接 -->
+                        <Button Grid.Column="1"
+                                Content="Forgot password?"
+                                HorizontalAlignment="Right"
+                                Foreground="#007BFF"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"/>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Margin="0,40,0,0">
+                        <TextBlock Text="Don't have an account?"
+                                Foreground="Gray"/>
                         <!-- 点击此按钮切换到注册视图 -->
-                        <Button Content="Sign Up" Command="{Binding ShowRegisterViewCommand}" Foreground="#007BFF" Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="5,0,0,0"/>
+                        <Button Content="Sign Up"
+                                Command="{Binding ShowRegisterViewCommand}"
+                                Foreground="#007BFF"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Margin="5,0,0,0"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -297,33 +353,36 @@
                 <StackPanel x:Name="RegisterPanel">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Setter Property="Visibility"
+                                    Value="Collapsed"/>
                             <Style.Triggers>
                                 <!-- 当 IsRegistering 为 True 时，显示注册视图 -->
-                                <DataTrigger Binding="{Binding IsRegistering}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
+                                <DataTrigger Binding="{Binding IsRegistering}"
+                                        Value="True">
+                                    <Setter Property="Visibility"
+                                            Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </StackPanel.Style> 
+                    </StackPanel.Style>
 
                     <TextBlock Text="Sign Up"
-                           FontSize="32"
-                           FontWeight="Bold"
-                           Foreground="#333"/>
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="#333"/>
                     <TextBlock Text="Please fill your information below"
-                           FontSize="14"
-                           Foreground="Gray"
-                           Margin="0,5,0,20"/>
+                               FontSize="14"
+                               Foreground="Gray"
+                               Margin="0,5,0,20"/>
 
                     <!-- Name Input -->
                     <Border Style="{StaticResource SignUpInputBoxStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE77B;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   Foreground="Gray"
-                                   VerticalAlignment="Center"/>
-                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}" 
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Foreground="Gray"
+                                       VerticalAlignment="Center"/>
+                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
                                      Text="{Binding Name}"
                                      Margin="10,0,0,0"
                                      Width="250"
@@ -337,19 +396,19 @@
                             BorderThickness="1.5">
                         <StackPanel>
                             <TextBlock Text="Mobile number"
-                                   FontSize="12"
-                                   Foreground="#007BFF"
-                                   Margin="0,0,0,5"/>
+                                       FontSize="12"
+                                       Foreground="#007BFF"
+                                       Margin="0,0,0,5"/>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="&#xE756;"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       Foreground="#333"
-                                       VerticalAlignment="Center"/>
+                                           FontFamily="Segoe MDL2 Assets"
+                                           Foreground="#333"
+                                           VerticalAlignment="Center"/>
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                     Text="{Binding MobileNumber}"
-                                     Margin="10,0,0,0"
-                                     Width="250"
-                                     Tag="9456784567"/>
+                                         Text="{Binding MobileNumber}"
+                                         Margin="10,0,0,0"
+                                         Width="250"
+                                         Tag="9456784567"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -358,10 +417,10 @@
                     <Border Style="{StaticResource SignUpInputBoxStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE715;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   Foreground="Gray"
-                                   VerticalAlignment="Center"/>
-                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}" 
+                                       FontFamily="Segoe MDL2 Assets"
+                                       Foreground="Gray"
+                                       VerticalAlignment="Center"/>
+                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
                                      Text="{Binding Email}"
                                      Margin="10,0,0,0"
                                      Width="250"
@@ -374,14 +433,14 @@
                                        FontFamily="Segoe MDL2 Assets"
                                        Foreground="Gray"
                                        VerticalAlignment="Center"/>
-                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}" 
+                            <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
                                      Text="{Binding Password}"
                                      Margin="10,0,0,0"
                                      Width="250"/>
                         </StackPanel>
                     </Border>
                     <!-- 用 Grid 替代 StackPanel，实现两端对齐 -->
-                    <Grid HorizontalAlignment="Stretch" 
+                    <Grid HorizontalAlignment="Stretch"
                           Margin="0,0,0,0"
                           ShowGridLines="True">
                         <!-- 定义两列：第一列居左，第二列居右 -->
@@ -395,8 +454,8 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- 左侧按钮（放在第0列） -->
-                        <Button Content="Back" 
-                                Command="{Binding ShowLoginViewCommand}" 
+                        <Button Content="Back"
+                                Command="{Binding ShowLoginViewCommand}"
                                 Style="{StaticResource ClickBtn}"
                                 Margin="0,20,0,0"
                                 Width="70"
@@ -405,7 +464,7 @@
                         <!-- 指定列索引 -->
 
                         <!-- 右侧按钮（放在第2列） -->
-                        <Button Content="Register" 
+                        <Button Content="Register"
                                 Command="{Binding RegisterCommand}"
                                 Style="{StaticResource ClickBtn}"
                                 Margin="0,20,0,0"
@@ -416,19 +475,19 @@
                     </Grid>
                     <!-- Login Link -->
                     <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Center"
-                            Margin="0,40,0,0">
+                                HorizontalAlignment="Center"
+                                Margin="0,40,0,0">
                         <TextBlock Text="Already have an account"
                                    Foreground="Gray"/>
                         <Button Content="Login to your account"
-                            Foreground="#007BFF"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Cursor="Hand"
-                            Margin="5,0,0,0"/>
+                                Foreground="#007BFF"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Margin="5,0,0,0"/>
                     </StackPanel>
                 </StackPanel>
-                </Grid>
             </Grid>
         </Grid>
+    </Grid>
 </UserControl>

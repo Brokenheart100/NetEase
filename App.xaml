@@ -3,6 +3,495 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:NetEase">
     <Application.Resources>
-         
+        <!--  ScrollViewer 滚动条  -->
+        <!-- 
+    定义一个名为 "ScrollBarThumb" 的样式，目标类型是 Thumb 控件（滚动条滑块）
+    Thumb 是 WPF 中滚动条等控件里用于拖动交互的滑块部分，这里通过样式自定义其外观和行为 
+-->
+        <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
+            <!-- 
+        设置 OverridesDefaultStyle 属性为 true，
+        表示该样式会覆盖 Thumb 控件默认的样式，使用这里自定义的外观和行为 
+    -->
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <!-- 
+        设置 IsTabStop 属性为 false，
+        这样 Thumb 控件就不会出现在 Tab 键的导航序列中，按 Tab 键时不会聚焦到它上面 
+    -->
+            <Setter Property="IsTabStop" Value="false" />
+            <!-- 
+        开始设置 Thumb 控件的模板（Template），模板决定了控件的可视化结构和外观 
+    -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <!-- 
+                定义具体的控件模板，目标类型同样是 Thumb，
+                意味着这个模板会应用到 Thumb 控件上，替换其默认显示 
+            -->
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <!-- 
+                    使用 Grid 作为布局容器，这里 Grid 只有一个单元格，
+                    用于承载后续的可视化元素（这里是 Rectangle 矩形） 
+                -->
+                        <Grid>
+                            <!-- 
+                        绘制一个矩形，作为 Thumb（滚动条滑块）的可视化呈现
+                        Fill 属性设置填充颜色为 #CFCFD1（一种浅灰色）
+                        RadiusX 和 RadiusY 设置矩形的圆角半径为 3，让滑块呈现圆角效果 
+                    -->
+                            <Rectangle
+                                Fill="#CFCFD1"
+                                RadiusX="3"
+                                RadiusY="3" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 
+    定义一个名为 "HorizontalScrollBarPageButton" 的样式，目标类型是 RepeatButton（重复按钮）
+    此样式专门用于水平滚动条中的"页按钮"（即点击后滚动一整页内容的按钮，通常位于滑块两侧）
+-->
+        <Style x:Key="HorizontalScrollBarPageButton" TargetType="{x:Type RepeatButton}">
+            <!-- 
+        设置 OverridesDefaultStyle 为 true，
+        表示完全覆盖 RepeatButton 的默认样式，使用当前自定义样式
+    -->
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+
+            <!-- 
+        设置背景为透明（Transparent），
+        使按钮默认状态下不显示明显背景，仅在交互时可能通过其他样式触发变化
+    -->
+            <Setter Property="Background" Value="Transparent" />
+
+            <!-- 
+        设置 Focusable 为 false，
+        表示该按钮不接受键盘焦点，避免按 Tab 键时聚焦到这里
+    -->
+            <Setter Property="Focusable" Value="false" />
+
+            <!-- 
+        设置 IsTabStop 为 false，
+        确保按钮不会出现在 Tab 键导航序列中，提升键盘导航效率
+    -->
+            <Setter Property="IsTabStop" Value="false" />
+
+            <!-- 
+        设置初始不透明度（Opacity）为 0.2，
+        使按钮默认状态下半透明，减少视觉干扰
+    -->
+            <Setter Property="Opacity" Value="0.2" />
+
+            <!-- 
+        定义按钮的可视化模板（Template），
+        决定按钮的外观结构
+    -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <!-- 
+                控件模板的目标类型为 RepeatButton，
+                用于渲染按钮的具体外观
+            -->
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <!-- 
+                    使用矩形作为按钮的视觉载体：
+                    - Width 和 Height 绑定到按钮自身的宽高（通过 TemplateBinding 继承）
+                    - Fill 绑定到按钮的 Background 属性（即上面设置的透明）
+                    这种设计使按钮呈现为一个简单的矩形区域，点击时会触发滚动页行为
+                -->
+                        <Rectangle
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
+                            Fill="{TemplateBinding Background}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="VerticalScrollBarPageButton" TargetType="{x:Type RepeatButton}">
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Focusable" Value="false" />
+            <Setter Property="IsTabStop" Value="false" />
+            <Setter Property="Opacity" Value="0.2" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Rectangle
+                        Width="{TemplateBinding Width}"
+                        Height="{TemplateBinding Height}"
+                        Fill="{TemplateBinding Background}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!--  上下按钮  -->
+        <Style x:Key="VerticalScrollBarPageButton2" TargetType="{x:Type RepeatButton}">
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Focusable" Value="false" />
+            <Setter Property="IsTabStop" Value="false" />
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Rectangle
+                        Width="0"
+                        Height="0"
+                        Fill="#90000000" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 
+    定义一个名为for_scrollbar" 的滚动条样式，目标类型为 ScrollBar（滚动条控件）
+    该样式同时支持垂直和水平两种方向的滚动条，通过触发器动态切换布局
+-->
+        <Style x:Key="for_scrollbar" TargetType="{x:Type ScrollBar}">
+            <!-- 
+        禁用触摸设备上的"按住并保持"功能，避免滚动条触发额外的触摸交互
+    -->
+            <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false" />
+            <!-- 
+        禁用触摸设备上的"轻扫"功能，防止滑动手势对滚动条造成干扰
+    -->
+            <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
+            <!-- 
+        设置滚动条默认背景为透明（主要针对垂直滚动条）
+    -->
+            <Setter Property="Background" Value="Transparent" />
+            <!-- 
+        设置垂直滚动条的外边距：上0、右1、下6、左1（调整与周围元素的间距）
+    -->
+            <Setter Property="Margin" Value="0,1,1,6" />
+            <!-- 
+        垂直滚动条的宽度固定为6px（滑块轨道的粗细）
+    -->
+            <Setter Property="Width" Value="6" />
+            <!-- 
+        垂直滚动条的最小宽度为6px，防止被压缩变形
+    -->
+            <Setter Property="MinWidth" Value="6" />
+            <!-- 
+        滚动条默认不透明度为1（完全不透明）
+    -->
+            <Setter Property="Opacity" Value="1" />
+
+            <!-- 
+        定义滚动条的默认模板（垂直方向）
+    -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <!-- 
+                    网格容器，用于布局垂直滚动条的各个部分
+                    UseLayoutRounding="true" 确保元素边缘像素对齐，避免模糊
+                -->
+                        <Grid x:Name="Bg" UseLayoutRounding="true">
+                            <!-- 
+                        垂直滚动条分为三行：
+                        1. 顶部翻页按钮（PageUp）
+                        2. 中间滑块轨道区域
+                        3. 底部翻页按钮（PageDown）
+                    -->
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <!-- 顶部按钮行（高度自适应内容） -->
+                                <RowDefinition Height="*" />
+                                <!-- 中间轨道行（占剩余空间） -->
+                                <RowDefinition Height="auto" />
+                                <!-- 底部按钮行（高度自适应内容） -->
+                            </Grid.RowDefinitions>
+
+                            <!-- 
+                        顶部翻页按钮：点击触发 PageUp 命令（向上滚动一页）
+                        应用 VerticalScrollBarPageButton2 样式
+                    -->
+                            <RepeatButton
+                        Grid.Row="0"
+                        Command="{x:Static ScrollBar.PageUpCommand}"
+                        Style="{StaticResource VerticalScrollBarPageButton2}" />
+
+                            <!-- 
+                        滚动轨道（中间核心区域）：包含滑块和轨道上的翻页按钮
+                        IsDirectionReversed="true"：垂直滚动条滑块向下拖动时内容向下滚动（符合常规交互）
+                        IsEnabled：当鼠标悬停时才启用轨道交互
+                    -->
+                            <Track
+                        x:Name="PART_Track" 
+                                Grid.Row="1"
+                        IsDirectionReversed="true"
+                        IsEnabled="{TemplateBinding IsMouseOver}">
+                                <!-- 
+                            轨道上方的翻页按钮：点击向上滚动一页
+                            应用 VerticalScrollBarPageButton 样式
+                        -->
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{StaticResource VerticalScrollBarPageButton}" />
+                                </Track.DecreaseRepeatButton>
+                                <!-- 
+                            轨道下方的翻页按钮：点击向下滚动一页
+                            应用 VerticalScrollBarPageButton 样式
+                        -->
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Style="{StaticResource VerticalScrollBarPageButton}" />
+                                </Track.IncreaseRepeatButton>
+                                <!-- 
+                            滚动滑块（Thumb）：可拖动的部分，用于精确控制滚动位置
+                            应用自定义的 ScrollBarThumb 样式
+                        -->
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource ScrollBarThumb}" />
+                                </Track.Thumb>
+                            </Track>
+
+                            <!-- 
+                        底部翻页按钮：点击触发 PageDown 命令（向下滚动一页）
+                        应用 VerticalScrollBarPageButton2 样式
+                    -->
+                            <RepeatButton
+                        Grid.Row="2"
+                        Command="{x:Static ScrollBar.PageDownCommand}"
+                        Style="{StaticResource VerticalScrollBarPageButton2}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <!-- 
+        样式触发器：当滚动条方向为水平时，修改样式属性
+    -->
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <!-- 水平滚动条背景设为透明 -->
+                    <Setter Property="Background" Value="Transparent" />
+                    <!-- 水平滚动条的外边距：上1、右6、下1、左1 -->
+                    <Setter Property="Margin" Value="1,0,6,1" />
+                    <!-- 水平滚动条的高度固定为5px -->
+                    <Setter Property="Height" Value="5" />
+                    <!-- 水平滚动条的最小高度为5px -->
+                    <Setter Property="MinHeight" Value="5" />
+                    <!-- 水平滚动条宽度自动适应父容器 -->
+                    <Setter Property="Width" Value="Auto" />
+                    <!-- 水平滚动条不透明度为1 -->
+                    <Setter Property="Opacity" Value="1" />
+
+                    <!-- 
+                水平滚动条的模板（覆盖默认的垂直模板）
+            -->
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid x:Name="Bg" UseLayoutRounding="true">
+                                    <!-- 
+                                水平滚动轨道：包含滑块和左右翻页按钮
+                            -->
+                                    <Track x:Name="PART_Track" IsEnabled="{TemplateBinding IsMouseOver}">
+                                        <!-- 
+                                    轨道左侧的翻页按钮：点击向左滚动一页
+                                    应用 HorizontalScrollBarPageButton 样式
+                                -->
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="{x:Static ScrollBar.PageLeftCommand}" Style="{StaticResource HorizontalScrollBarPageButton}" />
+                                        </Track.DecreaseRepeatButton>
+                                        <!-- 
+                                    轨道右侧的翻页按钮：点击向右滚动一页
+                                    应用 HorizontalScrollBarPageButton 样式
+                                -->
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="{x:Static ScrollBar.PageRightCommand}" Style="{StaticResource HorizontalScrollBarPageButton}" />
+                                        </Track.IncreaseRepeatButton>
+                                        <!-- 
+                                    水平滚动滑块：应用自定义的 ScrollBarThumb 样式
+                                -->
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource ScrollBarThumb}" />
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- 
+    定义一个名为 "for_scrollviewer" 的样式，目标类型为 ScrollViewer（滚动视图控件）
+    该样式用于自定义 ScrollViewer 的外观和交互效果，包括边框、滚动条样式及动画
+-->
+        <Style x:Key="for_scrollviewer" TargetType="{x:Type ScrollViewer}">
+            <!-- 
+        设置 ScrollViewer 的边框颜色为浅灰色（LightGray）
+    -->
+            <Setter Property="BorderBrush" Value="LightGray" />
+            <!-- 
+        设置边框厚度为 0（即隐藏边框）
+    -->
+            <Setter Property="BorderThickness" Value="0" />
+
+
+            <!-- 
+        定义 ScrollViewer 的模板（可视化结构）
+    -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <!-- 
+                    外层边框：用于呈现 ScrollViewer 的边框样式
+                    BorderBrush 和 BorderThickness 绑定到 ScrollViewer 自身的对应属性
+                    UseLayoutRounding="True" 确保元素边缘像素对齐，避免模糊
+                -->
+                        <Border
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    UseLayoutRounding="True">
+                            <!-- 
+                        网格容器：用于布局滚动内容区域和滚动条
+                        背景色绑定到 ScrollViewer 的 Background 属性
+                    -->
+                            <Grid Background="{TemplateBinding Background}">
+                                <!-- 
+                            滚动内容呈现器：负责显示 ScrollViewer 中的实际内容
+                            Margin 绑定到 ScrollViewer 的 Padding 属性（内容与边框的间距）
+                            ContentTemplate 绑定到内容模板（用于自定义内容呈现方式）
+                            Cursor 绑定到鼠标指针样式
+                        -->
+                                <ScrollContentPresenter
+                            Margin="{TemplateBinding Padding}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Cursor="{TemplateBinding Cursor}" />
+
+                                <!-- 
+                            垂直滚动条：用于垂直方向滚动
+                            x:Name="PART_VerticalScrollBar"：必需的命名，ScrollViewer 内部逻辑依赖此名称
+                            HorizontalAlignment="Right"：停靠在右侧
+                            Maximum：绑定到可滚动高度（内容总高度 - 可视区域高度）
+                            Orientation="Vertical"：垂直方向
+                            Style：应用之前定义的 for_scrollbar 样式
+                            ViewportSize：绑定到可视区域高度（可见内容的高度）
+                            Visibility：绑定到计算后的可见性（内容超出可视区域时显示）
+                            Value：绑定到垂直偏移量（当前滚动的位置）
+                        -->
+                                <ScrollBar
+                            x:Name="PART_VerticalScrollBar"
+                            HorizontalAlignment="Right"
+                            Maximum="{TemplateBinding ScrollableHeight}"
+                            Orientation="Vertical"
+                            Style="{StaticResource for_scrollbar}"
+                            ViewportSize="{TemplateBinding ViewportHeight}"
+                            Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                            Value="{TemplateBinding VerticalOffset}" />
+
+                                <!-- 
+                            水平滚动条：用于水平方向滚动
+                            x:Name="PART_HorizontalScrollBar"：必需的命名，ScrollViewer 内部逻辑依赖此名称
+                            VerticalAlignment="Bottom"：停靠在底部
+                            Maximum：绑定到可滚动宽度（内容总宽度 - 可视区域宽度）
+                            Orientation="Horizontal"：水平方向
+                            Style：应用之前定义的 for_scrollbar 样式
+                            ViewportSize：绑定到可视区域宽度（可见内容的宽度）
+                            Visibility：绑定到计算后的可见性（内容超出可视区域时显示）
+                            Value：绑定到水平偏移量（当前滚动的位置）
+                        -->
+                                <ScrollBar
+                            x:Name="PART_HorizontalScrollBar"
+                            VerticalAlignment="Bottom"
+                            Maximum="{TemplateBinding ScrollableWidth}"
+                            Orientation="Horizontal"
+                            Style="{StaticResource for_scrollbar}"
+                            ViewportSize="{TemplateBinding ViewportWidth}"
+                            Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
+                            Value="{TemplateBinding HorizontalOffset}" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 
+                    控件模板触发器：定义交互时的动画效果
+                -->
+                        <ControlTemplate.Triggers>
+                            <!-- 
+                        当滚动发生时（ScrollChanged 事件）：
+                        垂直滚动条在 0.2 秒内淡入（不透明度变为 1）
+                    -->
+                            <EventTrigger RoutedEvent="ScrollChanged">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                    Storyboard.TargetName="PART_VerticalScrollBar"
+                                    Storyboard.TargetProperty="Opacity"
+                                    To="1"
+                                    Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <!-- 
+                        当鼠标进入垂直滚动条时（MouseEnter 事件）：
+                        垂直滚动条在 0.2 秒内淡入（不透明度变为 1）
+                    -->
+                            <EventTrigger RoutedEvent="MouseEnter" SourceName="PART_VerticalScrollBar">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                    Storyboard.TargetName="PART_VerticalScrollBar"
+                                    Storyboard.TargetProperty="Opacity"
+                                    To="1"
+                                    Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <!-- 
+                        当鼠标离开垂直滚动条时（MouseLeave 事件）：
+                        垂直滚动条在 0.2 秒内半透明化（不透明度变为 0.5）
+                    -->
+                            <EventTrigger RoutedEvent="MouseLeave" SourceName="PART_VerticalScrollBar">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                    Storyboard.TargetName="PART_VerticalScrollBar"
+                                    Storyboard.TargetProperty="Opacity"
+                                    To="0.5"
+                                    Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <!-- 
+                        当鼠标进入水平滚动条时（MouseEnter 事件）：
+                        水平滚动条在 0.2 秒内淡入（不透明度变为 1）
+                    -->
+                            <EventTrigger RoutedEvent="MouseEnter" SourceName="PART_HorizontalScrollBar">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                    Storyboard.TargetName="PART_HorizontalScrollBar"
+                                    Storyboard.TargetProperty="Opacity"
+                                    To="1"
+                                    Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <!-- 
+                        当鼠标离开水平滚动条时（MouseLeave 事件）：
+                        水平滚动条在 0.2 秒内半透明化（不透明度变为 0.5）
+                    -->
+                            <EventTrigger RoutedEvent="MouseLeave" SourceName="PART_HorizontalScrollBar">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                    Storyboard.TargetName="PART_HorizontalScrollBar"
+                                    Storyboard.TargetProperty="Opacity"
+                                    To="0.5"
+                                    Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

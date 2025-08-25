@@ -1,0 +1,161 @@
+﻿<UserControl x:Class="NetEase.Views.Pages.FriendsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:NetEase.Views.Pages"
+             xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
+             xmlns:converters="clr-namespace:NetEase.Converters"
+             xmlns:components="clr-namespace:NetEase.Views.Components"
+             xmlns:pages="clr-namespace:NetEase.Views.Pages"
+             d:DataContext="{d:DesignInstance Type=viewmodels:FriendsViewModel}"
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <!-- 为子视图定义 DataTemplate -->
+        <DataTemplate DataType="{x:Type viewmodels:ContactsViewModel}">
+            <components:ContactsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:SessionsViewModel}">
+            <components:SessionsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:ChatViewModel}">
+            <pages:ChatView/>
+        </DataTemplate>
+        <Style x:Key="FriendTreeViewItemStyle"
+               TargetType="TreeViewItem">
+            <Setter Property="Padding"
+                    Value="5,8"/>
+            <Setter Property="Foreground"
+                    Value="#555"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected"
+                         Value="True">
+                    <Setter Property="Background"
+                            Value="#E8E8E8"/>
+                    <Setter Property="Foreground"
+                            Value="Black"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- ================== 1. 自定义 TabItem 样式 ================== -->
+        <Style x:Key="CustomTabItemStyle"
+               TargetType="{x:Type TabItem}">
+            <Setter Property="Width"
+                    Value="70"/>
+            <Setter Property="Foreground"
+                    Value="#888888"/>
+            <Setter Property="FontSize"
+                    Value="15"/>
+            <Setter Property="Padding"
+                    Value="10,10,10,10"/>
+            <Setter Property="Margin"
+                    Value="0,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Grid HorizontalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <!-- 内容行 -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- 指示器行 -->
+                            </Grid.RowDefinitions>
+
+                            <!-- 头部内容 -->
+                            <ContentPresenter x:Name="ContentSite"
+                                              Grid.Row="0"
+                                              ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+
+                            <!-- 选中时的红色下划线指示器 -->
+                            <Border x:Name="SelectionIndicator"
+                                    Grid.Row="1"
+                                    Background="#EC4141"
+                                    Height="3"
+                                    Margin="0,0,0,0"
+                                    Visibility="Collapsed"/>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected"
+                                     Value="True">
+                                <Setter Property="Foreground"
+                                        Value="White"/>
+                                <Setter Property="FontWeight"
+                                        Value="Bold"/>
+                                <Setter TargetName="SelectionIndicator"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                            </Trigger>
+
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected"
+                                               Value="False"/>
+                                    <Condition Property="IsMouseOver"
+                                               Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Foreground"
+                                        Value="#BBBBBB"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ================== 2. 自定义 TabControl 样式 ================== -->
+        <Style x:Key="CustomTabControlStyle"
+               TargetType="{x:Type TabControl}">
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Padding"
+                    Value="0,0,0,10"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid ShowGridLines="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- 左侧面板 -->
+            <RowDefinition Height="*"/>
+            <!-- 右侧内容 -->
+        </Grid.RowDefinitions>
+
+        <!-- ======================= 左侧面板 ======================= -->
+            <!-- 
+                这个 TabControl 现在是左侧面板的核心。
+                它的【内容】将根据选中的 Tab 动态切换。
+            -->
+            <TabControl ItemsSource="{Binding Tabs}"
+                        SelectedItem="{Binding SelectedTab, Mode=TwoWay}"
+                        ItemContainerStyle="{StaticResource CustomTabItemStyle}"
+                        Style="{StaticResource CustomTabControlStyle}">
+                <!-- 1. 定义 Tab 标题的显示方式 -->
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Header}"/>
+                            <TextBlock Text="{Binding Count}"
+                                       FontSize="10"
+                                       Margin="0,0,0,10"
+                                       VerticalAlignment="Bottom"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+            </TabControl>
+
+        <!-- 2. 定义 Tab 内容的显示方式 -->
+        <ContentControl Grid.Row="1" 
+                        Margin="0,20,0,0"
+                        Content="{Binding SelectedTab.ContentViewModel}"/>
+    </Grid>
+
+</UserControl>

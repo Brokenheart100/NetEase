@@ -31,5 +31,22 @@ namespace NetEase.Views.Pages
             InitializeComponent();
 
         }
+        // 这是事件处理器
+        private void ListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // 1. 直接从 UserControl 获取 ViewModel
+            if (this.DataContext is MyFavoriteMusicViewModel viewModel)
+            {
+                // 2. 从 ListView 获取选中的数据项
+                if (sender is ListView listView && listView.SelectedItem is Song selectedSong)
+                {
+                    // 3. 手动执行 ViewModel 上的命令
+                    if (viewModel.PlaySongCommand?.CanExecute(selectedSong) == true)
+                    {
+                        viewModel.PlaySongCommand.Execute(selectedSong);
+                    }
+                }
+            }
+        }
     }
 }

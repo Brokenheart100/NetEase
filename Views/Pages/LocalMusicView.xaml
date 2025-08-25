@@ -4,9 +4,788 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NetEase.Views.Pages"
+             xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
+             xmlns:converters="clr-namespace:NetEase.Converters"
+             xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             d:DataContext="{d:DesignInstance Type=viewmodels:MyFavoriteMusicViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Background="LightBlue">
+    <UserControl.Resources>
+        <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
+            <!-- 基础属性设置 (从您原来的 DataGrid 标签上移到这里) -->
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="CanUserResizeColumns" Value="True"/>
+            <Setter Property="CanUserReorderColumns" Value="False"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="AlternationCount" Value="2"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
 
+            <!-- 
+      ================== 关键修改点 ==================
+      重写 ControlTemplate 来替换内部的 ScrollViewer 样式
+  -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGrid}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" 
+                      BorderThickness="{TemplateBinding BorderThickness}" 
+                      Background="{TemplateBinding Background}" 
+                      Padding="{TemplateBinding Padding}" 
+                      SnapsToDevicePixels="True">
+
+                            <!-- 
+                      找到 DataGrid 内部的 ScrollViewer (它的名字是 PART_RowsPresenter)，
+                      并将它的 Style 设置为我们的 ModernScrollViewerStyle。
+                  -->
+                            <ScrollViewer x:Name="PART_RowsPresenter" 
+                                Style="{StaticResource for_scrollviewer}"
+                                Focusable="False">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ScrollViewer 样式 -->
+        <Style x:Key="ModernScrollViewer"
+             TargetType="{x:Type ScrollViewer}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <!-- 内容呈现 -->
+                            <ScrollContentPresenter Grid.Column="0"
+                                                  Grid.Row="0"
+                                                  CanContentScroll="{TemplateBinding CanContentScroll}"
+                                                  Content="{TemplateBinding Content}"/>
+                            <!-- 垂直滚动条 -->
+                            <ScrollBar Grid.Column="1"
+                                     Grid.Row="0"
+                                     Name="PART_VerticalScrollBar"
+                                     Orientation="Vertical"
+                                     Maximum="{TemplateBinding ScrollableHeight}"
+                                     ViewportSize="{TemplateBinding ViewportHeight}"
+                                     Value="{TemplateBinding VerticalOffset}"
+                                     Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                            <!-- 水平滚动条 -->
+                            <ScrollBar Grid.Column="0"
+                                     Grid.Row="1"
+                                     Name="PART_HorizontalScrollBar"
+                                     Orientation="Horizontal"
+                                     Maximum="{TemplateBinding ScrollableWidth}"
+                                     ViewportSize="{TemplateBinding ViewportWidth}"
+                                     Value="{TemplateBinding HorizontalOffset}"
+                                     Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
+                            <!-- 右下角填充（可选） -->
+                            <Rectangle Grid.Column="1"
+                                     Grid.Row="1"
+                                     Fill="LightGray"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <!-- 自定义 ScrollViewer 的额外属性 -->
+            <Setter Property="Background"
+                  Value="White"/>
+            <Setter Property="BorderBrush"
+                  Value="Gray"/>
+            <Setter Property="BorderThickness"
+                  Value="1"/>
+        </Style>
+
+        <!-- 定义按钮样式 -->
+        <Style x:Key="ActionButtonStyle"
+             TargetType="Button">
+            <Setter Property="Foreground"
+                  Value="White"/>
+            <Setter Property="BorderThickness"
+                  Value="1"/>
+            <Setter Property="BorderBrush"
+                  Value="#555555"/>
+            <Setter Property="Background"
+                  Value="#333333"/>
+            <Setter Property="Padding"
+                  Value="8,8"/>
+            <Setter Property="Margin"
+                  Value="0,0,10,0"/>
+            <Setter Property="Cursor"
+                  Value="Hand"/>
+            <Setter Property="Height"
+                  Value="40"/>
+            <Setter Property="Width"
+                  Value="80"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PlayAllButtonStyle"
+             BasedOn="{StaticResource ActionButtonStyle}"
+             TargetType="Button">
+            <Setter Property="Background"
+                  Value="#EC4141"/>
+            <Setter Property="BorderBrush"
+                  Value="Transparent"/>
+        </Style>
+
+        <!-- ================== 自定义 ListView 列标题样式 ================== -->
+        <Style x:Key="CustomColumnHeaderStyle"
+             TargetType="{x:Type GridViewColumnHeader}">
+            <Setter Property="Background"
+                  Value="Transparent"/>
+            <Setter Property="Foreground"
+                  Value="#888888"/>
+            <Setter Property="BorderThickness"
+                  Value="0,0,1,1"/>
+            <Setter Property="BorderBrush"
+                  Value="#333333"/>
+            <Setter Property="Padding"
+                  Value="10,5"/>
+            <Setter Property="HorizontalContentAlignment"
+                  Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
+                        <Grid>
+                            <!-- 1. 正常状态下显示的内容 -->
+                            <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  Background="{TemplateBinding Background}"
+                                  Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalAlignment="Center"/>
+                            </Border>
+
+                            <!-- 2. 悬浮时才显示的内容 (初始不可见) -->
+                            <Border x:Name="HoverContent"
+                                  Background="#3A3A3B"
+                                  Padding="{TemplateBinding Padding}"
+                                  CornerRadius="4"
+                                  Opacity="0">
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- 排序图标 -->
+                                    <TextBlock Text="&#xE8CB;"
+                                             FontFamily="Segoe MDL2 Assets"
+                                             Foreground="#CCCCCC"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,5,0"/>
+                                    <!-- 排序文字 -->
+                                    <TextBlock Text="默认排序"
+                                             Foreground="#CCCCCC"
+                                             VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <!-- 当鼠标悬浮在列标题上时 -->
+                            <Trigger Property="IsMouseOver"
+                                   Value="True">
+                                <Setter Property="Foreground"
+                                      Value="#CCCCCC"/>
+                                <!-- 使用动画让悬浮内容淡入 -->
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverContent"
+                                                           Storyboard.TargetProperty="Opacity"
+                                                           To="1"
+                                                           Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverContent"
+                                                           Storyboard.TargetProperty="Opacity"
+                                                           To="0"
+                                                           Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="IconButtonStyle"
+             TargetType="Button">
+            <Setter Property="Background"
+                  Value="Transparent"/>
+            <Setter Property="Foreground"
+                  Value="#CCCCCC"/>
+            <Setter Property="BorderThickness"
+                  Value="0"/>
+            <Setter Property="Width"
+                  Value="32"/>
+            <Setter Property="Height"
+                  Value="32"/>
+            <Setter Property="FontSize"
+                  Value="18"/>
+            <Setter Property="FontFamily"
+                  Value="Segoe MDL2 Assets"/>
+            <Setter Property="Cursor"
+                  Value="Hand"/>
+            <Setter Property="Margin"
+                  Value="0,0,1,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <!-- 我们需要一个模板来确保背景真正受我们控制 -->
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver"
+                       Value="True">
+                    <Setter Property="Foreground"
+                          Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+
+        <!-- ================== 1. 自定义 TabItem 样式 ================== -->
+        <Style x:Key="CustomTabItemStyle"
+             TargetType="{x:Type TabItem}">
+            <Setter Property="Width"
+                  Value="70"/>
+            <Setter Property="Foreground"
+                  Value="#888888"/>
+            <Setter Property="FontSize"
+                  Value="15"/>
+            <Setter Property="Padding"
+                  Value="10,10,10,10"/>
+            <Setter Property="Margin"
+                  Value="0,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Grid HorizontalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <!-- 内容行 -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- 指示器行 -->
+                            </Grid.RowDefinitions>
+
+                            <!-- 头部内容 -->
+                            <ContentPresenter x:Name="ContentSite"
+                                            Grid.Row="0"
+                                            ContentSource="Header"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+
+                            <!-- 选中时的红色下划线指示器 -->
+                            <Border x:Name="SelectionIndicator"
+                                  Grid.Row="1"
+                                  Background="#EC4141"
+                                  Height="3"
+                                  Margin="0,0,0,0"
+                                  Visibility="Collapsed"/>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected"
+                                   Value="True">
+                                <Setter Property="Foreground"
+                                      Value="White"/>
+                                <Setter Property="FontWeight"
+                                      Value="Bold"/>
+                                <Setter TargetName="SelectionIndicator"
+                                      Property="Visibility"
+                                      Value="Visible"/>
+                            </Trigger>
+
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected"
+                                             Value="False"/>
+                                    <Condition Property="IsMouseOver"
+                                             Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Foreground"
+                                      Value="#BBBBBB"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ================== 2. 自定义 TabControl 样式 ================== -->
+        <Style x:Key="CustomTabControlStyle"
+             TargetType="{x:Type TabControl}">
+            <Setter Property="BorderThickness"
+                  Value="0"/>
+            <Setter Property="Background"
+                  Value="Transparent"/>
+            <Setter Property="Padding"
+                  Value="0,0,0,10"/>
+        </Style>
+        <converters:WidthConverter x:Key="WidthConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="15,15"
+        ShowGridLines="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- 头部区域 -->
+            <RowDefinition Height="Auto"/>
+            <!-- Tab区域 -->
+            <RowDefinition Height="*"/>
+            <!-- 歌曲列表 -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. 头部区域 -->
+        <Grid Grid.Row="0"
+            Margin="0,0,0,30"
+            ShowGridLines="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧封面 -->
+            <Border Width="180"
+                  Height="180"
+                  CornerRadius="8"
+                  Margin="0,0,30,0">
+                <Border.Background>
+                    <ImageBrush ImageSource="{Binding CoverImageUrl}"
+                              Stretch="UniformToFill"/>
+                </Border.Background>
+            </Border>
+
+            <!-- 右侧信息 -->
+            <Grid Grid.Column="1"
+                ShowGridLines="True">
+                <!-- 定义两行，一行占满，一行自适应 -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <!-- 上半部分，占据所有剩余空间 -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 下半部分，高度由按钮决定 -->
+                </Grid.RowDefinitions>
+
+                <!-- 上半部分内容：标题和创建者信息 -->
+                <!-- 放在 Grid.Row="0"，并设置其内容垂直对齐到顶部 -->
+                <StackPanel Grid.Row="0"
+                          VerticalAlignment="Top">
+                    <TextBlock Text="{Binding PlaylistTitle}"
+                             FontSize="24"
+                             FontWeight="Bold"
+                             Foreground="White"/>
+                    <StackPanel Orientation="Horizontal"
+                              Margin="0,10,0,20"
+                              VerticalAlignment="Center">
+                        <Ellipse Width="24"
+                               Height="24">
+                            <Ellipse.Fill>
+                                <ImageBrush ImageSource="E:\\Computer\\VS\\NetEase\\CoverImage\\21.jpg"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <TextBlock Text="{Binding Author}"
+                                 Margin="10,0,0,0"
+                                 VerticalAlignment="Center"
+                                 Foreground="#A0A0A0"/>
+                        <TextBlock Text="{Binding CreateDate}"
+                                 Margin="10,0,0,0"
+                                 VerticalAlignment="Center"
+                                 Foreground="#888888"
+                                 FontSize="12"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 下半部分内容：按钮组，会自动吸附在底部 -->
+                <!-- 放在 Grid.Row="1" -->
+                <StackPanel Grid.Row="1"
+                          Orientation="Horizontal">
+                    <Button Content="▶ 播放全部"
+                          Style="{StaticResource PlayAllButtonStyle}"/>
+                    <Button Content="↓ 下载"
+                          Style="{StaticResource ActionButtonStyle}"/>
+                    <Button Content="···"
+                          Style="{StaticResource ActionButtonStyle}"
+                          Command="{Binding AddLocalFolderCommand}"
+                          Width="40"/>
+                    <Button Content="➕添加本地文件夹"
+                          Style="{StaticResource ActionButtonStyle}"
+                          Command="{Binding AddLocalFolderCommand}"
+                          Width="150"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- 2. Tab 切换区域 -->
+        <TabControl Grid.Row="1"
+                  Style="{StaticResource CustomTabControlStyle}">
+            <TabControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1"/>
+                </ItemsPanelTemplate>
+            </TabControl.ItemsPanel>
+
+            <TabItem Style="{StaticResource CustomTabItemStyle}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="歌曲"/>
+                        <TextBlock Text="{Binding SongCount}"
+                                 FontSize="10"
+                                 Margin="0,0,0,10"
+                                 VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
+
+            <TabItem Style="{StaticResource CustomTabItemStyle}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="评论"/>
+                        <TextBlock Text=""
+                                 FontSize="10"
+                                 Margin="0,0,0,10"
+                                 VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
+
+            <TabItem Style="{StaticResource CustomTabItemStyle}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="收藏者"/>
+                        <TextBlock Text="{Binding SongCount}"
+                                 FontSize="10"
+                                 Margin="0,0,0,10"
+                                 VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
+
+        </TabControl>
+        <Grid Grid.Row="2">
+            <!-- 3. 歌曲列表 -->
+            <DataGrid ItemsSource="{Binding Songs}"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    HeadersVisibility="Column"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    RowHeaderWidth="0"
+                    HorizontalScrollBarVisibility="Disabled">
+
+                <!-- 1. 双击播放的交互逻辑 (现在附加在 DataGridRow 上) -->
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseDoubleClick">
+                        <b:InvokeCommandAction
+                          Command="{Binding DataContext.PlaySongCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+
+                <!-- 2. 列标题样式 -->
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Foreground"
+                              Value="#888888"/>
+                        <Setter Property="Background"
+                              Value="Transparent"/>
+                        <Setter Property="BorderThickness"
+                              Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush"
+                              Value="#333333"/>
+                        <Setter Property="Padding"
+                              Value="10,5"/>
+                        <Setter Property="HorizontalContentAlignment"
+                              Value="Left"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+
+                <!-- 3. 行样式 (替代 ItemContainerStyle) -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background"
+                              Value="Transparent"/>
+                        <Setter Property="BorderThickness"
+                              Value="5"/>
+                        <Setter Property="Margin"
+                              Value="5"/>
+
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridRow">
+                                    <Border x:Name="DGR_Border"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          SnapsToDevicePixels="True">
+                                        <DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                                    </Border>
+
+                                    <ControlTemplate.Triggers>
+                                        <!-- 隔行变色 -->
+                                        <Trigger Property="AlternationIndex" Value="1">
+                                            <Setter TargetName="DGR_Border" Property="Background" Value="#1A202022"/>
+                                        </Trigger>
+
+                                        <!-- 鼠标悬浮 -->
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="DGR_Border" Property="Background" Value="#2AFFFFFF"/>
+                                            <!-- 悬浮时，添加圆角 -->
+                                            <Setter TargetName="DGR_Border" Property="CornerRadius" Value="10"/>
+                                        </Trigger>
+
+                                        <!-- 选中 -->
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="DGR_Border" Property="Background" Value="#40EC4141"/>
+                                            <!-- 选中时，也添加圆角 -->
+                                            <Setter TargetName="DGR_Border" Property="CornerRadius" Value="10"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+
+                    </Style>
+                </DataGrid.RowStyle>
+
+                <!-- 4. 单元格样式 (可以统一设置 Padding 等) -->
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Background"
+                              Value="Transparent"/>
+                        <Setter Property="BorderThickness"
+                              Value="0"/>
+                        <Setter Property="Padding"
+                              Value="8,8"/>
+                        <Setter Property="Margin"
+                              Value="1"/>
+
+                        <Style.Triggers>
+                            <!-- 当行被选中时，让单元格的前景也变色 -->
+                            <Trigger Property="IsSelected"
+                                   Value="True">
+                                <Setter Property="Foreground"
+                                      Value="White"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.CellStyle>
+
+                <!-- 5. 列定义 -->
+                <DataGrid.Columns>
+                    <!-- # 列 -->
+                    <DataGridTemplateColumn Header="#"
+                                          Width="40"
+                                          CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid Height="50"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <TextBlock x:Name="IndexText"
+                                             Text="{Binding Index, StringFormat='{}{0:D2}'}"
+                                             VerticalAlignment="Center"
+                                             Foreground="#999999"/>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 标题列 -->
+                    <DataGridTemplateColumn Header="标题"
+                                          Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- 封面 -->
+                                    <Border Width="50"
+                                          Height="50"
+                                          Margin="5"
+                                          CornerRadius="4">
+                                        <Border.Background>
+                                            <ImageBrush ImageSource="{Binding CoverImage}"
+                                                      Stretch="UniformToFill"/>
+                                        </Border.Background>
+                                    </Border>
+
+                                    <StackPanel VerticalAlignment="Center"
+                                              Margin="10,0,0,0">
+
+                                        <!-- 第一行：歌曲标题 -->
+                                        <TextBlock Text="{Binding Title}"
+                                                 Foreground="White"
+                                                 TextTrimming="CharacterEllipsis"
+                                                 FontWeight="Normal"/>
+                                        <!-- 正常状态下字体不加粗 -->
+
+                                        <!-- 第二行：图标、标签和艺术家 -->
+                                        <StackPanel Orientation="Horizontal"
+                                                  Margin="0,5,0,0">
+
+                                            <!-- 对勾图标 (根据 IsDownloaded 属性控制可见性) -->
+                                            <Border Width="16"
+                                                  Height="16"
+                                                  CornerRadius="8"
+                                                  Background="#4A6EBF"
+                                                  Margin="0,0,5,0">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility"
+                                                              Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDownloaded}"
+                                                                       Value="True">
+                                                                <Setter Property="Visibility"
+                                                                      Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <!-- 对勾符号 -->
+                                                <TextBlock Text="&#xE73E;"
+                                                         FontFamily="Segoe MDL2 Assets"
+                                                         FontSize="9"
+                                                         Foreground="White"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <!-- 标签 (ItemsControl) -->
+                                            <ItemsControl ItemsSource="{Binding Tags}"
+                                                        VerticalAlignment="Center">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="{Binding BorderBrush}"
+                                                              BorderThickness="1"
+                                                              CornerRadius="3"
+                                                              Background="{Binding Background}"
+                                                              Padding="3,1"
+                                                              Margin="0,0,4,0">
+                                                            <TextBlock Text="{Binding Text}"
+                                                                     Foreground="{Binding Foreground}"
+                                                                     FontSize="9"/>
+                                                        </Border>
+
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <!-- 艺术家 -->
+                                            <TextBlock Text="{Binding Artist}"
+                                                     Foreground="#999999"
+                                                     VerticalAlignment="Center"
+                                                     Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 专辑列 (星号 sizing) -->
+                    <DataGridTemplateColumn Header="专辑"
+                                          Width="1*"
+                                          CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Album}"
+                                         FontSize="16"
+                                         Foreground="White"
+                                         VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 喜欢列 -->
+                    <DataGridTemplateColumn Header="喜欢"
+                                          Width="50"
+                                          CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="❤"
+                                         FontSize="16"
+                                         Foreground="Red"
+                                         VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 时长列 -->
+                    <DataGridTemplateColumn Header="时长"
+                      Width="60">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Duration}"
+                     FontSize="16"
+                     Foreground="White"
+                     VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                </DataGrid.Columns>
+            </DataGrid>
+            <Grid/>
+            <!-- 3b. 加载指示器 -->
+            <!-- 它只在 IsLoading 为 True 时可见 -->
+            <ProgressBar IsIndeterminate="True"
+                       Width="50"
+                       Height="50"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center">
+                <ProgressBar.Style>
+                    <Style TargetType="ProgressBar">
+                        <Setter Property="Visibility"
+                              Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoading}"
+                                       Value="True">
+                                <Setter Property="Visibility"
+                                      Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ProgressBar.Style>
+            </ProgressBar>
+        </Grid>
     </Grid>
 </UserControl>

@@ -12,7 +12,6 @@
     <UserControl.Resources>
 
         <!-- 使用新的 converters 前缀来引用转换器 -->
-        <converters:RankStatusToContentConverter x:Key="RankStatusConverter"/>
         <!-- 基础样式 -->
         <Style TargetType="TextBlock"
                x:Key="BaseTextStyle">
@@ -123,8 +122,6 @@
                                 <!-- 状态图标 -->
                                 <TextBlock Grid.Column="2"
                                            DataContext="{Binding Status}"
-                                           Text="{Binding Converter={StaticResource RankStatusConverter}, Path=Text}"
-                                           Foreground="{Binding Converter={StaticResource RankStatusConverter}, Path=Color}"
                                            FontSize="12"
                                            FontWeight="Bold"
                                            VerticalAlignment="Center"/>

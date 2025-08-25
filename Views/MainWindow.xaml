@@ -9,17 +9,109 @@
         xmlns:converters="clr-namespace:NetEase.Converters"
         xmlns:pages="clr-namespace:NetEase.Views.Pages"
         xmlns:components="clr-namespace:NetEase.Views.Components"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="MainWindow"
         Height="820"
-        Width="1280">
+        Width="1380">
 
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:TagToMarginConverter x:Key="TagToMarginConverter"/>
-        <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
+        <Style x:Key="ModernScrollViewerStyle"
+                TargetType="{x:Type ScrollViewer}">
+            <Setter Property="OverridesDefaultStyle"
+                    Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <!-- 1. 内容区域 -->
+                            <ScrollContentPresenter CanContentScroll="True"/>
+                            <ScrollBar Name="PART_VerticalScrollBar"
+                                       Value="{TemplateBinding VerticalOffset}"
+                                       Maximum="{TemplateBinding ScrollableHeight}"
+                                       ViewportSize="{TemplateBinding ViewportHeight}"
+                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                       HorizontalAlignment="Right"
+                                       Opacity="0"
+                                       Width="2">
+                                <!-- 包含一些空白区域，更容易悬浮 -->
+                                <ScrollBar.Style>
+                                    <Style TargetType="ScrollBar">
+                                        <Setter Property="Background"
+                                                Value="Transparent"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ScrollBar">
+                                                    <!-- Thumb 是滚动条可拖动的部分 -->
+                                                    <Thumb Width="6"
+                                                           HorizontalAlignment="Center"
+                                                           Background="#88FFFFFF"
+                                                           Opacity="0.6">
+                                                        <Thumb.Style>
+                                                            <Style TargetType="Thumb">
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="Thumb">
+                                                                            <Border Background="{TemplateBinding Background}"
+                                                                                    CornerRadius="3"/>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </Thumb.Style>
+                                                    </Thumb>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ScrollBar.Style>
+                            </ScrollBar>
+                        </Grid>
 
+                        <ControlTemplate.Triggers>
+                            <!-- 当鼠标悬浮在整个 ScrollViewer 区域时 -->
+                            <Trigger Property="IsMouseOver"
+                                    Value="True">
+                                <!-- 使用动画让滚动条淡入 -->
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1"
+                                                    Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <!-- 鼠标离开时，让滚动条淡出 -->
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0"
+                                                    Duration="0:0:0.3"/>
+                                            <!-- 离开时稍慢一点 -->
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <!-- 数据模板：将ViewModel自动映射到对应的View -->
+        <!-- 文件: MainWindow.xaml -->
+        <!-- ... (您已有的 DataTemplate) ... -->
+        <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
+            <pages:FeaturedView/>
+        </DataTemplate>
+
+
+        <DataTemplate DataType="{x:Type vm:FriendsViewModel}">
+            <pages:FriendsView/>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:LocalMusicViewModel}">
             <pages:LocalMusicView/>
         </DataTemplate>
@@ -29,46 +121,85 @@
         <DataTemplate DataType="{x:Type vm:MyFavoriteMusicViewModel}">
             <pages:MyFavoriteMusicView/>
         </DataTemplate>
-        <!-- 图标字体 -->
-        <FontFamily x:Key="IconFont">Segoe MDL2 Assets</FontFamily>
-        <!-- 右侧导航箭头按钮样式 -->
-        <Style x:Key="NavArrowButtonStyle"
-               TargetType="Button">
-            <Setter Property="Background"
-                    Value="#3A3A3B"/>
-            <Setter Property="Foreground"
-                    Value="#AEAEAE"/>
-            <Setter Property="BorderThickness"
-                    Value="0"/>
-            <Setter Property="Width"
-                    Value="28"/>
-            <Setter Property="Height"
-                    Value="28"/>
-            <Setter Property="Cursor"
-                    Value="Hand"/>
+        <!-- ================== 自定义悬浮显示滚动条的样式 ================== -->
+        <Style x:Key="OverlayScrollViewerStyle"
+               TargetType="{x:Type ScrollViewer}">
+            <Setter Property="OverridesDefaultStyle"
+                    Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="14">
-                            <TextBlock Text="{TemplateBinding Content}"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       FontSize="12"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Center"/>
-                        </Border>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <Grid>
+                            <ScrollContentPresenter CanContentScroll="True"/>
+
+                            <ScrollBar Name="PART_VerticalScrollBar"
+                                       Value="{TemplateBinding VerticalOffset}"
+                                       Maximum="{TemplateBinding ScrollableHeight}"
+                                       ViewportSize="{TemplateBinding ViewportHeight}"
+                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                       HorizontalAlignment="Right"
+                                       Opacity="0"
+                                       Width="8">
+                                <ScrollBar.Style>
+                                    <Style TargetType="ScrollBar">
+                                        <Setter Property="Background"
+                                                Value="Transparent"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ScrollBar">
+                                                    <!-- Thumb 是滚动条可拖动的部分 -->
+                                                    <Thumb Width="4"
+                                                           HorizontalAlignment="Center"
+                                                           Background="#88FFFFFF"
+                                                           Opacity="0.5">
+                                                        <Thumb.Template>
+                                                            <ControlTemplate TargetType="Thumb">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                        CornerRadius="2"/>
+                                                            </ControlTemplate>
+                                                        </Thumb.Template>
+                                                    </Thumb>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ScrollBar.Style>
+                            </ScrollBar>
+                        </Grid>
+
                         <ControlTemplate.Triggers>
+                            <!-- 当鼠标悬浮在整个 ScrollViewer 区域时 -->
                             <Trigger Property="IsMouseOver"
                                      Value="True">
-                                <Setter Property="Foreground"
-                                        Value="White"/>
+                                <!-- 使用动画让滚动条淡入 -->
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1"
+                                                             Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <!-- 鼠标离开时，让滚动条淡出 -->
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0"
+                                                             Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
         <!-- 默认导航按钮样式 -->
         <Style x:Key="NavButtonStyle"
                TargetType="Button">
@@ -77,7 +208,7 @@
             <Setter Property="Foreground"
                     Value="#CCCCCC"/>
             <Setter Property="BorderThickness"
-                    Value="0"/>
+                    Value="1"/>
             <Setter Property="FontSize"
                     Value="16"/>
             <Setter Property="HorizontalContentAlignment"
@@ -85,12 +216,26 @@
             <Setter Property="Padding"
                     Value="15,12"/>
             <Setter Property="Margin"
-                    Value="10,2"/>
+                    Value="1,2"/>
             <Setter Property="Cursor"
                     Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
+                        <ControlTemplate.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"
+                                        Value="15"/>
+                                <Style.Triggers>
+                                    <Trigger Property="FontFamily"
+                                             Value="Segoe MDL2 Assets">
+                                        <Setter Property="FontSize"
+                                                Value="20"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ControlTemplate.Resources>
+
                         <Border x:Name="border"
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="6"
@@ -110,18 +255,22 @@
             </Setter>
         </Style>
 
-        <!-- 选中的导航按钮样式 -->
-        <Style x:Key="SelectedNavButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource NavButtonStyle}">
-            <Setter Property="Background"
-                    Value="#EC4141"/>
-            <Setter Property="Foreground"
-                    Value="White"/>
-            <Setter Property="FontWeight"
-                    Value="SemiBold"/>
-        </Style>
-
+        <!-- ================== 1. 创建可复用的导航项模板 ================== -->
+        <ControlTemplate x:Key="NavigationItemTemplate"
+                TargetType="ContentControl">
+            <Border x:Name="border"
+                    Background="{Binding Path=Background, RelativeSource={RelativeSource TemplatedParent}}"
+                    CornerRadius="6"
+                    Padding="{Binding Path=Padding, RelativeSource={RelativeSource TemplatedParent}}">
+                <!-- 
+            使用 TextElement 附加属性来传递 Foreground 和 FontWeight
+            这样模板内部的 TextBlock 就能继承这些值
+        -->
+                <ContentPresenter HorizontalAlignment="Stretch"
+                                  TextElement.Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                  TextElement.FontWeight="{Binding Path=FontWeight, RelativeSource={RelativeSource TemplatedParent}}"/>
+            </Border>
+        </ControlTemplate>
         <!-- 分区标题文字样式 -->
         <Style x:Key="SectionHeaderStyle"
                TargetType="TextBlock">
@@ -133,52 +282,392 @@
                     Value="20,25,20,10"/>
         </Style>
 
-        <!-- 歌单列表项按钮样式 -->
-        <Style x:Key="PlaylistButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource NavButtonStyle}">
-            <Setter Property="Padding"
-                    Value="15,8"/>
-        </Style>
-
-        <!-- 标签边框的基础样式 -->
-        <Style x:Key="SongTagBorderStyle"
-               TargetType="Border">
-            <Setter Property="CornerRadius"
-                    Value="2"/>
-            <Setter Property="Padding"
-                    Value="4,1"/>
+        <!-- 新的、用于导航 ListBoxItem 的样式 -->
+        <Style x:Key="NavListBoxItemStyle"
+                TargetType="ListBoxItem">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
             <Setter Property="Margin"
-                    Value="0,0,4,0"/>
+                    Value="0,2"/>
+            <Setter Property="Padding"
+                    Value="15,12"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}"
+                        Value="True">
+                    <Setter Property="Background"
+                            Value="#EC4141"/>
+                    <Setter Property="Foreground"
+                            Value="White"/>
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsSelected}"
+                                Value="False"/>
+                        <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
+                                Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Background"
+                            Value="#333333"/>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PlaylistListBoxItemStyle"
+                TargetType="ListBoxItem">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
+            <Setter Property="Padding"
+                    Value="15,5"/>
+            <Setter Property="Margin"
+                    Value="10,2"/>
+            <Setter Property="Height"
+                    Value="45"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}"
+                        Value="True">
+                    <Setter Property="Background"
+                            Value="#EC4141"/>
+                    <Setter Property="Foreground"
+                            Value="White"/>
+                </DataTrigger>
+
+                <!-- 只在【未选中】时应用悬浮效果 -->
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsSelected}"
+                                Value="False"/>
+                        <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
+                                Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Background"
+                            Value="#333333"/>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- 在 MainWindow.xaml 的 <Window.Resources> 中 -->
+
+        <!-- 为 ToggleButton 创建一个专门的导航样式 -->
+        <Style x:Key="NavToggleButtonSyle"
+                TargetType="ToggleButton">
+            <!-- 这里的所有 Setter 都和 NavButtonStyle 完全一样 -->
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
             <Setter Property="BorderThickness"
-                    Value="1"/>
-        </Style>
-
-        <!-- 标签文字的基础样式 -->
-        <Style x:Key="SongTagTextStyle"
-               TargetType="TextBlock">
+                    Value="0"/>
             <Setter Property="FontSize"
-                    Value="9"/>
-            <Setter Property="VerticalAlignment"
-                    Value="Center"/>
+                    Value="16"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left"/>
+            <Setter Property="Padding"
+                    Value="15,12"/>
+            <Setter Property="Margin"
+                    Value="10,2"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <!-- 模板内部的资源也保持不变 -->
+                        <ControlTemplate.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"
+                                        Value="15"/>
+                                <Style.Triggers>
+                                    <Trigger Property="FontFamily"
+                                            Value="Segoe MDL2 Assets">
+                                        <Setter Property="FontSize"
+                                                Value="20"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ControlTemplate.Resources>
+
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Stretch"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <!-- Trigger 的 Property 也保持不变 -->
+                            <Trigger Property="IsMouseOver"
+                                    Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#333333"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- ================== 自定义导航 Expander 样式 ================== -->
+        <Style x:Key="NavExpanderStyle"
+                TargetType="Expander">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Padding"
+                    Value="15,12"/>
+            <Setter Property="Margin"
+                    Value="10,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <DockPanel>
+                            <!-- 1. 头部区域 -->
+                            <ToggleButton DockPanel.Dock="Top"
+                                          IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Style="{StaticResource NavToggleButtonSyle}">
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- 头部内容 (例如 "更多") -->
+                                    <ContentPresenter Grid.Column="0"
+                                            ContentSource="Header"/>
+
+                                    <!-- 展开/折叠的箭头 -->
+                                    <TextBlock x:Name="Arrow"
+                                            Grid.Column="1"
+                                               Text="&#xE70D;"
+                                               FontFamily="Segoe MDL2 Assets"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </ToggleButton>
+
+                            <!-- 2. 内容区域 (带动画) -->
+                            <ContentPresenter x:Name="ContentSite"
+                                              DockPanel.Dock="Bottom"
+                                              Visibility="Collapsed"
+                                              Margin="20,0,0,0"/>
+                            <!-- 内容向右缩进 -->
+                        </DockPanel>
+
+                        <ControlTemplate.Triggers>
+                            <!-- 当展开时 -->
+                            <Trigger Property="IsExpanded"
+                                    Value="True">
+                                <!-- 箭头旋转 -->
+                                <Setter TargetName="Arrow"
+                                        Property="Text"
+                                        Value="&#xE70E;"/>
+                                <!-- ChevronUp -->
+                                <!-- 内容区域变为可见 -->
+                                <Setter TargetName="ContentSite"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Header">
+                <Setter.Value>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="..."
+                                FontFamily="Segoe UI Symbol"
+                                VerticalAlignment="Center"
+                                FontSize="16"
+                                Margin="0,-4,0,0"/>
+                        <TextBlock Text="更多"
+                                Margin="15,0,0,0"
+                                VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Setter.Value>
+            </Setter>
         </Style>
 
+        <!-- ScrollBar Thumb 样式（通用） -->
+        <Style x:Key="ScrollBarThumbStyle"
+               TargetType="{x:Type Thumb}">
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
+            <Setter Property="OverridesDefaultStyle"
+                    Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Rectangle x:Name="ThumbRect"
+                                   Fill="Blue"
+                                   RadiusX="2"
+                                   RadiusY="2"
+                                   Stroke="DarkBlue"
+                                   StrokeThickness="1"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="ThumbRect"
+                                        Property="Fill"
+                                        Value="LightBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging"
+                                     Value="True">
+                                <Setter TargetName="ThumbRect"
+                                        Property="Fill"
+                                        Value="DarkBlue"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 轨道页按钮样式（透明） -->
+        <Style x:Key="ScrollBarPageButtonStyle"
+               TargetType="{x:Type RepeatButton}">
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
+            <Setter Property="OverridesDefaultStyle"
+                    Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 线按钮样式（箭头） -->
+        <Style x:Key="ScrollBarLineButtonStyle"
+               TargetType="{x:Type RepeatButton}">
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
+            <Setter Property="OverridesDefaultStyle"
+                    Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border x:Name="Border"
+                                Margin="1"
+                                CornerRadius="2"
+                                Background="LightGray"
+                                BorderBrush="Gray"
+                                BorderThickness="1">
+                            <Path x:Name="Arrow"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Fill="Black"
+                                  Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed"
+                                     Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="DarkGray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 垂直 ScrollBar 模板 -->
+        <ControlTemplate x:Key="VerticalScrollBarTemplate"
+                         TargetType="{x:Type ScrollBar}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition MaxHeight="18"/>
+                    <RowDefinition Height="0.00001*"/>
+                    <RowDefinition MaxHeight="18"/>
+                </Grid.RowDefinitions>
+                <Border Grid.RowSpan="3"
+                        CornerRadius="2"
+                        Background="#F0F0F0"/>
+                <RepeatButton Grid.Row="0"
+                              Style="{StaticResource ScrollBarLineButtonStyle}"
+                              Height="18"
+                              Command="ScrollBar.LineUpCommand"
+                              Content="M 0 4 L 8 4 L 4 0 Z"/>
+                <Track Name="PART_Track"
+                       Grid.Row="1"
+                       IsDirectionReversed="True">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource ScrollBarPageButtonStyle}"
+                                      Command="ScrollBar.PageUpCommand"/>
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource ScrollBarThumbStyle}"
+                               Margin="1,0,1,0"
+                               Width="8"/>
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource ScrollBarPageButtonStyle}"
+                                      Command="ScrollBar.PageDownCommand"/>
+                    </Track.IncreaseRepeatButton>
+                </Track>
+                <RepeatButton Grid.Row="2"
+                              Style="{StaticResource ScrollBarLineButtonStyle}"
+                              Height="18"
+                              Command="ScrollBar.LineDownCommand"
+                              Content="M 0 0 L 4 4 L 8 0 Z"/>
+            </Grid>
+        </ControlTemplate>
+
+
+       
     </Window.Resources>
     <!-- 主容器，使用圆角边框包裹 -->
     <Border CornerRadius="8"
             Background="#212121"
             BorderBrush="#333"
-            BorderThickness="1"
+            BorderThickness="0"
             ClipToBounds="True">
         <Grid ShowGridLines="True">
 
-            <Grid ShowGridLines="True" x:Name="MainContentGrid">
+            <Grid ShowGridLines="True"
+                  x:Name="MainContentGrid">
                 <!-- 关键：为主内容 Grid 添加 Style -->
                 <Grid.Style>
                     <Style TargetType="Grid">
                         <Style.Triggers>
                             <!-- 当 IsOverlayVisible 为 True 时 -->
-                            <DataTrigger Binding="{Binding IsOverlayVisible}" Value="True">
+                            <DataTrigger Binding="{Binding IsOverlayVisible}"
+                                         Value="True">
                                 <!-- 为自己应用模糊效果 -->
                                 <Setter Property="Effect">
                                     <Setter.Value>
@@ -217,330 +706,210 @@
                     <!-- ========================== -->
 
                     <ScrollViewer Grid.Column="0"
+                                  Style="{StaticResource for_scrollviewer}"
+                                  x:Name="LeftNavScrollViewer" 
                                   VerticalScrollBarVisibility="Auto">
-                        <!-- 整体背景色设置为深灰色 -->
                         <Grid Background="#2D2D30"
                               ShowGridLines="True">
-
-                            <!-- 定义按钮样式 -->
-                            <Grid.Resources>
-                                <!-- 默认导航按钮样式 -->
-                                <Style x:Key="NavButtonStyle"
-                                       TargetType="Button">
-                                    <Setter Property="Margin"
-                                            Value="0,0,0,5"/>
-                                    <Setter Property="Background"
-                                            Value="Transparent"/>
-                                    <Setter Property="Foreground"
-                                            Value="#E0E0E0"/>
-                                    <Setter Property="BorderThickness"
-                                            Value="0"/>
-                                    <Setter Property="FontSize"
-                                            Value="18"/>
-                                    <Setter Property="FontFamily"
-                                            Value="Microsoft YaHei UI"/>
-                                    <Setter Property="HorizontalContentAlignment"
-                                            Value="Left"/>
-                                    <Setter Property="Padding"
-                                            Value="5,5"/>
-                                    <Setter Property="Cursor"
-                                            Value="Hand"/>
-                                    <Setter Property="Height"
-                                            Value="35"/>
-
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border x:Name="border"
-                                                        Background="{TemplateBinding Background}"
-                                                        Padding="{TemplateBinding Padding}"
-                                                        CornerRadius="8">
-                                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                      VerticalAlignment="Center"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <!-- 鼠标悬浮时改变背景色，增加交互感 -->
-                                                    <Trigger Property="IsMouseOver"
-                                                             Value="True">
-                                                        <Setter TargetName="border"
-                                                                Property="Background"
-                                                                Value="#4A4A4A"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="FontSize"
-                                            Value="15"/>
-                                    <!-- (可选) 为了避免图标字体的大小也被修改，我们可以加一个触发器 -->
-                                    <Style.Triggers>
-                                        <Trigger Property="FontFamily"
-                                                 Value="Segoe MDL2 Assets">
-                                            <Setter Property="FontSize"
-                                                    Value="20"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-
-                                <!-- 选中的导航按钮样式，继承自默认样式 -->
-                                <Style x:Key="SelectedNavButtonStyle"
-                                       TargetType="Button"
-                                       BasedOn="{StaticResource NavButtonStyle}">
-                                    <Setter Property="Background"
-                                            Value="#F24961"/>
-                                    <Setter Property="Foreground"
-                                            Value="White"/>
-                                    <Setter Property="FontWeight"
-                                            Value="SemiBold"/>
-                                </Style>
-                            </Grid.Resources>
-
                             <!-- 使用 StackPanel 实现垂直列布局 -->
-                            <StackPanel Width="170"
+                            <StackPanel x:Name="NavStackPanel" 
                                         VerticalAlignment="Top"
-                                        Margin="0,20,0,0">
-
-                                <!-- 推荐按钮 -->
-                                <Button Command="{Binding NavigateLocalMusicCommand}">
-                                    <Button.Style>
-                                        <Style TargetType="Button"
-                                               BasedOn="{StaticResource NavButtonStyle}">
-                                            <Style.Triggers>
-                                                <!-- 当CurrentView是HomeViewModel时，应用选中样式 -->
-                                                <DataTrigger Binding="{Binding CurrentView, Converter={StaticResource TypeToBooleanConverter}, ConverterParameter={x:Type vm:LocalMusicViewModel}}"
-                                                             Value="True">
-                                                    <Setter Property="Background"
-                                                            Value="#EC4141"/>
-                                                    <Setter Property="Foreground"
-                                                            Value="White"/>
-                                                    <Setter Property="FontWeight"
-                                                            Value="SemiBold"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontFamily="Segoe MDL2 Assets"
-                                                   Text=""
-                                                   FontSize="20"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="推荐"
-                                                   Margin="15,0,0,0"
-                                                   FontSize="15"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
+                                        Margin="10,20,10,10">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Width" Value="200"/>
+                                        <!-- 默认展开宽度 -->
+                                        <Style.Triggers>
+                                            <!-- 当 IsLeftSidebarExpanded 为 false 时，改变宽度 -->
+                                            <DataTrigger Binding="{Binding DataContext.IsLeftSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                <Setter Property="Width" Value="60"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <!-- 在顶部添加一个用于切换的按钮 -->
+                                <Button Command="{Binding ToggleLeftSidebarCommand}" HorizontalAlignment="Left" Style="{StaticResource NavButtonStyle}" Padding="10">
+                                    <TextBlock Text="&#xE700;" FontFamily="Segoe MDL2 Assets"/>
+                                    <!-- 汉堡菜单图标 -->
                                 </Button>
+                                <ListBox ItemsSource="{Binding MainNavigationItems}"
+                                         ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Icon}"
+                                                        FontFamily="Segoe MDL2 Assets"
+                                                        FontSize="20"
+                                                        VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="15" VerticalAlignment="Center" Margin="15,0,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsLeftSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                    <b:Interaction.Triggers>
+                                        <b:EventTrigger EventName="SelectionChanged">
+                                            <b:InvokeCommandAction
+                                                Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                        </b:EventTrigger>
+                                    </b:Interaction.Triggers>
+                                </ListBox>
 
-                                <!-- 精选按钮 -->
-                                <Button>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontFamily="{StaticResource IconFont}"
-                                                   Text=""
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="精选"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- 播客按钮 -->
-                                <Button>
-                                    <Button.Style>
-                                        <Style TargetType="Button"
-                                               BasedOn="{StaticResource NavButtonStyle}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding CurrentView, Converter={StaticResource TypeToBooleanConverter}, ConverterParameter={x:Type vm:PodcastViewModel}}"
-                                                             Value="True">
-                                                    <Setter Property="Background"
-                                                            Value="#EC4141"/>
-                                                    <Setter Property="Foreground"
-                                                            Value="White"/>
-                                                    <Setter Property="FontWeight"
-                                                            Value="SemiBold"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontFamily="{StaticResource IconFont}"
-                                                   Text=""
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="播客"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- 4. 漫游 -->
-                                <Button Style="{StaticResource NavButtonStyle}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <!-- Icon: Infinite -->
-                                        <TextBlock FontFamily="Segoe MDL2 Assets"
-                                                   Text=""
-                                                   VerticalAlignment="Center"
-                                                   FontSize="20"/>
-                                        <TextBlock Text="漫游"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- 5. 关注 (带通知点) -->
-                                <Button Style="{StaticResource NavButtonStyle}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <!-- Icon: Chat -->
-                                        <TextBlock FontFamily="Segoe MDL2 Assets"
-                                                   Text=""
-                                                   VerticalAlignment="Center"
-                                                   FontSize="20"/>
-                                        <TextBlock Text="关注"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                        <!-- 通知点 -->
-                                        <Ellipse Fill="#F24961"
-                                                 Width="8"
-                                                 Height="8"
-                                                 Margin="8,0,0,0"
-                                                 VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
+                                <Separator Margin="20,10"
+                                           Background="#444"/>
                                 <TextBlock Text="我的"
                                            Style="{StaticResource SectionHeaderStyle}"
                                            Margin="10,20,20,10"/>
 
-                                <Button Style="{StaticResource NavButtonStyle}"
-                                        Command="{Binding NavigateFavoriteCommand}">
-                                    <Grid ShowGridLines="True">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   Text=""
-                                                   FontFamily="{StaticResource IconFont}"
-                                                   FontSize="20"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="我喜欢的音乐"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="2"
-                                                   Text=""
-                                                   FontFamily="{StaticResource IconFont}"
-                                                   FontSize="16"
-                                                   Opacity="0.7"
-                                                   VerticalAlignment="Center"
-                                                   Margin="15,0,0,0"/>
-                                    </Grid>
-                                </Button>
+                                <!-- ======================= 第二个导航列表 ======================= -->
+                                <ListBox ItemsSource="{Binding MyMusicNavigationItems}"
+                                         ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
+                                         Background="Transparent"
+                                        BorderThickness="0"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Icon}"
+                                                        FontFamily="Segoe MDL2 Assets"
+                                                        FontSize="20"
+                                                        VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                        FontSize="15"
+                                                        VerticalAlignment="Center"
+                                                        Margin="15,0,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                    <b:Interaction.Triggers>
+                                        <b:EventTrigger EventName="SelectionChanged">
+                                            <b:InvokeCommandAction
+                                                Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                        </b:EventTrigger>
+                                    </b:Interaction.Triggers>
+                                </ListBox>
+                                <!-- ================== 修改后的 Expander ================== -->
+                                <Expander Style="{StaticResource NavExpanderStyle}">
+                                    <!-- 头部 (Header) 保持不变 -->
 
-                                <Button Style="{StaticResource NavButtonStyle}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text=""
-                                                   FontFamily="{StaticResource IconFont}"
-                                                   FontSize="20"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="最近播放"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
+                                    <ListBox ItemsSource="{Binding MoreNavigationItems}"
+                                             ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
-                                <Button Style="{StaticResource NavButtonStyle}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text=""
-                                                   FontFamily="{StaticResource IconFont}"
-                                                   FontSize="20"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="我的播客"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                        <Ellipse Fill="#EC4141"
-                                                 Width="6"
-                                                 Height="6"
-                                                 Margin="5,0,0,-2"
-                                                 VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
+                                        <!-- ItemTemplate 可以复用其他导航 ListBox 的模板 -->
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Icon}"
+                                                            FontFamily="Segoe MDL2 Assets"
+                                                            FontSize="20"
+                                                            VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                            FontSize="15"
+                                                            VerticalAlignment="Center"
+                                                            Margin="15,0,0,0"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
 
-                                <Button Style="{StaticResource NavButtonStyle}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text=""
-                                                   FontFamily="{StaticResource IconFont}"
-                                                   FontSize="16"
-                                                   VerticalAlignment="Center"
-                                                   Cursor="Hand"/>
-                                        <TextBlock Text="更多"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
+                                        <!-- 交互逻辑也完全复用 -->
+                                        <b:Interaction.Triggers>
+                                            <b:EventTrigger EventName="SelectionChanged">
+                                                <b:InvokeCommandAction
+                                                    Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                            </b:EventTrigger>
+                                        </b:Interaction.Triggers>
+                                    </ListBox>
+                                </Expander>
 
                                 <Separator Margin="20,10"
                                            Background="#444"/>
                                 <Expander IsExpanded="True"
                                           Foreground="#888888">
                                     <Expander.Header>
-                                        <DockPanel VerticalAlignment="Center">
-                                            <TextBlock Text="收藏的歌单"/>
-                                            <TextBlock Text="5"
-                                                       Margin="5,0,0,0"/>
-                                        </DockPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- 左侧的标题和数量 -->
+                                            <DockPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="收藏的歌单"/>
+                                                <TextBlock Text="{Binding FavoritePlaylists.Count}" Margin="5,0,0,0"/>
+                                            </DockPanel>
+
+                                            <!-- 
+                ================== 关键修改点 ==================
+                右侧的“+”按钮
+            -->
+                                            <Button Grid.Column="1"
+                    Content="&#xE710;" 
+                                                FontFamily="Segoe MDL2 Assets"
+                    FontSize="12"
+                    Width="24" Height="24"
+                    ToolTip="创建新歌单"
+                    Command="{Binding CreatePlaylistCommand}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <!-- 一个简单的透明背景圆形按钮样式 -->
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Foreground" Value="#888"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Cursor" Value="Hand"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" CornerRadius="12">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#3F3F3F"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+
+                                        </Grid>
                                     </Expander.Header>
 
-                                    <!-- 使用 ListBox 来显示歌单，因为它天生支持选中项 -->
-                                    <ListBox 
-                                            
-                                             Background="Transparent"
-                                             BorderThickness="0"
-                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                        <ListBox.ItemContainerStyle>
-                                            <Style TargetType="ListBoxItem">
-                                                <Setter Property="Padding"
-                                                        Value="0"/>
-                                                <Setter Property="Height"
-                                                        Value="45"/>
-
-                                                <!-- 左右间距10，上下间距5 -->
-                                                <!-- 根据内容微调 -->
-                                                <Setter Property="Margin"
-                                                        Value="1,5"/>
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="ListBoxItem">
-                                                            <Border x:Name="ItemBorder"
-                                                                    Background="Transparent"
-                                                                    CornerRadius="6"
-                                                                    Padding="5,5">
-                                                                <ContentPresenter/>
-                                                            </Border>
-                                                            <ControlTemplate.Triggers>
-                                                                <!-- 鼠标悬浮时变色 -->
-                                                                <Trigger Property="IsMouseOver"
-                                                                         Value="True">
-                                                                    <Setter TargetName="ItemBorder"
-                                                                            Property="Background"
-                                                                            Value="#333333"/>
-                                                                </Trigger>
-                                                                <!-- 选中时变色 -->
-                                                                <Trigger Property="IsSelected"
-                                                                         Value="True">
-                                                                    <Setter TargetName="ItemBorder"
-                                                                            Property="Background"
-                                                                            Value="#EC4141"/>
-                                                                </Trigger>
-                                                            </ControlTemplate.Triggers>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </ListBox.ItemContainerStyle>
-
+                                    <ListBox
+                                        ItemsSource="{Binding FavoritePlaylists}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                        ItemContainerStyle="{StaticResource NavListBoxItemStyle}">
+                                        <!-- 1. 当选中项改变时，触发统一的导航命令 -->
+                                        <b:Interaction.Triggers>
+                                            <b:EventTrigger EventName="SelectionChanged">
+                                                <b:InvokeCommandAction
+                                                    Command="{Binding DataContext.NavigatePlaylistCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                            </b:EventTrigger>
+                                        </b:Interaction.Triggers>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid ShowGridLines="True">
@@ -548,11 +917,10 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="*"/>
                                                     </Grid.ColumnDefinitions>
-
                                                     <!-- 封面图和VIP角标 -->
                                                     <Grid Grid.Column="0"
-                                                          Width="30"
-                                                          Height="30"
+                                                          Width="40"
+                                                          Height="40"
                                                           ShowGridLines="True">
                                                         <Border CornerRadius="4">
                                                             <Border.Background>
@@ -597,7 +965,7 @@
                                                                TextWrapping="Wrap"
                                                                TextTrimming="CharacterEllipsis"
                                                                LineHeight="14"
-                                                               MaxHeight="28">     <!-- 设置为 LineHeight 的两倍 -->
+                                                               MaxHeight="28">
 
                                                         <TextBlock.ToolTip>
                                                             <ToolTip Content="{Binding Title}"/>
@@ -637,19 +1005,22 @@
                               Visibility="Collapsed"/>
             </Grid>
 
-            <Grid x:Name="SignUpOverlayGrid" 
+            <Grid x:Name="SignUpOverlayGrid"
                   Background="#A0000000">
 
                 <Grid.Style>
                     <Style TargetType="Grid">
                         <!-- 1. 默认状态：不可见 -->
-                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Setter Property="Visibility"
+                                Value="Collapsed"/>
                         <Style.Triggers>
                             <!-- 2. 当 IsOverlayVisible 为 True 时 -->
-                            <DataTrigger Binding="{Binding IsOverlayVisible}" Value="True">
+                            <DataTrigger Binding="{Binding IsOverlayVisible}"
+                                         Value="True">
                                 <!-- 2a. 让遮罩层可见 -->
-                                <Setter Property="Visibility" Value="Visible"/>
-                              
+                                <Setter Property="Visibility"
+                                        Value="Visible"/>
+
                             </DataTrigger>
                             <!-- 当 IsOverlayVisible 变回 False 时，Setter 的效果会自动撤销 -->
                         </Style.Triggers>
@@ -657,11 +1028,12 @@
                 </Grid.Style>
 
                 <!-- 注册面板，居中显示 -->
-                <pages:SignUpView 
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"
-                                  Height="700"
-                                  Width="1000"/>
+                <pages:SignUpView
+                    DataContext="{Binding AuthVM}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Height="700"
+                    Width="1000"/>
             </Grid>
         </Grid>
 

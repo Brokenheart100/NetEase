@@ -1,10 +1,4 @@
- <!-- 2. 定义 Tab 内容的显示方式 -->
-        <ContentControl Grid.Row="1" 
-                        Margin="0,20,0,0"
-                        Content="{Binding SelectedTab.ContentViewModel}"/>
-
-
-                        <UserControl x:Class="NetEase.Views.Pages.ChatView"
+<UserControl x:Class="NetEase.Views.Pages.ChatView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -105,86 +99,111 @@
                         <!-- 消息列表 -->
                     </Grid.RowDefinitions>
                     <ScrollViewer Grid.Row="0"
-                                  Grid.Column="0"
                                   Padding="10">
                         <ItemsControl ItemsSource="{Binding Messages}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
+                                    <!-- 根 Grid，负责整体左右对齐 -->
                                     <Grid Margin="0,10">
                                         <Grid.Style>
                                             <Style TargetType="Grid">
-                                                <!-- 默认靠左对齐 -->
                                                 <Setter Property="HorizontalAlignment" Value="Left"/>
                                                 <Style.Triggers>
-                                                    <!-- 当 IsSentByMe 为 True 时，改为靠右对齐 -->
                                                     <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
                                                         <Setter Property="HorizontalAlignment" Value="Right"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Grid.Style>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <Ellipse Grid.Column="0"
-                                                 Width="32"
-                                                 Height="32"
-                                                 Margin="0,0,10,0"
-                                                 VerticalAlignment="Top">
-                                            <Ellipse.Style>
-                                                <Style TargetType="Ellipse">
-                                                    <!-- 默认可见 -->
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Style.Triggers>
-                                                        <!-- 自己发送的消息，隐藏头像 -->
-                                                        <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Ellipse.Style>
-                                            <Ellipse.Fill>  
-                                                <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                            </Ellipse.Fill>
-                                        </Ellipse>
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding SenderName}"
-                                                       Foreground="Gray"
-                                                       FontSize="12"/>
-                                            <Border Background="#EEE"
-                                                    CornerRadius="8"
-                                                    Padding="10"
-                                                    Margin="0,5,50,0">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <!-- 默认是别人发送的灰色背景 -->
-                                                        <Setter Property="Background" Value="#EEE"/>
+                                            <!-- 1. 别人的头像 (始终在第 0 列) -->
+                                            <Ellipse Grid.Column="0" Width="32" Height="32" Margin="0,0,10,0" VerticalAlignment="Top">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Visibility" Value="Visible"/>
                                                         <Style.Triggers>
-                                                            <!-- 当是自己发送时，改为蓝色背景 -->
                                                             <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                <Setter Property="Background" Value="#007BFF"/>
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </Border.Style>
-                                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap">
+                                                </Ellipse.Style>
+                                                <Ellipse.Fill>
+                                                    <ImageBrush ImageSource="{Binding AvatarUrl}"/>
+                                                </Ellipse.Fill>
+                                            </Ellipse>
+
+                                            <!-- 2. 消息内容 (StackPanel) -->
+                                            <StackPanel VerticalAlignment="Top">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <!-- 默认情况下，消息内容在第 1 列 (头像右侧) -->
+                                                        <Setter Property="Grid.Column" Value="1"/>
+                                                        <Style.Triggers>
+                                                            <!-- 当是我方消息时，消息内容移动到第 0 列 -->
+                                                            <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
+                                                                <Setter Property="Grid.Column" Value="0"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+
+                                                <!-- 发送者名称 -->
+                                                <TextBlock Text="{Binding SenderName}" Foreground="Gray" FontSize="12">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <!-- 默认是别人发送的黑色字体 -->
-                                                            <Setter Property="Foreground" Value="Black"/>
+                                                            <Setter Property="HorizontalAlignment" Value="Left"/>
                                                             <Style.Triggers>
-                                                                <!-- 当是自己发送时，改为白色字体 -->
                                                                 <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                    <Setter Property="Foreground" Value="White"/>
+                                                                    <Setter Property="HorizontalAlignment" Value="Right"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                            </Border>
-                                        </StackPanel>
+
+                                                <!-- 消息气泡 -->
+                                                <Border CornerRadius="8" Padding="12" Margin="0,5,0,0" MaxWidth="400">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="#EEE"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
+                                                                    <Setter Property="Background" Value="#007BFF"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="Black"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <!-- 3. 我方的头像 (始终在第 1 列) -->
+                                            <Ellipse Grid.Column="1" Width="32" Height="32" Margin="10,0,0,0" VerticalAlignment="Top">
+
+
+                                                <Ellipse.Fill>
+                                                    <ImageBrush ImageSource="{Binding AvatarUrl}"/>
+                                                </Ellipse.Fill>
+                                            </Ellipse>
+
+                                        </Grid>
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

@@ -65,8 +65,6 @@ namespace NetEase.Services
             RequestPlay(_currentPlaylist[nextIndex]);
         }
 
-
-
         public void PlayPreviousSong()
         {
             if (!CanChangeTrack()) return;

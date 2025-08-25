@@ -1,0 +1,46 @@
+ <!-- 默认导航按钮样式 -->
+ <Style x:Key="NavButtonStyle"
+        TargetType="Button">
+     <Setter Property="Margin"
+             Value="0,0,0,5"/>
+     <Setter Property="Background"
+             Value="Transparent"/>
+     <Setter Property="Foreground"
+             Value="#E0E0E0"/>
+     <Setter Property="BorderThickness"
+             Value="0"/>
+     <Setter Property="FontSize"
+             Value="18"/>
+     <Setter Property="FontFamily"
+             Value="Microsoft YaHei UI"/>
+     <Setter Property="HorizontalContentAlignment"
+             Value="Left"/>
+     <Setter Property="Padding"
+             Value="5,5"/>
+     <Setter Property="Cursor"
+             Value="Hand"/>
+     <Setter Property="Height"
+             Value="35"/>
+     <Setter Property="Template">
+         <Setter.Value>
+             <ControlTemplate TargetType="Button">
+                 <Border x:Name="border"
+                         Background="{TemplateBinding Background}"
+                         Padding="{TemplateBinding Padding}"
+                         CornerRadius="8">
+                     <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                       VerticalAlignment="Center"/>
+                 </Border>
+                 <ControlTemplate.Triggers>
+                     <!-- 鼠标悬浮时改变背景色，增加交互感 -->
+                     <Trigger Property="IsMouseOver"
+                              Value="True">
+                         <Setter TargetName="border"
+                                 Property="Background"
+                                 Value="#4A4A4A"/>
+                     </Trigger>
+                 </ControlTemplate.Triggers>
+             </ControlTemplate>
+         </Setter.Value>
+     </Setter>
+ </Style>

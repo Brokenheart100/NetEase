@@ -1,6 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
+using NetEase.Models;
+using NetEase.Properties;
 using NetEase.Services;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -39,7 +44,11 @@ namespace NetEase.ViewModels
 
         [ObservableProperty]
         private bool _isProcessing; // 通用的“处理中”状态，用于登录或注册
+        [ObservableProperty]
+        private bool _rememberUsername;
 
+        [ObservableProperty]
+        private bool _rememberPassword;
         // --- 命令 ---
         public ICommand ShowRegisterViewCommand { get; }
         public ICommand ShowLoginViewCommand { get; }
@@ -55,15 +64,41 @@ namespace NetEase.ViewModels
             ShowLoginViewCommand = new RelayCommand(() => IsRegistering = false);
             LoginCommand = new AsyncRelayCommand(LoginAsync);
             RegisterCommand = new AsyncRelayCommand(RegisterAsync);
+            //loginTest();
+            //LoadLoginSettings();
         }
 
-        private async Task LoginAsync()
+        public async Task loginTest()
         {
+            Debug.WriteLine("Enter loginTest()");
             IsProcessing = true;
             ErrorMessage = string.Empty;
 
             // 登录时使用 Username 属性作为邮箱
-            var (success, response, errorMessage) = await _authService.LoginAsync(Username, Password);
+            var (success, response, errorMessage) = await _authService.LoginAsync("281338225@qq.com", "123456789");
+
+            IsProcessing = false;
+
+            if (success)
+            {
+                MessageBox.Show($"Welcome back, {response.User.Name}!", "Login Successful");
+                //CloseOverlay();
+                SaveLoginSettings();
+            }
+            else
+            {
+                MessageBox.Show($"ri, {response?.User.Name}!", "Login failed");
+                ErrorMessage = errorMessage; // 在界面上显示错误信息
+            }
+        }
+        private async Task LoginAsync()
+        {
+            Debug.WriteLine("Enter LoginAsync()");
+            IsProcessing = true;
+            ErrorMessage = string.Empty;
+            var (success, response, errorMessage) = await _authService.LoginAsync("281338225@qq.com", "123456789");
+            //Debug.WriteLine($"{Email}");
+            //var (success, response, errorMessage) = await _authService.LoginAsync(Email, Password);
 
             IsProcessing = false;
 
@@ -71,9 +106,11 @@ namespace NetEase.ViewModels
             {
                 MessageBox.Show($"Welcome back, {response.User.Name}!", "Login Successful");
                 CloseOverlay();
+                SaveLoginSettings();
             }
             else
             {
+                MessageBox.Show($"shit!", "Login failed");
                 ErrorMessage = errorMessage; // 在界面上显示错误信息
             }
         }
@@ -104,6 +141,36 @@ namespace NetEase.ViewModels
             {
                 mainVM.HideOverlayCommand?.Execute(null);
             }
+        }
+
+        private void LoadLoginSettings()
+        {
+            try
+            {
+                RememberUsername = Settings.Default.RememberUsername;
+                if (RememberUsername)
+                {
+                    Username = Settings.Default.SavedUsername;
+                }
+            }
+            catch (Exception ex)
+            {
+                // 在首次运行时，配置文件可能不存在，添加异常处理更健壮
+                Debug.WriteLine($"Failed to load settings: {ex.Message}");
+            }
+        }
+
+        private void SaveLoginSettings()
+        {
+            // 在这里将数据保存到本地设置
+            // 例如：
+            Settings.Default.RememberUsername = RememberUsername;
+            Settings.Default.SavedUsername = RememberUsername ? Username : string.Empty;
+
+            // 别忘了还有 RememberPassword
+            Settings.Default.RememberPassword = RememberPassword;
+
+            Settings.Default.Save();
         }
     }
 }

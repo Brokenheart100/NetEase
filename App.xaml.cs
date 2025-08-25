@@ -34,7 +34,7 @@ namespace NetEase
             services.AddTransient<AuthService>();
             services.AddTransient<PlaylistService>();
             services.AddSingleton<PlayerService>();
-            services.AddSingleton<MediaPlayerService>(); // 确认这个也注册了
+            services.AddSingleton<MediaPlayerService>(); 
 
             // --- ViewModels ---
             // ✅ 确认已注册所有 ViewModel
@@ -44,8 +44,13 @@ namespace NetEase
             services.AddSingleton<AuthenticationViewModel>();
 
             services.AddTransient<MyFavoriteMusicViewModel>();
-            services.AddTransient<LocalMusicViewModel>(); // 确认已注册
-            services.AddTransient<PodcastViewModel>();    // 确认已注册
+            services.AddTransient<LocalMusicViewModel>();
+            services.AddTransient<PodcastViewModel>();  
+            services.AddTransient<FeaturedViewModel>();
+            services.AddTransient<ChatViewModel>();
+            services.AddTransient<FriendsViewModel>();
+            services.AddTransient<LocalMusicViewModel>();
+
 
             // --- Views ---
             // ✅ 确认已注册 MainWindow

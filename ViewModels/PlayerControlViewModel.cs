@@ -111,7 +111,6 @@ namespace NetEase.ViewModels
 
         partial void OnPlaybackVolumeChanged(double value)
         {
-            // 关键修正：使用注入的 _playerService 实例
             _playerService.SetVolume(value);
         }
 
@@ -119,7 +118,6 @@ namespace NetEase.ViewModels
         {
             if (IsDragging)
             {
-                // 关键修正：使用注入的 _playerService 实例
                 _playerService.Seek(value);
             }
         }
