@@ -1,9 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using NetEase.Helpers;
 using NetEase.Models;
 using NetEase.Services;
+using NetEase.ViewModels.MusicRowContextMenu;
+using NetEase.Views.MusicRowContextMenu;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -13,7 +17,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using TagLib;
-using System.Collections.Generic;
+
 namespace NetEase.ViewModels
 {
     public partial class MyFavoriteMusicViewModel : BaseViewModel
@@ -35,34 +39,84 @@ namespace NetEase.ViewModels
         public string PlaylistTitle { get; set; }
         public string Author { get; set; }
         public string CreateDate { get; set; }
-
-        // --- 命令 ---
-        public IRelayCommand AddLocalFolderCommand { get; }
-        public IRelayCommand<Song> PlaySongCommand { get; }
-
-        // 构造函数现在非常简洁，只负责依赖注入和命令初始化
+  
         public MyFavoriteMusicViewModel(PlayerService playerService, PlaylistService playlistService)
         {
             _playerService = playerService;
             _playlistService = playlistService;
-
-            // 初始化命令
-            AddLocalFolderCommand = new RelayCommand(AddLocalFolder);
-            PlaySongCommand = new RelayCommand<Song>(PlaySong);
-
-            // 初始化静态头部信息
+        
             CoverImageUrl = "E:\\Computer\\VS\\NetEase\\CoverImage\\25.jpg";
             PlaylistTitle = "我喜欢的音乐";
             Author = "Brokenheart100";
             CreateDate = "2017-02-18创建";
-            // 构造函数现在非常干净，只调用异步加载方法
             LoadInitialPlaylistAsync();
-            // 异步加载所有数据
-            //LoadDataAsync();
+
         }
-        /// <summary>
-        /// 加载用户的第一个播放列表（例如 "我喜欢的音乐"）
-        /// </summary>
+        [RelayCommand]
+        private void ShowAddToPlaylistDialog(Song song)
+        {
+            Debug.WriteLine("Enter ShowAddToPlaylistDialog(Song song)");
+            if (song == null) return;
+
+            // 1. 从 DI 容器中获取需要的服务
+            var playlistService = App.ServiceProvider.GetRequiredService<PlaylistService>();
+
+            // 2. 创建弹出窗口的 ViewModel，并将【服务】和【要添加的歌曲】传递给它
+            var dialogVM = new AddToPlaylistViewModel(playlistService, song);
+
+            // 3. 创建并显示窗口
+            var dialogView = new AddToPlaylistView
+            {
+                DataContext = dialogVM,
+                Owner = Application.Current.MainWindow
+            };
+
+            dialogView.ShowDialog();
+        }
+        [RelayCommand]
+        private void DownloadSong(Song song)
+        {
+            Debug.WriteLine("Enter DownloadSong(Song song)");
+            if (song == null) return;
+            Debug.WriteLine($"Downloading song: {song.Title}");
+        }
+        [RelayCommand]
+        private void ShareSong(Song song)
+        {
+            if (song == null) return;
+            Debug.WriteLine($"Sharing song: {song.Title}");
+        }
+        [RelayCommand]
+        private void RemoveFromPlaylist(Song song)
+        {
+            if (song == null) return;
+            Debug.WriteLine($"Removing song: {song.Title} from playlist.");
+            // 实际逻辑：
+            // 1. 调用后端 API 从数据库中删除关系
+            // 2. 如果成功，从 Songs 这个 ObservableCollection 中移除 song
+            // Songs.Remove(song);
+        }
+        [RelayCommand]
+        private async Task AddToPlaylistAsync(Song song)
+        {
+            if (song == null) return;
+
+            // 为了简化，我们先硬编码添加到 ID 为 1 的播放列表 ("我喜欢的音乐")
+            int targetPlaylistId = 1;
+
+            var (success, errorMessage) = await _playlistService.AddSongToPlaylistAsync(targetPlaylistId, song.Index);
+
+            if (success)
+            {
+                MessageBox.Show($"已将“{song.Title}”添加到播放列表！");
+
+            }
+            else
+            {
+                MessageBox.Show($"添加失败: {errorMessage}");
+
+            }
+        }
         public async Task LoadInitialPlaylistAsync()
         {
             Debug.WriteLine("Enter LoadInitialPlaylistAsync() ");
@@ -161,8 +215,7 @@ namespace NetEase.ViewModels
             SongCount = Songs.Count;
             IsLoading = false;
         }
-
-        // 修改 PlaySong 方法以接受可空参数 Song?，以匹配 Action<Song?> 委托签名
+        [RelayCommand]
         private void PlaySong(Song? song)
         {
             Debug.WriteLine("Enter PlaySong(Song? song)");
@@ -171,7 +224,7 @@ namespace NetEase.ViewModels
                 _playerService.StartPlayback(song, this.Songs);
             }
         }
-
+        [RelayCommand]
         private void AddLocalFolder()
         {
             var dialog = new CommonOpenFileDialog { IsFolderPicker = true };
@@ -181,7 +234,6 @@ namespace NetEase.ViewModels
                 Task.Run(() => ScanAndLoadSongsFromPath(dialog.FileName));
             }
         }
-
         private void ScanAndLoadSongsFromPath(string folderPath)
         {
             var supportedExtensions = new[] { ".mp3", ".flac", ".wav", ".wma", ".m4a" };

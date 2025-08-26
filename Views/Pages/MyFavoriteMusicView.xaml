@@ -7,14 +7,14 @@
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:local="clr-namespace:NetEase.Views.Pages"
              xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
-             xmlns:converters="clr-namespace:NetEase.Converters"
-             xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             xmlns:behaviors="clr-namespace:NetEase.Behaviors"
              d:DataContext="{d:DesignInstance Type=viewmodels:MyFavoriteMusicViewModel}"
              x:Name="MyFavoriteMusicPage"
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="1000">
 
+    
     <UserControl.Resources>
         <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
             <!-- 基础属性设置 (从您原来的 DataGrid 标签上移到这里) -->
@@ -57,6 +57,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <behaviors:BindingProxy x:Key="Proxy" Data="{Binding}"/>
 
         <!-- ScrollViewer 样式 -->
         <Style x:Key="ModernScrollViewer"
@@ -359,7 +360,52 @@
             <Setter Property="Padding"
                     Value="0,0,0,10"/>
         </Style>
-        <converters:WidthConverter x:Key="WidthConverter"/>
+        <!-- ================== 自定义 ContextMenu 样式 ================== -->
+        <!-- MenuItem 的样式 -->
+        <Style x:Key="ModernMenuItemStyle" TargetType="MenuItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="border" 
+                        Background="{TemplateBinding Background}" 
+                        Padding="{TemplateBinding Padding}"
+                        SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- IconPresenter 用于显示 MenuItem 的 Icon -->
+                                <ContentPresenter x:Name="Icon" Grid.Column="0" 
+                                          Content="{TemplateBinding Icon}"
+                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <!-- Header (文字) -->
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- 鼠标悬浮时高亮 -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3F3F3F"/>
+                                <Setter Property="Foreground" Value="AntiqueWhite"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ContextMenu 的样式 -->
+        <Style x:Key="ModernContextMenuStyle" TargetType="ContextMenu">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <!-- 将我们创建的 MenuItem 样式应用到其所有子项 -->
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ModernMenuItemStyle}"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid Margin="15,15"
@@ -546,6 +592,48 @@
                                 Value="5"/>
                         <Setter Property="Margin"
                                 Value="5"/>
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu Style="{StaticResource ModernContextMenuStyle}"
+                                             DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+
+                                    <MenuItem Header="播放" 
+                                              Command="{Binding Data.PlaySongCommand, Source={StaticResource Proxy}}"
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="下载" 
+                                              Command="{Binding Data.DownloadSongCommand, Source={StaticResource Proxy}}"
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="&#xE896;" FontFamily="Segoe MDL2 Assets"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="收藏"
+                                              Command="{Binding Data.ShowAddToPlaylistDialogCommand, Source={StaticResource Proxy}}"
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="&#xE748;" FontFamily="Segoe MDL2 Assets"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="从歌单中删除" 
+                                              Command="{Binding Data.RemoveFromPlaylistCommand, Source={StaticResource Proxy}}"
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+
+
+
 
                         <Setter Property="Template">
                             <Setter.Value>

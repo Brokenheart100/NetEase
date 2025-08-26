@@ -1,10 +1,5 @@
-﻿using NetEase.Models;
-using NetEase.Services;
-using NetEase.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,22 +10,18 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using TagLib.Mpeg;
 
-namespace NetEase.Views.Pages
+namespace NetEase.Views.MusicRowContextMenu
 {
     /// <summary>
-    /// MyFavoriteMusicView.xaml 的交互逻辑
+    /// AddToPlaylistView.xaml 的交互逻辑
     /// </summary>
-    public partial class MyFavoriteMusicView : UserControl
+    public partial class AddToPlaylistView : Window
     {
-        public MyFavoriteMusicView()
+        public AddToPlaylistView()
         {
             InitializeComponent();
-
         }
-       
     }
 }

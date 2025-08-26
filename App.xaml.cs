@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using NetEase.Services;
 using NetEase.ViewModels;
+using NetEase.ViewModels.MusicRowContextMenu;
+using NetEase.Views;
 using System.Net.Http;
 using System.Windows;
-using NetEase.Views;
 
 namespace NetEase
 {
@@ -50,7 +51,7 @@ namespace NetEase
             services.AddTransient<ChatViewModel>();
             services.AddTransient<FriendsViewModel>();
             services.AddTransient<LocalMusicViewModel>();
-
+            services.AddTransient<AddToPlaylistViewModel>();
 
             // --- Views ---
             // ✅ 确认已注册 MainWindow

@@ -105,9 +105,33 @@ namespace NetEase.Services
                 return null;
             }
         }
+
+
+        public async Task<(bool Success, string ErrorMessage)> AddSongToPlaylistAsync(int playlistId, int songId)
+        {
+            try
+            {
+                // URL 格式必须与 Controller 中的路由模板完全匹配
+                var response = await _httpClient.PostAsync($"api/playlists/{playlistId}/songs/{songId}", null);
+
+                if (response.IsSuccessStatusCode) // 2xx 状态码 (包括 204)
+                {
+                    return (true, null);
+                }
+                else
+                {
+                    // 如果失败，尝试解析错误信息
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return (false, errorContent); // 简单起见，直接返回错误内容
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                Debug.WriteLine($"Error adding song to playlist: {ex.Message}");
+                return (false, "Could not connect to the server.");
+            }
+        }
     }
-    // 预留：未来可以添加更多方法，如创建播放列表、添加歌曲到播放列表等
-    // 例如：
-    // public async Task<PlaylistDetailDto> CreatePlaylistAsync(CreatePlaylistDto dto)
-    // public async Task<bool> AddSongToPlaylistAsync(int playlistId, int songId)
+
+    
 }
