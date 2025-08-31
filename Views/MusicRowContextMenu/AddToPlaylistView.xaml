@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NetEase.Views.MusicRowContextMenu" 
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:musicrowcontextmenu="clr-namespace:NetEase.ViewModels.MusicRowContextMenu" 
         d:DataContext="{d:DesignInstance Type=musicrowcontextmenu:AddToPlaylistViewModel}"
         mc:Ignorable="d"
@@ -31,13 +32,34 @@
 
         <!-- 列表 -->
         <ListBox Grid.Row="1"
-                 ItemsSource="{Binding UserPlaylists}"
+                 ItemsSource="{Binding Playlists}"
                  Background="Transparent"
                  BorderThickness="0">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="0,5"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="4" Padding="10">
+                                    <ContentPresenter/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <!-- 鼠标悬浮时高亮 -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#3F3F3F"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <!-- “创建新歌单”的特殊模板 -->
-                    <!-- 我们可以通过数据模板选择器 (DataTemplateSelector) 来实现，但为了简单，先统一模板 -->
                     <Grid Height="60"
                           Margin="10,5">
                         <Grid.ColumnDefinitions>
@@ -67,7 +89,14 @@
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
-            <!-- ... 交互逻辑 ... -->
+            <!-- 关键交互：当选中项改变时，触发命令 -->
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="SelectionChanged">
+                    <b:InvokeCommandAction
+                        Command="{Binding AddToPlaylistCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=SelectedItem}"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
         </ListBox>
 
     </Grid>

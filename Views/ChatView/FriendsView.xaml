@@ -8,21 +8,20 @@
              xmlns:converters="clr-namespace:NetEase.Converters"
              xmlns:components="clr-namespace:NetEase.Views.Components"
              xmlns:pages="clr-namespace:NetEase.Views.Pages"
-             d:DataContext="{d:DesignInstance Type=viewmodels:FriendsViewModel}"
+             xmlns:chatViewModels="clr-namespace:NetEase.ViewModels.ChatViewModels"
+             d:DataContext="{d:DesignInstance Type=chatViewModels:FriendsViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800">
 
     <UserControl.Resources>
-        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
-        <!-- 为子视图定义 DataTemplate -->
-        <DataTemplate DataType="{x:Type viewmodels:ContactsViewModel}">
+        <DataTemplate DataType="{x:Type chatViewModels:ContactsViewModel}">
             <components:ContactsView/>
         </DataTemplate>
-        <DataTemplate DataType="{x:Type viewmodels:SessionsViewModel}">
+        <DataTemplate DataType="{x:Type chatViewModels:SessionsViewModel}">
             <components:SessionsView/>
         </DataTemplate>
-        <DataTemplate DataType="{x:Type viewmodels:ChatViewModel}">
+        <DataTemplate DataType="{x:Type chatViewModels:ChatViewModel}">
             <pages:ChatView/>
         </DataTemplate>
         <Style x:Key="FriendTreeViewItemStyle"
@@ -122,12 +121,12 @@
     </UserControl.Resources>
 
     <Grid ShowGridLines="True">
-        <Grid.RowDefinitions>
+        <!--<Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- 左侧面板 -->
+            --><!-- 左侧面板 --><!--
             <RowDefinition Height="*"/>
-            <!-- 右侧内容 -->
-        </Grid.RowDefinitions>
+            --><!-- 右侧内容 --><!--
+        </Grid.RowDefinitions>-->
 
         <!-- ======================= 左侧面板 ======================= -->
             <!-- 
@@ -150,12 +149,23 @@
                         </StackPanel>
                     </DataTemplate>
                 </TabControl.ItemTemplate>
-            </TabControl>
+                <!-- TabControl会根据选中的项(SelectedTab)，自动将其内容应用这个模板 -->
+                <TabControl.ContentTemplate>
+                    <DataTemplate>
+                        <!-- 
+                    我们告诉WPF，Tab的内容来自于选中项的 ContentViewModel 属性。
+                    WPF会获取到这个属性的值（比如一个ContactsViewModel实例），
+                    然后自动去上面的 Resources 中寻找匹配的 DataTemplate 来渲染它。
+                    -->
+                    <ContentPresenter Content="{Binding ContentViewModel}" Margin="0,20,0,0"/>
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+        </TabControl>
 
         <!-- 2. 定义 Tab 内容的显示方式 -->
-        <ContentControl Grid.Row="1" 
+        <!--<ContentControl Grid.Row="1" 
                         Margin="0,20,0,0"
-                        Content="{Binding SelectedTab.ContentViewModel}"/>
+                        Content="{Binding SelectedTab.ContentViewModel}"/>-->
     </Grid>
 
 </UserControl>

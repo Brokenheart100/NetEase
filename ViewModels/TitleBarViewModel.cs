@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows;
+using System.Windows.Input; // 引入 Mouse 类的命名空间
 
 namespace NetEase.ViewModels
 {
@@ -10,32 +11,44 @@ namespace NetEase.ViewModels
         [ObservableProperty]
         private string _searchText;
 
-        // --- 窗口控制命令 ---
-        public IRelayCommand<Window> DragWindowCommand { get; }
-        public IRelayCommand<Window> MinimizeWindowCommand { get; }
-        public IRelayCommand<Window> MaximizeWindowCommand { get; }
-        public IRelayCommand<Window> CloseWindowCommand { get; }
+        [ObservableProperty]
+        private string _userName;
 
-        public TitleBarViewModel()
+        [ObservableProperty]
+        private bool _isUserProfileOpen;
+
+        // 【新增】用户个人资料浮窗的ViewModel
+        public UserProfileViewModel UserProfileVM { get; }
+        // 构造函数现在是空的，因为命令是自动生成的
+        public Action RequestLogoutAction { get; set; }
+        public TitleBarViewModel(UserProfileViewModel userProfileVM)
         {
-            DragWindowCommand = new RelayCommand<Window>(DragWindow);
-            MinimizeWindowCommand = new RelayCommand<Window>(MinimizeWindow);
-            MaximizeWindowCommand = new RelayCommand<Window>(MaximizeWindow);
-            CloseWindowCommand = new RelayCommand<Window>(CloseWindow);
+            UserProfileVM = userProfileVM;
+            UserProfileVM.RequestLogoutAction = () => RequestLogoutAction?.Invoke();
         }
+        [RelayCommand]
+        private void ToggleUserProfile()
+        {
+            IsUserProfileOpen = !IsUserProfileOpen;
+        }
+        // --- 命令 (由源生成器自动创建) ---
 
+        // 方法名从 DragWindow 改为 DragWindowCommand (或者保持原名，但XAML绑定要写成 DragWindowCommand)
+        // 为了清晰，我们保持原名，让生成器自动添加 "Command" 后缀
+        [RelayCommand]
         private void DragWindow(Window window)
         {
             if (window != null)
             {
-                // 注意：这里需要检查鼠标左键状态，避免右键等也触发拖动
-                if (System.Windows.Input.Mouse.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+                // 检查鼠标左键状态
+                if (Mouse.LeftButton == MouseButtonState.Pressed)
                 {
                     window.DragMove();
                 }
             }
         }
 
+        [RelayCommand]
         private void MinimizeWindow(Window window)
         {
             if (window != null)
@@ -44,6 +57,7 @@ namespace NetEase.ViewModels
             }
         }
 
+        [RelayCommand]
         private void MaximizeWindow(Window window)
         {
             if (window != null)
@@ -54,6 +68,7 @@ namespace NetEase.ViewModels
             }
         }
 
+        [RelayCommand]
         private void CloseWindow(Window window)
         {
             if (window != null)

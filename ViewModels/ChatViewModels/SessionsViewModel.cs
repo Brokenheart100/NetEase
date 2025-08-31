@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetEase.ViewModels
+namespace NetEase.ViewModels.ChatViewModels
 {
     public partial class SessionsViewModel : BaseViewModel
     {

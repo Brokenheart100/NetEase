@@ -10,6 +10,7 @@ namespace NetEase.Models
 {
     public partial class Song : ObservableObject
     {
+        public int Id { get; set; } // <--- 新增这一行！
         public int Index { get; set; }
         public string CoverImageUrl { get; set; } = "E:\\Computer\\VS\\NetEase\\CoverImage\\36.jpg";
         public string Title { get; set; } = "Default";

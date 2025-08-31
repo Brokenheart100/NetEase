@@ -83,8 +83,6 @@ namespace NetEase.Services
         {
             SeekRequested?.Invoke(percentage);
         }
-
-        // --- 私有辅助方法 ---
         private bool CanChangeTrack()
         {
             return _currentPlaylist != null && _currentPlaylist.Count > 0 && CurrentSong != null;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetEase.ViewModels.MusicRowContextMenu;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,16 @@ namespace NetEase.Views.MusicRowContextMenu
         public AddToPlaylistView()
         {
             InitializeComponent();
+            DataContextChanged += OnDataContextChanged;
+        }
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            // 当新的DataContext是AddToPlaylistViewModel时
+            if (e.NewValue is AddToPlaylistViewModel vm)
+            {
+                // 将ViewModel中的CloseWindow委托指向本窗口的Close方法
+                vm.CloseWindow = this.Close;
+            }
         }
     }
 }

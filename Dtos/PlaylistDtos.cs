@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace NetEase.Dtos
 {
+    public class CreatePlaylistDto
+    {
+        [Required]
+        [MaxLength(100)]
+        public string Name { get; set; }
+    }
     // --- SongDto ---
     // 这个类用于表示从 API 获取到的单首歌曲的详细信息
     public class SongDto
@@ -14,8 +20,6 @@ namespace NetEase.Dtos
         public int Id { get; set; }
         public string Title { get; set; }
         public string Artist { get; set; }
-
-        // --- 在这里添加所有缺失的属性 ---
         public string Album { get; set; }
         public string Duration { get; set; }
         public string FilePath { get; set; }
@@ -29,12 +33,9 @@ namespace NetEase.Dtos
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public string CoverImageUrl { get; set; }
-
-        // --- 在这里添加所有缺失的属性 ---
+        public string? CoverImageUrl { get; set; }
         public string UserName { get; set; }
         public DateTime CreateDate { get; set; }
-
         public List<SongDto> Songs { get; set; }
     }
 
@@ -43,6 +44,10 @@ namespace NetEase.Dtos
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Description { get; set; }
         public string CoverImageUrl { get; set; }
+        public string UserName { get; set; }
+        public DateTime CreateDate { get; set; }
+        public List<SongDto> Songs { get; set; }
     }
 }

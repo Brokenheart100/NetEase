@@ -17,6 +17,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using TagLib;
+using static NetEase.Converters.RandomNumber;
 
 namespace NetEase.ViewModels
 {
@@ -45,7 +46,7 @@ namespace NetEase.ViewModels
             _playerService = playerService;
             _playlistService = playlistService;
         
-            CoverImageUrl = "E:\\Computer\\VS\\NetEase\\CoverImage\\25.jpg";
+            CoverImageUrl = GetRandomAvatarUrl();
             PlaylistTitle = "我喜欢的音乐";
             Author = "Brokenheart100";
             CreateDate = "2017-02-18创建";
@@ -174,6 +175,7 @@ namespace NetEase.ViewModels
                         // 2. 将 SongDto 转换为 Song (WPF Model)
                         var song = new Song
                         {
+                            Id = songDto.Id, // <-- 确保赋值
                             Index = index++,
                             Title = songDto.Title,
                             Artist = songDto.Artist,

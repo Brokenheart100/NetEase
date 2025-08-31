@@ -257,3 +257,400 @@
         </Grid>
     </Grid>
 </UserControl>
+“NetEase.exe”(CoreCLR: DefaultDomain): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Private.CoreLib.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\NetEase.dll”。已加载符号。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationFramework.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\WindowsBase.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.Xaml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“d:\visualsutdio\visualstudio\common7\ide\commonextensions\microsoft\hotreload\Microsoft.Extensions.DotNetDeltaApplier.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.IO.Pipes.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Linq.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Console.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.InteropServices.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.Overlapped.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Security.AccessControl.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Security.Principal.Windows.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Security.Claims.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Loader.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“D:\VisualSutdio\visualstudio\Common7\IDE\PrivateAssemblies\Runtime\Microsoft.VisualStudio.Debugger.Runtime.NetCoreApp.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\netstandard.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.ThreadPool.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.TraceSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.Concurrent.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.ComponentModel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Text.RegularExpressions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: DefaultDomain): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Private.CoreLib.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\MusicWebAPI.dll”。已加载符号。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“d:\visualsutdio\visualstudio\common7\ide\extensions\microsoft\web tools\projectsystem\net7.0\Microsoft.WebTools.ApiEndpointDiscovery.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Linq.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\SDK\9.0.302\DotnetTools\dotnet-watch\9.0.302-servicing.25319.7\tools\net9.0\any\middleware\Microsoft.AspNetCore.Watch.BrowserRefresh.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“D:\VisualSutdio\visualstudio\Common7\IDE\Extensions\Microsoft\Web Tools\Browser Link\Microsoft.WebTools.BrowserLink.Net.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“d:\visualsutdio\visualstudio\common7\ide\commonextensions\microsoft\hotreload\Microsoft.Extensions.DotNetDeltaApplier.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.IO.Pipes.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Console.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.InteropServices.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.Overlapped.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.AccessControl.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Principal.Windows.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Claims.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.Loader.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.Concurrent.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Hosting.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Http.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Routing.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ComponentModel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Features.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.DependencyInjection.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Diagnostics.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.Core.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authentication.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authentication.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.ApiExplorer.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Hosting.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.StaticFiles.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authorization.Policy.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+单步执行: 正在逐过程执行非用户代码“MusicWebAPI.Program.<>c__DisplayClass0_0..ctor”
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.IO.Packaging.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Private.Uri.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationCore.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Hosting.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Memory.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Hosting.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.EnvironmentVariables.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\Microsoft.Win32.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.FileProviders.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\DirectWriteForwarder.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.FileProviders.Physical.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.Debug.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.FileExtensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.CompilerServices.VisualC.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\Microsoft.Win32.Registry.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Options.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.NonGeneric.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Diagnostics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.Specialized.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.DiagnosticSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.Binder.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.ComponentModel.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.Thread.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Memory.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.Configuration.ConfigurationManager.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.IO.FileSystem.Watcher.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Xml.ReaderWriter.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ComponentModel.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Private.Xml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\Microsoft.Win32.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.WebClient.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Text.Encoding.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.Encoding.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.UserSecrets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.EventLog.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.Configuration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Numerics.Vectors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Options.ConfigurationExtensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.Console.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Http.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.Debug.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.EventSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.Tracing.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.DependencyInjection.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.Core.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.Transport.NamedPipes.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Quic.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Sockets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\Microsoft.Win32.Registry.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.IIS.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\CommunityToolkit.Mvvm.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.ObjectModel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.Tracing.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.ComponentModel.TypeConverter.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.Windows.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.DiagnosticSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.IISIntegration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Security.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.FileProviders.Composite.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.Encodings.Web.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.Intrinsics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Numerics.Vectors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Security.Cryptography.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+Enter LoginAsync()
+test@example.com,password123
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Http.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Text.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Text.Encodings.Web.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Intrinsics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Private.Uri.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Http.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Reflection.Emit.Lightweight.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Reflection.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Reflection.Emit.ILGeneration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Connections.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Hosting.Server.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.ObjectPool.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.HostFiltering.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.HttpOverrides.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.NetworkInformation.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Routing.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ObjectModel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authentication.Core.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authorization.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.Cors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Cors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.DataAnnotations.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.DataProtection.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.DataProtection.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Sockets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Cryptography.Internal.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.NameResolution.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.WebEncoders.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.OpenApi.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Localization.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\UIAutomationTypes.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.Razor.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Http.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.Thread.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\System.Diagnostics.EventLog.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.Specialized.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ComponentModel.TypeConverter.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.ThreadPool.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\System.IO.Pipelines.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Reflection.Emit.Lightweight.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Reflection.Emit.ILGeneration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Reflection.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\netstandard.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Net.Http.Headers.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.Windows.Controls.Ribbon.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Http.Features.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\WindowsFormsIntegration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Linq.Expressions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.Numerics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Requests.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.WebHeaderCollection.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Metadata.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.Process.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.RegularExpressions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationFramework.Aero2.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ComponentModel.Annotations.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\zh-Hans\PresentationFramework.resources.dll”。模块已生成，不包含符号。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\UIAutomationProvider.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Xml.XDocument.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Private.Xml.Linq.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Private.Xml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\Microsoft.Xaml.Behaviors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.IO.MemoryMappedFiles.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Diagnostics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.FileProviders.Embedded.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\zh-Hans\PresentationCore.resources.dll”。模块已生成，不包含符号。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“Anonymously Hosted DynamicMethods Assembly”。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Diagnostics.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Http.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationFramework-SystemXml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Cryptography.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.NonGeneric.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Security.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+Microsoft.Hosting.Lifetime: Information: Now listening on: http://localhost:5215
+“NetEase.exe”(CoreCLR: clrhost): 已加载“d:\visualsutdio\visualstudio\common7\ide\commonextensions\microsoft\xamldiagnostics\Core\x64\Microsoft.VisualStudio.DesignTools.WpfTap.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.Tasks.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Serialization.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Private.DataContractSerialization.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Serialization.Xml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Serialization.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Resources.ResourceManager.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
+Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
+Microsoft.Hosting.Lifetime: Information: Content root path: E:\Computer\VS\MusicWebAPI
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.IO.Pipelines.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.WebSockets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.Tasks.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Xml.ReaderWriter.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.WebUtilities.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.Immutable.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+引发的异常:“System.Net.Http.HttpRequestException”(位于 System.Private.CoreLib.dll 中)
+获取播放列表失败: Response status code does not indicate success: 401 (Unauthorized).
+enter ClearAllSelections()
+Enter LoadInitialPlaylistAsync() 
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Caching.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.SqlServer.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Data.Common.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Transactions.Local.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+引发的异常:“System.Net.Http.HttpRequestException”(位于 System.Private.CoreLib.dll 中)
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\BCrypt.Net-Next.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+获取播放列表失败: Response status code does not indicate success: 401 (Unauthorized).
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Linq.Queryable.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=CoverImage; DataItem=null; target element is 'ImageBrush' (HashCode=8745607); target property is 'ImageSource' (type 'ImageSource')
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationUI.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Caching.Memory.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\zh-Hans\PresentationUI.resources.dll”。模块已生成，不包含符号。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.NetworkInformation.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Cryptography.Algorithms.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.NameResolution.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\runtimes\win\lib\net6.0\Microsoft.Data.SqlClient.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.StackTrace.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.Process.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.InteropServices.RuntimeInformation.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.WebClient.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Cryptography.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.Identity.Client.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.Encoding.CodePages.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.TraceSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+线程 16476 已退出，返回值为 0 (0x0)。
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.SqlServer.Server.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (59ms) [Parameters=[@__loginDto_Email_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[CreatedAt], [u].[Email], [u].[MobileNumber], [u].[Name], [u].[PasswordHash], [u].[PhoneNumber]
+FROM [Users] AS [u]
+WHERE [u].[Email] = @__loginDto_Email_0
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+User Brokenheart100 logged in. Loading user-specific data...
+“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Identity.Core.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (5ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Name], [p].[CoverImageUrl]
+FROM [Playlists] AS [p]
+WHERE [p].[UserId] = @__userId_0
+Enter GetMyPlaylistsAsync(): System.Collections.Generic.List`1[NetEase.Dtos.PlaylistSummaryDto]
+enter ClearAllSelections()
+Enter LoadInitialPlaylistAsync() 
+Enter LoadPlaylistAsync playlistId:1 
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.StackTrace.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Reflection.Metadata.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.Immutable.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+System.Windows.Data Error: 23 : Cannot convert '<null>' from type '<null>' to type 'System.Windows.Media.ImageSource' for 'en-US' culture with default conversions; consider using Converter property of Binding. NotSupportedException:'System.NotSupportedException: ImageSourceConverter cannot convert from (null).
+   at System.ComponentModel.TypeConverter.GetConvertFromException(Object value)
+   at System.Windows.Media.ImageSourceConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
+   at MS.Internal.Data.DefaultValueConverter.ConvertHelper(Object o, Type destinationType, DependencyObject targetElement, CultureInfo culture, Boolean isForward)'
+System.Windows.Data Error: 23 : Cannot convert '<null>' from type '<null>' to type 'System.Windows.Media.ImageSource' for 'en-US' culture with default conversions; consider using Converter property of Binding. NotSupportedException:'System.NotSupportedException: ImageSourceConverter cannot convert from (null).
+   at System.ComponentModel.TypeConverter.GetConvertFromException(Object value)
+   at System.Windows.Media.ImageSourceConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
+   at MS.Internal.Data.DefaultValueConverter.ConvertHelper(Object o, Type destinationType, DependencyObject targetElement, CultureInfo culture, Boolean isForward)'
+System.Windows.Data Error: 23 : Cannot convert '<null>' from type '<null>' to type 'System.Windows.Media.ImageSource' for 'en-US' culture with default conversions; consider using Converter property of Binding. NotSupportedException:'System.NotSupportedException: ImageSourceConverter cannot convert from (null).
+   at System.ComponentModel.TypeConverter.GetConvertFromException(Object value)
+   at System.Windows.Media.ImageSourceConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
+   at MS.Internal.Data.DefaultValueConverter.ConvertHelper(Object o, Type destinationType, DependencyObject targetElement, CultureInfo culture, Boolean isForward)'
+Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (2ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Name], [p].[CoverImageUrl]
+FROM [Playlists] AS [p]
+WHERE [p].[UserId] = @__userId_0
+Enter GetMyPlaylistsAsync(): System.Collections.Generic.List`1[NetEase.Dtos.PlaylistSummaryDto]
+Enter LoadPlaylistAsync playlistId:1 
+Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (13ms) [Parameters=[@__playlistId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[CoverImageUrl], [t].[Description], [t].[Name], [t].[UserId], [t].[Id0], [t].[CreatedAt], [t].[Email], [t].[MobileNumber], [t].[Name0], [t].[PasswordHash], [t].[PhoneNumber], [t0].[PlaylistsId], [t0].[SongsId], [t0].[Id], [t0].[Album], [t0].[Artist], [t0].[CoverImageUrl], [t0].[Duration], [t0].[FilePath], [t0].[Title]
+FROM (
+    SELECT TOP(1) [p].[Id], [p].[CoverImageUrl], [p].[Description], [p].[Name], [p].[UserId], [u].[Id] AS [Id0], [u].[CreatedAt], [u].[Email], [u].[MobileNumber], [u].[Name] AS [Name0], [u].[PasswordHash], [u].[PhoneNumber]
+    FROM [Playlists] AS [p]
+    INNER JOIN [Users] AS [u] ON [p].[UserId] = [u].[Id]
+    WHERE [p].[Id] = @__playlistId_0
+) AS [t]
+LEFT JOIN (
+    SELECT [p0].[PlaylistsId], [p0].[SongsId], [s].[Id], [s].[Album], [s].[Artist], [s].[CoverImageUrl], [s].[Duration], [s].[FilePath], [s].[Title]
+    FROM [PlaylistSong] AS [p0]
+    INNER JOIN [Songs] AS [s] ON [p0].[SongsId] = [s].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PlaylistsId]
+ORDER BY [t].[Id], [t].[Id0], [t0].[PlaylistsId], [t0].[SongsId]
+线程 11620 已退出，返回值为 0 (0x0)。
+Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (3ms) [Parameters=[@__playlistId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[CoverImageUrl], [t].[Description], [t].[Name], [t].[UserId], [t].[Id0], [t].[CreatedAt], [t].[Email], [t].[MobileNumber], [t].[Name0], [t].[PasswordHash], [t].[PhoneNumber], [t0].[PlaylistsId], [t0].[SongsId], [t0].[Id], [t0].[Album], [t0].[Artist], [t0].[CoverImageUrl], [t0].[Duration], [t0].[FilePath], [t0].[Title]
+FROM (
+    SELECT TOP(1) [p].[Id], [p].[CoverImageUrl], [p].[Description], [p].[Name], [p].[UserId], [u].[Id] AS [Id0], [u].[CreatedAt], [u].[Email], [u].[MobileNumber], [u].[Name] AS [Name0], [u].[PasswordHash], [u].[PhoneNumber]
+    FROM [Playlists] AS [p]
+    INNER JOIN [Users] AS [u] ON [p].[UserId] = [u].[Id]
+    WHERE [p].[Id] = @__playlistId_0
+) AS [t]
+LEFT JOIN (
+    SELECT [p0].[PlaylistsId], [p0].[SongsId], [s].[Id], [s].[Album], [s].[Artist], [s].[CoverImageUrl], [s].[Duration], [s].[FilePath], [s].[Title]
+    FROM [PlaylistSong] AS [p0]
+    INNER JOIN [Songs] AS [s] ON [p0].[SongsId] = [s].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PlaylistsId]
+ORDER BY [t].[Id], [t].[Id0], [t0].[PlaylistsId], [t0].[SongsId]
+Canon (Over a Basso Ostinato)
+Canon In D (Piano)
+Violin Concerto No.2
+Canon (Over a Basso Ostinato)
+Canon In D (Piano)
+Violin Concerto No.2
+线程 35648 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (3288) 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (21640) 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (7812) 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (13988) 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (19180) 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (14076) 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (27996) 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (28288) 已退出，返回值为 0 (0x0)。
+线程 '.NET TP Worker' (23164) 已退出，返回值为 0 (0x0)。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Serialization.Formatters.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Xml.XmlSerializer.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
+enter ClearAllSelections()
+Enter LoadFriendsAsync()
+Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (8ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Name]
+FROM (
+    SELECT [u].[Id], [u].[CreatedAt], [u].[Email], [u].[MobileNumber], [u].[Name], [u].[PasswordHash], [u].[PhoneNumber]
+    FROM [Friendships] AS [f]
+    INNER JOIN [Users] AS [u] ON [f].[AddresseeId] = [u].[Id]
+    WHERE [f].[RequesterId] = @__userId_0 AND [f].[Status] = 1
+    UNION
+    SELECT [u0].[Id], [u0].[CreatedAt], [u0].[Email], [u0].[MobileNumber], [u0].[Name], [u0].[PasswordHash], [u0].[PhoneNumber]
+    FROM [Friendships] AS [f0]
+    INNER JOIN [Users] AS [u0] ON [f0].[RequesterId] = [u0].[Id]
+    WHERE [f0].[AddresseeId] = @__userId_0 AND [f0].[Status] = 1
+) AS [t]
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+friends :NetEase.Models.Friend
+Enter SelectFriend(), selectedFriend: NetEase.Models.Friend
+Enter SelectFriend(), selectedFriend: 
+ChatviewModel Enter LoadChatDetails(NetEase.ViewModels.ChatViewModels.ChatSession)
+System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=AvatarUrl; DataItem=null; target element is 'ImageBrush' (HashCode=32534423); target property is 'ImageSource' (type 'ImageSource')
+System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=AvatarUrl; DataItem=null; target element is 'ImageBrush' (HashCode=59272617); target property is 'ImageSource' (type 'ImageSource')
+System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=AvatarUrl; DataItem=null; target element is 'ImageBrush' (HashCode=36352712); target property is 'ImageSource' (type 'ImageSource')
+System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=AvatarUrl; DataItem=null; target element is 'ImageBrush' (HashCode=3345069); target property is 'ImageSource' (type 'ImageSource')
+程序“[32952] MusicWebAPI.exe”已退出，返回值为 4294967295 (0xffffffff)。
+程序“[1828] NetEase.exe”已退出，返回值为 4294967295 (0xffffffff)。
+
+

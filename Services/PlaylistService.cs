@@ -39,6 +39,7 @@ namespace NetEase.Services
                 // 发送GET请求到后端API的"api/playlists/my"端点
                 // GetFromJsonAsync<T>：自动将API返回的JSON响应反序列化为List<PlaylistSummaryDto>类型
                 var playlists = await _httpClient.GetFromJsonAsync<List<PlaylistSummaryDto>>("api/playlists/my");
+                Debug.WriteLine($"Enter GetMyPlaylistsAsync(): {playlists}");
 
                 // 处理API返回null的情况：如果为null则返回空列表，避免后续出现空引用异常
                 return playlists ?? new List<PlaylistSummaryDto>();

@@ -1,175 +1,297 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// 引入MVVM工具包核心类（ObservableObject实现属性通知，RelayCommand实现命令绑定）
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
+// 引入登录/注册相关的数据传输对象（DTO）
+using NetEase.Dtos;
 using NetEase.Models;
+
+// 引入应用程序设置（用于保存"记住用户名"等配置）
 using NetEase.Properties;
+// 引入授权服务（处理实际的登录/注册业务逻辑）
 using NetEase.Services;
+// 系统基础类（事件、调试、任务、窗口等）
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 
+// 命名空间：视图模型层（处理登录/注册相关的UI逻辑）
 namespace NetEase.ViewModels
 {
-    // 这个 ViewModel 现在统一管理登录和注册
+    public enum AuthViewState
+    {
+        ProfileSelection, // 用户选择界面
+        Login,            // 登录表单
+        Register          // 注册表单
+    }
+    /// <summary>
+    /// 登录成功事件的参数类：用于在登录成功时传递用户信息
+    /// 继承EventArgs，符合.NET事件参数规范
+    /// </summary>
+    public class LoginSuccessEventArgs : EventArgs
+    {
+        /// <summary>
+        /// 登录成功后返回的用户信息（包含用户ID、名称等）
+        /// </summary>
+        public LoginResponse UserLoginInfo { get; }
+
+        /// <summary>
+        /// 构造函数：初始化登录成功事件参数
+        /// </summary>
+        /// <param name="loginInfo">登录响应数据（从服务层获取）</param>
+        public LoginSuccessEventArgs(LoginResponse loginInfo)
+        {
+            UserLoginInfo = loginInfo;
+        }
+    }
+
+    /// <summary>
+    /// 认证视图模型：处理登录、注册的UI逻辑，绑定到登录/注册界面
+    /// 继承BaseViewModel（自定义基类，可能包含公共属性如加载状态等）
+    /// </summary>
     public partial class AuthenticationViewModel : BaseViewModel
     {
+        // 依赖注入的授权服务：实际处理登录/注册的业务逻辑（与后端API交互）
         private readonly AuthService _authService;
-
-        // --- 视图状态控制 ---
+        private readonly UserProfileService _profileService; // 注入新服务
+        /// <summary>
+        /// 登录成功事件：当登录成功时触发，通知其他组件（如主窗口）切换状态
+        /// </summary>
+        public event EventHandler<LoginSuccessEventArgs> LoginSuccess;
         [ObservableProperty]
-        private bool _isRegistering = false; // false = 显示登录, true = 显示注册
-
-        // --- 表单数据 ---
-        // 'Username' 和 'Password' 用于【登录】和【注册】
+        private AuthViewState _currentState = AuthViewState.ProfileSelection;
+        public ObservableCollection<SavedUserProfile> SavedUsers { get; } = new();
+        // --- 视图状态控制属性 ---
+        /// <summary>
+        /// 是否显示注册视图（双向绑定到UI，控制登录/注册表单切换）
+        /// </summary>
         [ObservableProperty]
-        private string _username; // 在登录时代表 Email, 在注册时也可以用作用户名
+        private bool _isRegistering = false;
 
-        [ObservableProperty]
-        private string _password;
+        // --- 表单数据属性（绑定到UI输入框，存储用户输入） ---
+        /// <summary>
+        /// 邮箱地址（登录和注册的共用账号字段，绑定到邮箱输入框）
+        /// </summary>
+        [ObservableProperty] private string _email;
 
-        // 仅在【注册】时需要的额外字段
-        [ObservableProperty]
-        private string _name;
+        /// <summary>
+        /// 密码（绑定到密码输入框，登录和注册均需）
+        /// </summary>
+        [ObservableProperty] private string _password;
 
-        [ObservableProperty]
-        private string _mobileNumber;
+        /// <summary>
+        /// 用户名（仅注册时需要，绑定到注册表单的姓名输入框）
+        /// </summary>
+        [ObservableProperty] private string _name;
 
-        [ObservableProperty]
-        private string _email; // 注册时专用的 Email 字段
+        /// <summary>
+        /// 手机号码（仅注册时需要，绑定到注册表单的手机号输入框）
+        /// </summary>
+        [ObservableProperty] private string _mobileNumber;
 
-        [ObservableProperty]
-        private string _errorMessage;
+        /// <summary>
+        /// 错误信息（绑定到UI的错误提示区域，显示登录/注册失败原因）
+        /// </summary>
+        [ObservableProperty] private string _errorMessage;
 
-        [ObservableProperty]
-        private bool _isProcessing; // 通用的“处理中”状态，用于登录或注册
-        [ObservableProperty]
-        private bool _rememberUsername;
+        /// <summary>
+        /// 是否正在处理（绑定到UI的加载指示器，登录/注册过程中显示加载状态）
+        /// </summary>
+        [ObservableProperty] private bool _isProcessing;
 
-        [ObservableProperty]
-        private bool _rememberPassword;
-        // --- 命令 ---
-        public ICommand ShowRegisterViewCommand { get; }
-        public ICommand ShowLoginViewCommand { get; }
-        public IAsyncRelayCommand LoginCommand { get; }
-        public IAsyncRelayCommand RegisterCommand { get; }
+        /// <summary>
+        /// 是否记住用户名（绑定到"记住我"复选框，控制是否保存邮箱到本地设置）
+        /// </summary>
+        [ObservableProperty] private bool _rememberUsername;
 
-        public AuthenticationViewModel(AuthService authService)
+        /// <summary>
+        /// 构造函数：通过依赖注入初始化授权服务，加载登录设置，触发自动登录
+        /// </summary>
+        /// <param name="authService">授权服务实例（由DI容器注入）</param>
+        public AuthenticationViewModel(AuthService authService, UserProfileService profileService)
         {
             _authService = authService;
+            _profileService = profileService;
+            LoadSavedProfiles();
+            // 加载本地保存的登录设置（如是否记住用户名、保存的邮箱）
+            LoadLoginSettings();
 
-            // 初始化命令
-            ShowRegisterViewCommand = new RelayCommand(() => IsRegistering = true);
-            ShowLoginViewCommand = new RelayCommand(() => IsRegistering = false);
-            LoginCommand = new AsyncRelayCommand(LoginAsync);
-            RegisterCommand = new AsyncRelayCommand(RegisterAsync);
-            //loginTest();
-            //LoadLoginSettings();
+            // 自动执行登录（可能用于"记住登录状态"的场景，此处暂时直接调用）
+            //Login();
         }
-
-        public async Task loginTest()
+        private void LoadSavedProfiles()
         {
-            Debug.WriteLine("Enter loginTest()");
-            IsProcessing = true;
-            ErrorMessage = string.Empty;
-
-            // 登录时使用 Username 属性作为邮箱
-            var (success, response, errorMessage) = await _authService.LoginAsync("281338225@qq.com", "123456789");
-
-            IsProcessing = false;
-
-            if (success)
+            var profiles = _profileService.LoadProfiles();
+            if (profiles.Any())
             {
-                MessageBox.Show($"Welcome back, {response.User.Name}!", "Login Successful");
-                //CloseOverlay();
-                SaveLoginSettings();
+                foreach (var profile in profiles)
+                {
+                    SavedUsers.Add(profile);
+                }
+                CurrentState = AuthViewState.ProfileSelection;
             }
             else
             {
-                MessageBox.Show($"ri, {response?.User.Name}!", "Login failed");
-                ErrorMessage = errorMessage; // 在界面上显示错误信息
+                // 如果没有已保存的用户，直接显示登录界面
+                CurrentState = AuthViewState.Login;
             }
         }
-        private async Task LoginAsync()
+        // --- 命令（绑定到UI按钮，由MVVM工具包自动生成命令属性） ---
+
+        /// <summary>
+        /// 显示注册视图命令：绑定到"注册"按钮，点击后切换到注册表单
+        /// </summary>
+        [RelayCommand]
+        private void ShowRegisterView()
         {
-            Debug.WriteLine("Enter LoginAsync()");
+            IsRegistering = true; // 切换状态为注册视图，UI会自动更新表单
+        }
+
+        /// <summary>
+        /// 显示登录视图命令：绑定到"登录"按钮（注册表单中），点击后切换回登录表单
+        /// </summary>
+        [RelayCommand]
+        private void ShowLoginView()
+        {
+            IsRegistering = false; // 切换状态为登录视图，UI会自动更新表单
+        }
+
+        /// <summary>
+        /// 登录命令：绑定到登录表单的"登录"按钮，异步处理登录逻辑
+        /// </summary>
+        [RelayCommand]
+        private async Task Login()
+        {
+            Debug.WriteLine("进入Login()");
+            // 登录过程中：设置处理状态（UI显示加载），清空之前的错误信息
             IsProcessing = true;
             ErrorMessage = string.Empty;
-            var (success, response, errorMessage) = await _authService.LoginAsync("281338225@qq.com", "123456789");
-            //Debug.WriteLine($"{Email}");
-            //var (success, response, errorMessage) = await _authService.LoginAsync(Email, Password);
+            // traveler@example.com password123
+            // test@example.com password123
+            // 调用授权服务的登录方法（此处暂时硬编码测试账号，实际应使用用户输入的Email和Password）
+            var (success, response, errorMessage) = await _authService.LoginAsync(Email, Password);
+            //var (success, response, errorMessage) = await _authService.LoginAsync("test@example.com", "password123");
 
+            // 登录处理完成：关闭加载状态
             IsProcessing = false;
 
             if (success)
             {
-                MessageBox.Show($"Welcome back, {response.User.Name}!", "Login Successful");
+                // 登录成功：触发LoginSuccess事件（通知主窗口切换界面）
+                LoginSuccess?.Invoke(this, new LoginSuccessEventArgs(response));
+                _profileService.SaveProfile(response);
+                // 显示欢迎消息框
+                MessageBox.Show($"欢迎回来，{response.User.Name}！", "登录成功");
+
+                // 保存登录设置（如是否记住用户名）
+                SaveLoginSettings();
+
+                // 关闭登录/注册覆盖层（回到主界面）
                 CloseOverlay();
-                SaveLoginSettings();
             }
             else
             {
-                MessageBox.Show($"shit!", "Login failed");
-                ErrorMessage = errorMessage; // 在界面上显示错误信息
+                // 登录失败：显示错误消息（消息框和UI错误提示区）
+                MessageBox.Show($"登录失败：{errorMessage}", "登录失败");
+                ErrorMessage = errorMessage;
             }
         }
-
-        private async Task RegisterAsync()
+        // 【新增】当用户点击一个已保存的头像时
+        [RelayCommand]
+        private void SelectProfile(SavedUserProfile profile)
         {
+            if (profile == null) return;
+            // 自动填充邮箱，并切换到登录表单
+            Email = profile.Email;
+            Password = string.Empty; // 清空密码框
+            CurrentState = AuthViewState.Login;
+        }
+
+        // 【新增】当用户点击"+"号或需要用新账号登录时
+        [RelayCommand]
+        private void ShowLoginForNewUser()
+        {
+            Email = string.Empty;
+            Password = string.Empty;
+            CurrentState = AuthViewState.Login;
+        }
+        /// <summary>
+        /// 注册命令：绑定到注册表单的"注册"按钮，异步处理注册逻辑
+        /// </summary>
+        [RelayCommand]
+        private async Task Register()
+        {
+            // 注册过程中：设置处理状态（UI显示加载），清空之前的错误信息
             IsProcessing = true;
             ErrorMessage = string.Empty;
 
+            // 调用授权服务的注册方法（传递用户输入的注册信息）
             var (success, errorMessage) = await _authService.RegisterAsync(Name, MobileNumber, Email, Password);
 
+            // 注册处理完成：关闭加载状态
             IsProcessing = false;
 
             if (success)
             {
-                MessageBox.Show("Registration successful! You can now log in.", "Success");
-                IsRegistering = false; // 注册成功后切换回登录视图
+                // 注册成功：显示成功消息，切换回登录视图
+                MessageBox.Show("注册成功！您可以登录了。", "成功");
+                IsRegistering = false; // 切换到登录视图，方便用户直接登录
             }
             else
             {
+                // 注册失败：显示错误信息（UI错误提示区）
                 ErrorMessage = errorMessage;
             }
         }
 
+        // --- 私有辅助方法 ---
+
+        /// <summary>
+        /// 关闭登录/注册覆盖层：通知主窗口隐藏登录界面，显示主内容
+        /// </summary>
         private void CloseOverlay()
         {
+            // 获取主窗口的DataContext（假设是MainViewModel）
             if (Application.Current.MainWindow?.DataContext is MainViewModel mainVM)
             {
+                // 执行主视图模型的隐藏覆盖层命令（关闭登录界面）
                 mainVM.HideOverlayCommand?.Execute(null);
             }
         }
 
+        /// <summary>
+        /// 加载登录设置：从应用程序配置中读取"记住用户名"选项和保存的邮箱
+        /// </summary>
         private void LoadLoginSettings()
         {
             try
             {
+                // 读取"记住用户名"选项状态
                 RememberUsername = Settings.Default.RememberUsername;
+                // 如果需要记住用户名，将保存的邮箱加载到输入框
                 if (RememberUsername)
                 {
-                    Username = Settings.Default.SavedUsername;
+                    Email = Settings.Default.SavedUsername;
                 }
             }
             catch (Exception ex)
             {
-                // 在首次运行时，配置文件可能不存在，添加异常处理更健壮
-                Debug.WriteLine($"Failed to load settings: {ex.Message}");
+                // 捕获读取设置时的异常（如配置文件损坏），输出调试日志
+                Debug.WriteLine($"加载设置失败：{ex.Message}");
             }
         }
 
+        /// <summary>
+        /// 保存登录设置：将"记住用户名"选项和邮箱保存到应用程序配置
+        /// </summary>
         private void SaveLoginSettings()
         {
-            // 在这里将数据保存到本地设置
-            // 例如：
+            // 保存"记住用户名"选项状态
             Settings.Default.RememberUsername = RememberUsername;
-            Settings.Default.SavedUsername = RememberUsername ? Username : string.Empty;
-
-            // 别忘了还有 RememberPassword
-            Settings.Default.RememberPassword = RememberPassword;
-
+            // 如果需要记住用户名，则保存当前邮箱；否则清空保存的邮箱
+            Settings.Default.SavedUsername = RememberUsername ? Email : string.Empty;
+            // 持久化保存设置（写入配置文件）
             Settings.Default.Save();
         }
     }

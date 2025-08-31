@@ -3,17 +3,18 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Threading.Tasks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace NetEase.Services
 {
     // 这个类现在非常干净，只负责与认证相关的 API 通信
     public class AuthService
     {
+        private string _token;
+        public string Token { get; private set; } // 将_token改为公共属性
         // _httpClient 是通过构造函数由 DI 容器注入的
         private readonly HttpClient _httpClient;
-
+        private int? _currentUserId; // 登录后保存用户ID
+        private string _currentUserName; // 顺便也保存一下用户名
         public AuthService(HttpClient httpClient)
         {
             _httpClient = httpClient;
@@ -55,10 +56,16 @@ namespace NetEase.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-                    if (!string.IsNullOrEmpty(loginResponse?.Token))
+                    if (loginResponse?.User != null && !string.IsNullOrEmpty(loginResponse?.Token))
                     {
+                        _token = loginResponse.Token; // <-- 保存Token到字段
+                        Token = loginResponse.Token; // 赋值给公共属性
                         _httpClient.DefaultRequestHeaders.Authorization =
                             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginResponse.Token);
+                        _currentUserId = loginResponse.User.Id;
+                        _currentUserName = loginResponse.User.Name;
+
+                        Debug.WriteLine($"NetEase User logged in. ID: {_currentUserId}, Name: {_currentUserName}");
                     }
                     return (true, loginResponse, null);
                 }
@@ -96,6 +103,45 @@ namespace NetEase.Services
             }
             return errorMessage;
         }
-       
+
+        public async Task<(bool, LoginResponse)> TryAutoLoginAsync()
+        {
+            // 在真实应用中，这里会读取本地安全存储的Token
+            // 然后调用一个后端API如 /api/auth/validate 来验证Token并获取用户信息
+            // 我们暂时简化为：如果没有token就失败
+            if (string.IsNullOrEmpty(_token))
+            {
+                return (false, null);
+            }
+
+            // 假设Token有效，但没有用户信息，所以还是返回失败，强制用户手动登录
+            // 这是一个待完善的点
+            return (false, null);
+        }
+        public void Logout()
+        {
+            _token = null;
+            _currentUserId = null;
+            _currentUserName = null;
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+            Debug.WriteLine("User state cleared (logged out).");
+        }
+
+        public int? GetCurrentUserId()
+        {
+            return _currentUserId;
+        }
+
+        public string GetCurrentUserName()
+        {
+            return _currentUserName;
+        }
+
+        // 这个是您之前在App.xaml.cs中需要的，这里补充一下
+        public void SetCurrentUser(int userId, string userName)
+        {
+            _currentUserId = userId;
+            _currentUserName = userName;
+        }
     }
 }

@@ -101,7 +101,7 @@
                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                        Padding="{TemplateBinding Padding}"
-                                       Margin="5,0,0,0"
+                                       Margin="15,0,0,0"
                                        IsHitTestVisible="False"
                                        Visibility="Collapsed"/>
 
@@ -255,7 +255,55 @@
                   HorizontalAlignment="Center"
                   Width="350"
                   ShowGridLines="True">
-                <!-- ########## 1. 登录视图 ########## -->
+
+                <StackPanel x:Name="ProfileSelectionPanel">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentState}" Value="ProfileSelection">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+
+                    <TextBlock Text="谁要玩游戏?" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                    <ItemsControl ItemsSource="{Binding SavedUsers}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.SelectProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" Margin="10">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <ContentPresenter/>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel>
+                                        <Ellipse Width="80" Height="80">
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="{Binding AvatarUrl}"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                        <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Button Command="{Binding ShowLoginForNewUserCommand}" Margin="10">
+                        <!-- ... “+”号的样式 ... -->
+                    </Button>
+                </StackPanel>
+
+
                 <StackPanel x:Name="LoginPanel">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
@@ -263,7 +311,7 @@
                                     Value="Visible"/>
                             <Style.Triggers>
                                 <!-- 当 IsRegistering 为 True 时，隐藏登录视图 -->
-                                <DataTrigger Binding="{Binding IsRegistering}"
+                                <DataTrigger Binding="{Binding CurrentState}"
                                         Value="True">
                                     <Setter Property="Visibility"
                                             Value="Collapsed"/>
@@ -286,6 +334,7 @@
                             <TextBlock Text="&#xE77B;"
                                        FontFamily="Segoe MDL2 Assets"
                                        Foreground="Gray"
+                                       Margin="10"
                                        VerticalAlignment="Center"/>
                             <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
                                      Text="{Binding Email}"
@@ -296,6 +345,7 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE72E;"
                                        FontFamily="Segoe MDL2 Assets"
+                                       Margin="10"
                                        Foreground="Gray"
                                        VerticalAlignment="Center"/>
                             <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
@@ -349,7 +399,6 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- ########## 2. 注册视图 ########## -->
                 <StackPanel x:Name="RegisterPanel">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
@@ -357,7 +406,7 @@
                                     Value="Collapsed"/>
                             <Style.Triggers>
                                 <!-- 当 IsRegistering 为 True 时，显示注册视图 -->
-                                <DataTrigger Binding="{Binding IsRegistering}"
+                                <DataTrigger Binding="{Binding CurrentState}"
                                         Value="True">
                                     <Setter Property="Visibility"
                                             Value="Visible"/>

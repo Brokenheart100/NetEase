@@ -10,6 +10,7 @@
         xmlns:pages="clr-namespace:NetEase.Views.Pages"
         xmlns:components="clr-namespace:NetEase.Views.Components"
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:chatViewModels="clr-namespace:NetEase.ViewModels.ChatViewModels"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="MainWindow"
         Height="820"
@@ -109,7 +110,7 @@
         </DataTemplate>
 
 
-        <DataTemplate DataType="{x:Type vm:FriendsViewModel}">
+        <DataTemplate DataType="{x:Type chatViewModels:FriendsViewModel}">
             <pages:FriendsView/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:LocalMusicViewModel}">

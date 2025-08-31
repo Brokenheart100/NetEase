@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetEase", "NetEase.csproj",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicWebAPI", "..\MusicWebAPI\MusicWebAPI.csproj", "{46A94A30-619F-46B6-81EE-21F652E102C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpClient", "..\HttpClient\HttpClient.csproj", "{08B06978-E377-43EB-A35E-E3677543C321}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{46A94A30-619F-46B6-81EE-21F652E102C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46A94A30-619F-46B6-81EE-21F652E102C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46A94A30-619F-46B6-81EE-21F652E102C4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{08B06978-E377-43EB-A35E-E3677543C321}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{08B06978-E377-43EB-A35E-E3677543C321}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{08B06978-E377-43EB-A35E-E3677543C321}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{08B06978-E377-43EB-A35E-E3677543C321}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

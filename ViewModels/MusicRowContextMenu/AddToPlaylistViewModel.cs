@@ -1,70 +1,65 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NetEase.Models;
 using NetEase.Services;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Windows;
+using NetEase.Dtos; // 引入 DTO 命名空间
 
 namespace NetEase.ViewModels.MusicRowContextMenu
 {
-    public partial class AddToPlaylistViewModel : BaseViewModel
+    public partial class AddToPlaylistViewModel : ObservableObject
     {
         private readonly PlaylistService _playlistService;
-        private readonly Song _songToAdd; // 要被添加的歌曲
+        private readonly Song _songToAdd;
 
-        [ObservableProperty]
-        private bool _isLoading = true;
+        // 这个集合将绑定到对话框的ListBox
+        public ObservableCollection<Playlist> Playlists { get; } = new();
 
-        public ObservableCollection<Playlist> UserPlaylists { get; } = new();
-
-        // 当用户在列表中选择一个播放列表时，执行此命令
-        public IAsyncRelayCommand<Playlist> AddToPlaylistCommand { get; }
+        // 用于从后台代码关闭窗口
+        public Action CloseWindow { get; set; }
 
         public AddToPlaylistViewModel(PlaylistService playlistService, Song songToAdd)
         {
             _playlistService = playlistService;
             _songToAdd = songToAdd;
-
-            AddToPlaylistCommand = new AsyncRelayCommand<Playlist>(AddToPlaylistAsync);
-            LoadUserPlaylistsAsync();
+            LoadPlaylistsAsync();
         }
 
-        private async Task LoadUserPlaylistsAsync()
+        private async void LoadPlaylistsAsync()
         {
-            IsLoading = true;
-            // 从 API 加载当前用户的所有播放列表
-            var playlists = await _playlistService.GetMyPlaylistsAsync();
-            if (playlists != null)
+            // 调用服务获取 DTO 列表
+            var playlistDtos = await _playlistService.GetMyPlaylistsAsync();
+            Debug.WriteLine($"Enter LoadPlaylistsAsync() {playlistDtos}");
+            if (playlistDtos != null)
             {
-                UserPlaylists.Clear();
-                foreach (var p in playlists)
+                Playlists.Clear();
+                foreach (var dto in playlistDtos)
                 {
-                    // 将 DTO 转换为本地模型
-                    UserPlaylists.Add(new Playlist { Id = p.Id, Title = p.Name, CoverImageUrl = p.CoverImageUrl });
+                    // 将 DTO 转换为前端的 Playlist Model
+                    Playlists.Add(new Playlist { Id = dto.Id, Title = dto.Name });
                 }
             }
-            IsLoading = false;
         }
 
-        private async Task AddToPlaylistAsync(Playlist selectedPlaylist)
+        [RelayCommand]
+        private async Task AddToPlaylist(Playlist targetPlaylist)
         {
-            if (selectedPlaylist == null || _songToAdd == null) return;
+            if (targetPlaylist == null || _songToAdd == null) return;
 
-            // 调用服务，将 _songToAdd.Id 添加到 selectedPlaylist.Id
-            var (success, errorMessage) = await _playlistService.AddSongToPlaylistAsync(selectedPlaylist.Id, _songToAdd.Index);
+       
+            var (success, message) = await _playlistService.AddSongToPlaylistAsync(targetPlaylist.Id, _songToAdd.Id); // 修正点：应为 _songToAdd.Id
 
             if (success)
             {
-                // Growl.Success("添加成功！");
-                // TODO: 关闭窗口
+                MessageBox.Show($"已成功将《{_songToAdd.Title}》添加到歌单“{targetPlaylist.Title}”");
+                CloseWindow?.Invoke(); // 关闭窗口
             }
             else
             {
-                // Growl.Error($"添加失败: {errorMessage}");
+                MessageBox.Show($"添加失败: {message}");
             }
         }
     }

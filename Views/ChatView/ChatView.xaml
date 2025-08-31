@@ -4,11 +4,18 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:NetEase.Views.Pages"
-             xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
-             d:DataContext="{d:DesignInstance Type=viewmodels:ChatViewModel}"
+             xmlns:viewmodels="clr-namespace:NetEase.ViewModels" 
+             xmlns:chatviewmodels="clr-namespace:NetEase.ViewModels.ChatViewModels"
+             xmlns:converters="clr-namespace:NetEase.Converters"
+             d:DataContext="{d:DesignInstance Type=chatviewmodels:ChatViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
+        <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/28.jpg" />
+    </UserControl.Resources>
     <Grid Background="White"
           ShowGridLines="True">
         <Grid.ColumnDefinitions>
@@ -29,6 +36,8 @@
                          Margin="10"
                          Padding="5"/>
                 <ListBox ItemsSource="{Binding Sessions}"
+                         SelectedItem="{Binding SelectedSession, Mode=TwoWay}"
+                         HorizontalContentAlignment="Stretch"
                          BorderThickness="0">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
@@ -37,14 +46,52 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Ellipse Grid.Column="0"
-                                         Width="40"
-                                         Height="40"
-                                         Margin="0,0,10,0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
+                                <!-- 头像区域，我们将在这里叠加红点 -->
+                                <Grid Grid.Column="0" Width="40" Height="40" Margin="0,0,10,0">
+                                    <!-- 1. 头像 Ellipse (保持不变) -->
+                                    <Ellipse>
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="{Binding AvatarUrl, FallbackValue={StaticResource DefaultAvatarImage}}"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+
+                                    <!-- 2. 【新增】红点和数字 (Border + TextBlock) -->
+                                    <!-- 默认是隐藏的 -->
+                                    <Border Background="Red" 
+                    CornerRadius="9" 
+                    Height="18" 
+                    MinWidth="18"
+                    Padding="4,1,4,2"
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Top"
+                    Margin="0,-5,-5,0">
+                                        <!-- 使用负边距将红点定位到右上角 -->
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <!-- 默认隐藏 -->
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <!-- 当未读消息数大于0时，显示红点 -->
+                                                    <DataTrigger Binding="{Binding UnreadMessageCount}" Value="0">
+                                                        <DataTrigger.Setters>
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger.Setters>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding UnreadMessageCount, Converter={StaticResource GreaterThanZeroConverter}}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <TextBlock Text="{Binding UnreadMessageCount}" 
+                           Foreground="White"
+                           FontSize="10"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
                                 <TextBlock Grid.Column="1"
                                            Text="{Binding Name}"
                                            VerticalAlignment="Center"/>
@@ -63,14 +110,14 @@
                 <RowDefinition Height="*"/>
                 <!-- 消息列表 -->
             </Grid.RowDefinitions>
-
+           
             <!-- 标题栏 -->
             <Border Grid.Row="0"
                     Padding="10"
                     BorderBrush="#E0E0E0"
                     BorderThickness="0,0,0,1">
                 <Grid>
-                    <TextBlock Text="USUSUSUS"
+                    <TextBlock Text="{Binding SelectedSession.Name}"
                                FontSize="16"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"/>
@@ -143,7 +190,7 @@
                                                     </Style>
                                                 </Ellipse.Style>
                                                 <Ellipse.Fill>
-                                                    <ImageBrush ImageSource="{Binding AvatarUrl}"/>
+                                                    <ImageBrush ImageSource="{Binding AvatarUrl, FallbackValue={StaticResource DefaultAvatarImage}}"/>
                                                 </Ellipse.Fill>
                                             </Ellipse>
 
@@ -188,7 +235,8 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
-                                                    <TextBlock Text="{Binding Content}"
+                                                    <Grid>
+                                                        <TextBlock Text="{Binding Content}"
                                                                TextWrapping="Wrap">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
@@ -200,11 +248,27 @@
                                                                         <Setter Property="Foreground"
                                                                                 Value="White"/>
                                                                     </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Type}" Value="Image">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
                                                         </TextBlock.Style>
                                                     </TextBlock>
-                                                </Border>
+                                                        <Image Source="{Binding ImageData, FallbackValue={x:Null}}" MaxHeight="200" Stretch="Uniform">
+                                                        <Image.Style>
+                                                            <Style TargetType="Image">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Type}" Value="Image">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Image.Style>
+                                                    </Image>
+                                                    </Grid>
+</Border>
                                             </StackPanel>
 
                                             <!-- 3. 我方的头像 (始终在第 1 列) -->
@@ -227,7 +291,7 @@
                                                     </Style>
                                                 </Ellipse.Style>
                                                 <Ellipse.Fill>
-                                                    <ImageBrush ImageSource="{Binding AvatarUrl}"/>
+                                                    <ImageBrush ImageSource="{Binding AvatarUrl, FallbackValue={StaticResource DefaultAvatarImage}}"/>
                                                 </Ellipse.Fill>
                                             </Ellipse>
 
@@ -238,17 +302,90 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <Border Grid.Row="1"
-                            Padding="10"
-                            BorderBrush="#E0E0E0"
-                            BorderThickness="0,1,0,0">
-                        <Grid>
-                            <TextBox Text="输入消息..."
-                                     VerticalAlignment="Stretch"
-                                     Height="80"/>
-                            <Button Content="发送(S)"
+                    <Border Grid.Row="1" Padding="10" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+                        <Grid ShowGridLines="True">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <!-- 工具栏，比如表情、文件按钮 -->
+                                <RowDefinition Height="*"/>
+                                <!-- 文本输入框 -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- 发送按钮 -->
+                            </Grid.RowDefinitions>
+
+                            <!-- 1. 工具栏 -->
+                            <ItemsControl Grid.Row="0" Margin="0,0,0,8">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <!-- 为工具栏按钮创建一个通用样式 -->
+                                <ItemsControl.Resources>
+                                    <Style x:Key="ToolBarButtonStyle" TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Foreground" Value="#666666"/>
+                                        <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+                                        <Setter Property="FontSize" Value="18"/>
+                                        <Setter Property="Padding" Value="5"/>
+                                        <Setter Property="Margin" Value="3,0"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="3">
+                                                        <TextBlock Text="{TemplateBinding Content}" 
+                                                   FontFamily="{TemplateBinding FontFamily}"
+                                                   FontSize="{TemplateBinding FontSize}"
+                                                   Foreground="{TemplateBinding Foreground}"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#E0E0E0"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ItemsControl.Resources>
+
+                                <!-- 定义工具栏按钮 -->
+                                <Button Content="&#xE76E;" Style="{StaticResource ToolBarButtonStyle}" ToolTip="表情"/>
+                                <Button Content="&#xE74E;" Style="{StaticResource ToolBarButtonStyle}" ToolTip="截图"/>
+                                <Button Content="&#xE8B5;" 
+                                        Style="{StaticResource ToolBarButtonStyle}" 
+                                        ToolTip="发送图片"
+                                        Command="{Binding SendImageCommand}"/>
+                                <Button Content="&#xE8DA;" Style="{StaticResource ToolBarButtonStyle}" ToolTip="文件夹"/>
+                                <Button Content="&#xE8C8;" Style="{StaticResource ToolBarButtonStyle}" ToolTip="历史记录"/>
+                                <Button Content="&#xE717;" Style="{StaticResource ToolBarButtonStyle}" ToolTip="语音通话"/>
+                                <Button Content="&#xE714;" Style="{StaticResource ToolBarButtonStyle}" ToolTip="视频通话"/>
+                                <Button Content="..." Style="{StaticResource ToolBarButtonStyle}" FontFamily="Arial" FontSize="14" Padding="8,5"/>
+                                <Button Content="&#xE70B;" Style="{StaticResource ToolBarButtonStyle}" HorizontalAlignment="Right" Margin="10,0,0,0" ToolTip="消息设置"/>
+
+                            </ItemsControl>
+
+                            <!-- 2. 文本输入框 -->
+                            <TextBox Grid.Row="1" 
+                                     Text="{Binding NewMessageText, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     BorderThickness="0"
+                                     MinHeight="60"
+                                     VerticalContentAlignment="Top"/>
+
+                            <!-- 3. 发送按钮 -->
+                            <Button Grid.Row="2" 
+                                    Content="发送(S)"
+                                    Background="Aqua"
+                                    Command="{Binding SendMessageCommand}"
                                     HorizontalAlignment="Right"
-                                    VerticalAlignment="Bottom"/>
+                                    Padding="15, 5"/>
                         </Grid>
                     </Border>
                 </Grid>
@@ -288,7 +425,7 @@
                                                  Height="24"
                                                  Margin="0,0,10,0">
                                             <Ellipse.Fill>
-                                                <ImageBrush ImageSource="{Binding AvatarUrl}"/>
+                                                <ImageBrush ImageSource="{Binding AvatarUrl, FallbackValue={StaticResource DefaultAvatarImage}}"/>
                                             </Ellipse.Fill>
                                         </Ellipse>
                                         <TextBlock Grid.Column="1"

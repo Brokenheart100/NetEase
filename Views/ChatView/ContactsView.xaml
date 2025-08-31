@@ -3,10 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:local="clr-namespace:NetEase.Views.Components"
-             xmlns:converters="clr-namespace:NetEase.Converters"
+             xmlns:converters="clr-namespace:NetEase.Converters" 
+             xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
+             xmlns:chatViewModels="clr-namespace:NetEase.ViewModels.ChatViewModels"
+             d:DataContext="{d:DesignInstance Type=chatViewModels:ContactsViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
     <UserControl.Resources>
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
         <Style x:Key="FriendTreeViewItemStyle"
@@ -105,88 +110,90 @@
         </Style>
     </UserControl.Resources>
 
-        
-        <Grid Grid.Row="1"
+
+    <Grid 
            Background="BlanchedAlmond"
            ShowGridLines="True">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/>
-                <!-- 左侧导航栏 -->
-                <ColumnDefinition Width="*"/>
-                <!-- 右侧内容区 -->
-            </Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <!-- 左侧导航栏 -->
+            <ColumnDefinition Width="*"/>
+            <!-- 右侧内容区 -->
+        </Grid.ColumnDefinitions>
 
-            <!-- ======================= 左侧导航栏 ======================= -->
-            <Border Grid.Column="0"
+        <!-- ======================= 左侧导航栏 ======================= -->
+        <Border Grid.Column="0"
                  BorderBrush="#E0E0E0"
                  BorderThickness="0,0,1,0">
-                <StackPanel>
-                    <!-- 搜索框和 Tabs -->
-                    <Grid Margin="10">
-                        <TextBox Text="搜索"
-                              Foreground="Gray"
-                              Padding="8,5"
-                              BorderBrush="#DDD"
-                              BorderThickness="1"/>
-                        <TextBlock Text="+"
-                                FontSize="18"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Margin="0,0,8,0"/>
-                    </Grid>
-                    <TabControl Margin="10,0"
-                             BorderThickness="0">
-                        <TabItem Header="好友"/>
-                        <TabItem Header="群聊"/>
-                    </TabControl>
+            <!-- 【核心修改】用Grid替换StackPanel -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- 第一行：给搜索框 -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 第二行：给"好友"/"群聊"Tabs -->
+                    <RowDefinition Height="*"/>
+                    <!-- 第三行：给好友列表，占据所有剩余空间 -->
+                </Grid.RowDefinitions>
 
-                    <!-- 好友列表 (使用 TreeView) -->
-                    <TreeView ItemsSource="{Binding FriendGroups}"
-                           BorderThickness="0"
-                           ItemContainerStyle="{StaticResource FriendTreeViewItemStyle}">
-                        <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <Grid ShowGridLines="True">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+                <!-- 搜索框和+号按钮 -->
+                <Grid Grid.Row="0" Margin="10">
+                    <TextBox Text="搜索" Foreground="Gray" Padding="8,5" BorderBrush="#DDD" BorderThickness="1"/>
+                    <TextBlock Text="+" FontSize="18" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                </Grid>
 
-                                    <Ellipse Grid.Column="0"
-                                          Width="32"
-                                          Height="32"
-                                          Margin="0,0,10,0">
-                                        <Ellipse.Fill>
-                                            <ImageBrush ImageSource="{Binding AvatarUrl}"
-                                                     Stretch="UniformToFill"/>
-                                        </Ellipse.Fill>
-                                    </Ellipse>
+                <!-- "好友"/"群聊" Tabs -->
+                <TabControl Grid.Row="1" Margin="10,0" BorderThickness="0">
+                    <TabItem Header="好友"/>
+                    <TabItem Header="群聊"/>
+                </TabControl>
 
-                                    <StackPanel Grid.Column="1"
-                                             Orientation="Horizontal"
-                                             VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Name}"/>
-                                        <TextBlock Text="{Binding Status}"
-                                                FontSize="10"
-                                                Foreground="Gray"
-                                                Visibility="{Binding Status, Converter={StaticResource StringToVisibilityConverter}}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </HierarchicalDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                </StackPanel>
-            </Border>
+                <!-- 好友列表 (TreeView) -->
+                <!-- TreeView现在被限制在Grid的第三行，有了有限的高度，所以滚动条可以正常工作 -->
+                <TreeView Grid.Row="2" 
+                          ItemsSource="{Binding FriendGroups}"
+                          BorderThickness="0"
+                          ItemContainerStyle="{StaticResource FriendTreeViewItemStyle}"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <!-- 【新增】交互逻辑：当选中项改变时，触发命令 -->
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="SelectedItemChanged">
+                            <b:InvokeCommandAction
+                                Command="{Binding SelectFriendCommand}"
+                                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TreeView}, Path=SelectedItem}"/>
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+                    <!-- 明确设置滚动条可见性 -->
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Friends}">
+                            <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                            <HierarchicalDataTemplate.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-            <!-- ======================= 右侧内容区 ======================= -->
-            <Grid Grid.Column="1"
+                                        <Ellipse Grid.Column="0" Width="32" Height="32" Fill="Gray" Margin="0,0,10,0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </HierarchicalDataTemplate.ItemTemplate>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Grid>
+        </Border>
+
+        <!-- ======================= 右侧内容区 ======================= -->
+        <Grid Grid.Column="1"
                ShowGridLines="True">
-                <!-- 居中的引导视图 -->
-                <StackPanel VerticalAlignment="Center"
+            <!-- 居中的引导视图 -->
+            <StackPanel VerticalAlignment="Center"
                          HorizontalAlignment="Center">
-                    <!-- 1. 大图标 (这里用 Path 绘制一个简化的版本) -->
-                    <Grid Width="150"
+                <!-- 1. 大图标 (这里用 Path 绘制一个简化的版本) -->
+                <Grid Width="150"
                        Height="100"
                        Margin="0,0,0,30"
                        ShowGridLines="True">
@@ -210,21 +217,21 @@
                               VerticalAlignment="Center"
                               Margin="0,0,15,-30"/>
                     </Grid>
-
-                    <!-- 2. 主标题 -->
-                    <TextBlock Text="打开世界的另一扇窗"
+              
+                <!-- 2. 主标题 -->
+                <TextBlock Text="打开世界的另一扇窗"
                             FontSize="24"
                             FontWeight="SemiBold"
                             Foreground="#333"
                             HorizontalAlignment="Center"/>
 
-                    <!-- 3. 副标题 -->
-                    <TextBlock Text="主动一点，世界会更大。"
+                <!-- 3. 副标题 -->
+                <TextBlock Text="主动一点，世界会更大。"
                             FontSize="14"
                             Foreground="Gray"
                             HorizontalAlignment="Center"
                             Margin="0,10,0,0"/>
-                </StackPanel>
-            </Grid>
+            </StackPanel>
         </Grid>
+    </Grid>
 </UserControl>
