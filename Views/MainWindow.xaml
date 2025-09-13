@@ -3,13 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:NetEase"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         xmlns:vm="clr-namespace:NetEase.ViewModels"
         xmlns:converters="clr-namespace:NetEase.Converters"
         xmlns:pages="clr-namespace:NetEase.Views.Pages"
         xmlns:components="clr-namespace:NetEase.Views.Components"
-        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:chatViewModels="clr-namespace:NetEase.ViewModels.ChatViewModels"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="MainWindow"
@@ -102,14 +101,9 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- 数据模板：将ViewModel自动映射到对应的View -->
-        <!-- 文件: MainWindow.xaml -->
-        <!-- ... (您已有的 DataTemplate) ... -->
         <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
             <pages:FeaturedView/>
         </DataTemplate>
-
-
         <DataTemplate DataType="{x:Type chatViewModels:FriendsViewModel}">
             <pages:FriendsView/>
         </DataTemplate>
@@ -649,8 +643,6 @@
             </Grid>
         </ControlTemplate>
 
-
-       
     </Window.Resources>
     <!-- 主容器，使用圆角边框包裹 -->
     <Border CornerRadius="8"
@@ -737,6 +729,7 @@
                                          ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
                                          Background="Transparent"
                                          BorderThickness="0"
+                                         d:ItemsSource="{d:SampleData ItemCount=5}"
                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
@@ -760,13 +753,13 @@
                                             </StackPanel>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
-                                    <b:Interaction.Triggers>
-                                        <b:EventTrigger EventName="SelectionChanged">
-                                            <b:InvokeCommandAction
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction
                                                 Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
-                                        </b:EventTrigger>
-                                    </b:Interaction.Triggers>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
                                 </ListBox>
 
                                 <Separator Margin="20,10"
@@ -779,7 +772,8 @@
                                 <ListBox ItemsSource="{Binding MyMusicNavigationItems}"
                                          ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
                                          Background="Transparent"
-                                        BorderThickness="0"
+                                         BorderThickness="0"
+                                         d:ItemsSource="{d:SampleData ItemCount=4}"
                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
@@ -795,13 +789,13 @@
                                             </StackPanel>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
-                                    <b:Interaction.Triggers>
-                                        <b:EventTrigger EventName="SelectionChanged">
-                                            <b:InvokeCommandAction
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction
                                                 Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
-                                        </b:EventTrigger>
-                                    </b:Interaction.Triggers>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
                                 </ListBox>
                                 <!-- ================== 修改后的 Expander ================== -->
                                 <Expander Style="{StaticResource NavExpanderStyle}">
@@ -830,13 +824,13 @@
                                         </ListBox.ItemTemplate>
 
                                         <!-- 交互逻辑也完全复用 -->
-                                        <b:Interaction.Triggers>
-                                            <b:EventTrigger EventName="SelectionChanged">
-                                                <b:InvokeCommandAction
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="SelectionChanged">
+                                                <i:InvokeCommandAction
                                                     Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
-                                            </b:EventTrigger>
-                                        </b:Interaction.Triggers>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
                                     </ListBox>
                                 </Expander>
 
@@ -902,15 +896,16 @@
                                         Background="Transparent"
                                         BorderThickness="0"
                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                        d:ItemsSource="{d:SampleData ItemCount=1}"
                                         ItemContainerStyle="{StaticResource NavListBoxItemStyle}">
                                         <!-- 1. 当选中项改变时，触发统一的导航命令 -->
-                                        <b:Interaction.Triggers>
-                                            <b:EventTrigger EventName="SelectionChanged">
-                                                <b:InvokeCommandAction
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="SelectionChanged">
+                                                <i:InvokeCommandAction
                                                     Command="{Binding DataContext.NavigatePlaylistCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
-                                            </b:EventTrigger>
-                                        </b:Interaction.Triggers>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid ShowGridLines="True">
@@ -990,15 +985,13 @@
                                     HorizontalContentAlignment="Stretch"
                                     VerticalContentAlignment="Stretch"/>
 
-
-
                 </Grid>
 
                 <!-- 3. 底部播放器控制条 (Grid.Row="2") -->
                 <!-- 直接使用我们创建的 PlayerControlView 控件 -->
                 <!-- 将 PlayerControlView 的 DataContext 绑定到 MainViewModel 的 PlayerControlVM 属性 -->
-                <components:PlayerControlView Grid.Row="2"
-                                              DataContext="{Binding PlayerControlVM}"/>
+                <!--<components:PlayerControlView Grid.Row="2"
+                                              DataContext="{Binding PlayerControlVM}"/>-->
 
                 <MediaElement x:Name="MediaPlayer"
                               LoadedBehavior="Manual"
@@ -1028,15 +1021,97 @@
                     </Style>
                 </Grid.Style>
 
-                <!-- 注册面板，居中显示 -->
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseLeftButtonDown">
+                        <i:InvokeCommandAction
+                            Command="{Binding HideOverlayCommand}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+
                 <pages:SignUpView
                     DataContext="{Binding AuthVM}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
+                    MouseLeftButtonDown="SignUpView_MouseLeftButtonDown"
                     Height="700"
                     Width="1000"/>
             </Grid>
+
+
+            <Grid VerticalAlignment="Bottom"
+                  x:Name="PlayerContainer"
+                  ShowGridLines="True">
+                <!--<Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>-->
+
+                <Grid.Triggers>
+                    <EventTrigger RoutedEvent="Grid.MouseEnter">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="PlayerControl"
+                                                 Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                 To="0"
+                                                 Duration="0:0:0.3">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <!--<DoubleAnimation Storyboard.TargetName="PlayerTriggerArea"
+                                                 Storyboard.TargetProperty="Height"
+                                                 Duration="0:0:0.1">
+                                    <DoubleAnimation.To>
+                                        <Binding Path="ActualHeight" ElementName="PlayerControl"/>
+                                    </DoubleAnimation.To>
+                                </DoubleAnimation>-->
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+
+                    <!-- 当鼠标离开下方的触发区域时 -->
+                    <EventTrigger RoutedEvent="Grid.MouseLeave">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="PlayerControl"
+                                                 Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                 Duration="0:0:0.5">
+                                    <DoubleAnimation.To>
+                                        <Binding Path="Tag" ElementName="PlayerControl"/>
+                                    </DoubleAnimation.To>
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseIn"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <!--<DoubleAnimation Storyboard.TargetName="PlayerTriggerArea"
+                                                 Storyboard.TargetProperty="Height"
+                                                 To="20" 
+                                                 Duration="0:0:0.1"/>-->
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Grid.Triggers>
+
+                <components:PlayerControlView x:Name="PlayerControl"
+                                              DataContext="{Binding PlayerControlVM}"
+                                              Tag="{Binding Path=ActualHeight, ElementName=PlayerControl}">
+
+                    <components:PlayerControlView.RenderTransform>
+                        <TranslateTransform Y="{Binding Path=Tag, ElementName=PlayerControl}"/>
+                    </components:PlayerControlView.RenderTransform>
+
+                </components:PlayerControlView>
+
+                <Border Height="20" VerticalAlignment="Bottom" Background="Transparent"/>
+
+                <!--<Border x:Name="PlayerTriggerArea"
+                        Height="20" 
+                        Background="Transparent"
+                        Panel.ZIndex="0"
+                        VerticalAlignment="Bottom"/>-->
+                
+            </Grid>
         </Grid>
+        
 
     </Border>
 </Window>

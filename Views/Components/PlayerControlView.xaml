@@ -216,14 +216,28 @@
 
     </UserControl.Resources>
 
-    <Grid ShowGridLines="True">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <!-- 进度条，使用Grid覆盖在最上层 -->
 
-        <Slider Grid.Row="0"
+    <Grid>
+
+        <Border>
+            <Border.Background>
+                <!-- 您可以调整颜色和透明度 (例如 #AA000000) -->
+                <SolidColorBrush Color="Black" Opacity="0.7"/>
+            </Border.Background>
+
+            <!-- 效果只应用于这个Border本身 -->
+            <Border.Effect>
+                <BlurEffect Radius="25" KernelType="Gaussian"/>
+            </Border.Effect>
+        </Border>
+        <Grid ShowGridLines="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <!-- 进度条，使用Grid覆盖在最上层 -->
+
+            <Slider Grid.Row="0"
                 Style="{StaticResource CustomSliderStyle}"
                 Value="{Binding CurrentProgress}"
                 Maximum="100"
@@ -233,117 +247,117 @@
                 PreviewMouseDown="Slider_PreviewMouseDown"
                 PreviewMouseUp="Slider_PreviewMouseUp"/>
 
-        <!-- 主控制区域 -->
-        <Grid Grid.Row="1"
+            <!-- 主控制区域 -->
+            <Grid Grid.Row="1"
               Margin="20"
               ShowGridLines="True">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="1*"/>
-            </Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- 左侧：当前歌曲信息 -->
-            <StackPanel Grid.Column="0"
+                <!-- 左侧：当前歌曲信息 -->
+                <StackPanel Grid.Column="0"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
-                <Border Width="70"
+                    <Border Width="70"
                         Height="70"
                         CornerRadius="4">
-                    <Border.Background>
-                        <ImageBrush ImageSource="{Binding CurrentSong.CoverImage}"
+                        <Border.Background>
+                            <ImageBrush ImageSource="{Binding CurrentSong.CoverImage}"
                                     Stretch="UniformToFill"/>
-                    </Border.Background>
-                </Border>
-                <StackPanel VerticalAlignment="Center"
+                        </Border.Background>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center"
                             Margin="10,0,0,0">
-                    <TextBlock Text="{Binding CurrentSong.Title}"
+                        <TextBlock Text="{Binding CurrentSong.Title}"
                                FontSize="14"
                                FontWeight="SemiBold"
                                Foreground="White"/>
-                    <TextBlock Text="{Binding CurrentSong.Artist}"
+                        <TextBlock Text="{Binding CurrentSong.Artist}"
                                FontSize="12"
                                Foreground="#888888"/>
-                </StackPanel>
-                <Button Content=""
+                    </StackPanel>
+                    <Button Content=""
                         Style="{StaticResource IconButtonStyle}"
                         ToolTip="喜欢"
                         Margin="10,0,0,0"/>
-            </StackPanel>
+                </StackPanel>
 
-            <!-- 中间：播放控制按钮 -->
-            <StackPanel Grid.Column="1"
+                <!-- 中间：播放控制按钮 -->
+                <StackPanel Grid.Column="1"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
-                <Button Content=""
+                    <Button Content=""
                         Style="{StaticResource IconButtonStyle}"
                         ToolTip="播放模式"
                         Margin="20,0,20,0"/>
-                <Button Content=""
+                    <Button Content=""
                         Style="{StaticResource IconButtonStyle}"
                         Command="{Binding PreviousSongCommand}"
                         ToolTip="上一首"/>
 
-                <!-- ================== 替换这个播放/暂停按钮 ================== -->
-                <Button Width="40"
+                    <!-- ================== 替换这个播放/暂停按钮 ================== -->
+                    <Button Width="40"
                         Height="40"
                         Background="#EC4141"
                         Cursor="Hand"
                         ToolTip="播放/暂停"
                         Command="{Binding TogglePlayPauseCommand}"
                         Margin="0,0,15,0">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}"
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
                                     CornerRadius="20">
-                                <TextBlock Text="{Binding DataContext.PlayPauseIcon, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    <TextBlock Text="{Binding DataContext.PlayPauseIcon, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                            FontFamily="Segoe MDL2 Assets"
                                            FontSize="18"
                                            Foreground="White"
                                            VerticalAlignment="Center"
                                            HorizontalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-                <Button Content=""
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button Content=""
                         Style="{StaticResource IconButtonStyle}"
                         Command="{Binding NextSongCommand}"
                         ToolTip="下一首"/>
-                <Button Content=""
+                    <Button Content=""
                         Style="{StaticResource IconButtonStyle}"
                         ToolTip="播放列表"/>
-            </StackPanel>
+                </StackPanel>
 
-            <!-- 右侧：功能按钮 -->
-            <StackPanel Grid.Column="2"
+                <!-- 右侧：功能按钮 -->
+                <StackPanel Grid.Column="2"
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right">
-                <Button Content=""
+                    <Button Content=""
                         Style="{StaticResource IconButtonStyle}"
                         ToolTip="本地"
                         Cursor="Hand"/>
-                <Button Content=""
+                    <Button Content=""
                         Style="{StaticResource IconButtonStyle}"
                         ToolTip="添加"/>
-                <Button Content="词"
+                    <Button Content="词"
                         FontFamily="Microsoft YaHei UI"
                         FontSize="14"
                         Style="{StaticResource IconButtonStyle}"
                         ToolTip="歌词"/>
 
 
-                <Grid ShowGridLines="True">
-                    <!-- 1. 音量图标按钮，它本身只是一个视觉元素 -->
-                    <Button x:Name="VolumeButton"
+                    <Grid ShowGridLines="True">
+                        <!-- 1. 音量图标按钮，它本身只是一个视觉元素 -->
+                        <Button x:Name="VolumeButton"
                             Content="{Binding VolumeIcon}"
                             Style="{StaticResource IconButtonStyle}"
                             Command="{Binding MuteCommand}"
                             ToolTip="音量"/>
 
-                    <!-- 2. Popup 面板，它的显示/隐藏由下面的 Border 控制 -->
-                    <Popup x:Name="VolumePopup"
+                        <!-- 2. Popup 面板，它的显示/隐藏由下面的 Border 控制 -->
+                        <Popup x:Name="VolumePopup"
                            AllowsTransparency="True"
                            Placement="Top"
                            PlacementTarget="{Binding ElementName=VolumeButton}"
@@ -351,10 +365,10 @@
                            PopupAnimation="Fade"
                            StaysOpen="False">
 
-                        <!-- 将样式应用到这个 Border -->
-                        <ContentControl Style="{StaticResource PopupWithArrowBorderStyle}">
-                            <StackPanel>
-                                <Slider Orientation="Vertical"
+                            <!-- 将样式应用到这个 Border -->
+                            <ContentControl Style="{StaticResource PopupWithArrowBorderStyle}">
+                                <StackPanel>
+                                    <Slider Orientation="Vertical"
                                         Height="120"
                                         Width="20"
                                         HorizontalAlignment="Center"
@@ -362,54 +376,55 @@
                                         Maximum="1.0"
                                         Value="{Binding PlaybackVolume, Mode=TwoWay}"
                                         IsMoveToPointEnabled="True"/>
-                                <TextBlock Text="{Binding PlaybackVolume, StringFormat={}{0:P0}}"
+                                    <TextBlock Text="{Binding PlaybackVolume, StringFormat={}{0:P0}}"
                                            Foreground="White"
                                            FontSize="12"
                                            HorizontalAlignment="Center"
                                            Margin="0,10,0,0"/>
-                            </StackPanel>
-                        </ContentControl>
-                    </Popup>
+                                </StackPanel>
+                            </ContentControl>
+                        </Popup>
 
 
-                    <Border Background="Transparent"
+                        <Border Background="Transparent"
                             Padding="0, 50, 0, 0"
                             Margin="0, -50, 0, 0">
-                        <Border.Triggers>
-                            <!-- 鼠标进入热区时，立即打开 Popup -->
-                            <EventTrigger RoutedEvent="MouseEnter">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <BooleanAnimationUsingKeyFrames Storyboard.TargetName="VolumePopup"
+                            <Border.Triggers>
+                                <!-- 鼠标进入热区时，立即打开 Popup -->
+                                <EventTrigger RoutedEvent="MouseEnter">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <BooleanAnimationUsingKeyFrames Storyboard.TargetName="VolumePopup"
                                                                         Storyboard.TargetProperty="IsOpen">
-                                            <DiscreteBooleanKeyFrame KeyTime="0:0:0.5"
+                                                <DiscreteBooleanKeyFrame KeyTime="0:0:0.5"
                                                                      Value="True"/>
-                                        </BooleanAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
+                                            </BooleanAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
 
-                            <!-- 鼠标离开热区时，延迟 0.2 秒后关闭 Popup -->
-                            <EventTrigger RoutedEvent="MouseLeave">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <BooleanAnimationUsingKeyFrames Storyboard.TargetName="VolumePopup"
+                                <!-- 鼠标离开热区时，延迟 0.2 秒后关闭 Popup -->
+                                <EventTrigger RoutedEvent="MouseLeave">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <BooleanAnimationUsingKeyFrames Storyboard.TargetName="VolumePopup"
                                                                         Storyboard.TargetProperty="IsOpen">
-                                            <DiscreteBooleanKeyFrame KeyTime="0:0:2"
+                                                <DiscreteBooleanKeyFrame KeyTime="0:0:2"
                                                                      Value="False"/>
-                                        </BooleanAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Border.Triggers>
-                    </Border>
-                </Grid>
-                <!-- ======================================================== -->
+                                            </BooleanAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                        </Border>
+                    </Grid>
+                    <!-- ======================================================== -->
 
-                <Button Content=""
+                    <Button Content=""
                         Style="{StaticResource IconButtonStyle}"
                         ToolTip="更多"/>
-            </StackPanel>
+                </StackPanel>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

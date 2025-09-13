@@ -11,10 +11,11 @@
              d:DesignWidth="1000">
     <UserControl.Resources>
         <Style x:Key="TransparentToggleButton" TargetType="ToggleButton">
-            <Setter Property="Background" Value="DarkGray"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="5"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="Gray"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -30,10 +31,10 @@
             <Style.Triggers>
                 <!-- 鼠标悬浮或被选中时，可以给一个背景反馈 -->
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#33FFFFFF"/>
+                    <Setter Property="Foreground" Value="White"/>
                 </Trigger>
                 <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="#55FFFFFF"/>
+                    <Setter Property="Foreground" Value="GhostWhite"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -155,6 +156,8 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <BitmapImage x:Key="DefaultAvatarImage" UriSource="E:\Computer\VS\NetEase\CoverImage\20.jpg" />
     </UserControl.Resources>
 
     <!-- 1. 自定义标题栏 (Grid.Row="0") -->
@@ -275,7 +278,9 @@
                     <Ellipse Width="28"
                              Height="28">
                         <Ellipse.Fill>
-                            <ImageBrush ImageSource="E:\Computer\VS\NetEase\CoverImage\31.jpg"/>
+                            <!-- 原路径为本地绝对路径，添加默认图片处理 -->
+                            <ImageBrush ImageSource="{Binding Avatar, 
+                                FallbackValue={StaticResource DefaultAvatarImage}}"/>
                         </Ellipse.Fill>
                     </Ellipse>
                 </StackPanel>
@@ -283,9 +288,12 @@
             <ToggleButton x:Name="UserProfileButton" 
                           IsChecked="{Binding IsUserProfileOpen, Mode=TwoWay}"
                           Style="{StaticResource TransparentToggleButton}">
-            <TextBlock Text="{Binding UserName}"
-                       VerticalAlignment="Center"
-                       Margin="8,0"/>
+                <TextBlock 
+                    Text="{Binding UserName,
+                    TargetNullValue=默认名称, 
+                    FallbackValue=加载失败}"
+    VerticalAlignment="Center"
+    Margin="8,0"/>
             </ToggleButton>
 
             <Popup IsOpen="{Binding IsChecked, ElementName=UserProfileButton}"

@@ -28,17 +28,12 @@ namespace NetEase.ViewModels
             // 在基类的构造函数中初始化集合
             Tabs = new ObservableCollection<TabItemViewModel>();
 
-            //// 调用一个抽象方法来填充具体的 Tab 内容
-            //CreateTabs();
-
-            //// 默认选中第一个 Tab
-            //SelectedTab = Tabs.FirstOrDefault();
         }
         // 新增一个受保护的方法，让子类在准备好之后再调用它
         protected void InitializeTabs()
         {
             CreateTabs(); // 调用子类实现的 CreateTabs
-            SelectedTab = Tabs.FirstOrDefault(); // 设置默认选中项
+            SelectedTab = Tabs[1]; // 设置默认选中项
         }
 
         // 3. 定义一个【抽象方法】

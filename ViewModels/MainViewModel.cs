@@ -101,10 +101,11 @@ namespace NetEase.ViewModels
         }
         private async void OnLoginSuccess(object sender, LoginSuccessEventArgs e)
         {
-            Debug.WriteLine($"User {e.UserLoginInfo.User.Name} logged in. Loading data and navigating...");
+            Debug.WriteLine($"Enter OnLoginSuccess User {e.UserLoginInfo.User.Name} logged in. Loading data and navigating...");
 
             // a. 更新全局UI元素
             TitleBarVM.UserName = e.UserLoginInfo.User.Name;
+            TitleBarVM.Avatar = e.UserLoginInfo.User.AvatarUrl;
 
             // b. 异步加载需要用户身份的全局数据（例如播放列表）
             await LoadUserSpecificDataAsync();
@@ -221,8 +222,9 @@ namespace NetEase.ViewModels
 
 
         [RelayCommand]
-        private void Logout()
+        private async Task Logout()
         {
+            await _signalRService.DisconnectAsync();
             // 1. 调用 AuthService 清除认证状态
             _authService.Logout();
 
@@ -234,7 +236,7 @@ namespace NetEase.ViewModels
             // _friendsViewModel.ClearData(); 
 
             // 3. 【核心】显示登录遮罩层
-            IsOverlayVisible = true;
+            //IsOverlayVisible = true;
         }
         #region Private Methods
 

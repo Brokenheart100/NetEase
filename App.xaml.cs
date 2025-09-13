@@ -67,7 +67,7 @@ namespace NetEase
             services.AddSingleton<FriendService>();
             // SignalR服务（单例：实时通信连接管理，全局唯一连接）
             services.AddSingleton<SignalRService>();
-
+            services.AddSingleton<CredentialService>();
             // --- 视图模型（ViewModel）注册 ---
             // 注册MVVM模式中的视图模型，负责数据处理和视图交互逻辑
 

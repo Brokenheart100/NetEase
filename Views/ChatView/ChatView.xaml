@@ -19,7 +19,7 @@
     <Grid Background="White"
           ShowGridLines="True">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="150"/>
             <!-- 第一栏：会话列表 -->
             <ColumnDefinition Width="*"/>
             <!-- 第二栏：聊天窗口 -->
@@ -36,9 +36,10 @@
                          Margin="10"
                          Padding="5"/>
                 <ListBox ItemsSource="{Binding Sessions}"
-                         SelectedItem="{Binding SelectedSession, Mode=TwoWay}"
+                         SelectedItem="{Binding SelectedSession}"
                          HorizontalContentAlignment="Stretch"
-                         BorderThickness="0">
+                         BorderThickness="0" 
+                         d:ItemsSource="{d:SampleData ItemCount=4}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="5">
@@ -58,26 +59,20 @@
                                     <!-- 2. 【新增】红点和数字 (Border + TextBlock) -->
                                     <!-- 默认是隐藏的 -->
                                     <Border Background="Red" 
-                    CornerRadius="9" 
-                    Height="18" 
-                    MinWidth="18"
-                    Padding="4,1,4,2"
-                    HorizontalAlignment="Right" 
-                    VerticalAlignment="Top"
-                    Margin="0,-5,-5,0">
+                                        CornerRadius="9" 
+                                        Height="18" 
+                                        Width="18"
+                                        Padding="4"
+                                        HorizontalAlignment="Right" 
+                                        VerticalAlignment="Top"
+                                        Margin="0,-5,-5,0">
                                         <!-- 使用负边距将红点定位到右上角 -->
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <!-- 默认隐藏 -->
-                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Setter Property="Visibility" Value="Visible"/>
                                                 <Style.Triggers>
-                                                    <!-- 当未读消息数大于0时，显示红点 -->
-                                                    <DataTrigger Binding="{Binding UnreadMessageCount}" Value="0">
-                                                        <DataTrigger.Setters>
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger.Setters>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding UnreadMessageCount, Converter={StaticResource GreaterThanZeroConverter}}" Value="True">
+                                                    <DataTrigger Binding="{Binding UnreadMessageCount}">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -269,6 +264,24 @@
                                                     </Image>
                                                     </Grid>
 </Border>
+                                                <TextBlock Text="已读" FontSize="11" Foreground="Gray" Margin="0,4,8,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <!-- 默认隐藏 -->
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <!-- 只在我发送的、并且已被读取的消息下方显示 -->
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding IsSentByMe}" Value="True"/>
+                                                                        <Condition Binding="{Binding IsRead}" Value="True"/>
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
                                             </StackPanel>
 
                                             <!-- 3. 我方的头像 (始终在第 1 列) -->
@@ -294,6 +307,7 @@
                                                     <ImageBrush ImageSource="{Binding AvatarUrl, FallbackValue={StaticResource DefaultAvatarImage}}"/>
                                                 </Ellipse.Fill>
                                             </Ellipse>
+
 
                                         </Grid>
                                     </Grid>

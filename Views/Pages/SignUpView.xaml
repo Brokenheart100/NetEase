@@ -3,13 +3,73 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:command="http://www.galasoft.ch/mvvmlight"
              xmlns:local="clr-namespace:NetEase.Views.Pages"
              xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
+             xmlns:behaviors="clr-namespace:NetEase.Behaviors"
              d:DataContext="{d:DesignInstance Type=viewmodels:AuthenticationViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800">
     <UserControl.Resources>
+        <BitmapImage x:Key="DefaultAvatarImage"
+                     UriSource="E:/Computer/VS/NetEase/CoverImage/22.jpg"/>
+        <Style x:Key="AddUserProfileButtonStyle"
+               TargetType="Button">
+            <Setter Property="Width"
+                    Value="80"/>
+            <Setter Property="Height"
+                    Value="80"/>
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="BorderBrush"
+                    Value="#DDDDDD"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <!-- 1. 根容器 Border，用于实现圆形和边框 -->
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="40">
+                            <!-- 半径为宽高的一半，形成正圆 -->
+
+                            <!-- 2. ContentPresenter 用于显示按钮的内容 -->
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- 3. 定义触发器，实现交互效果 -->
+                        <ControlTemplate.Triggers>
+                            <!-- 当鼠标悬浮在按钮上时 -->
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <!-- 背景变亮一点 -->
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#11FFFFFF"/>
+                                <!-- 边框变亮一点 -->
+                                <Setter TargetName="border"
+                                        Property="BorderBrush"
+                                        Value="White"/>
+                            </Trigger>
+                            <!-- 当鼠标按下时 -->
+                            <Trigger Property="IsPressed"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#22FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <!-- 输入框的通用样式 -->
         <Style x:Key="SignUpInputBoxStyle"
                TargetType="Border">
@@ -67,7 +127,7 @@
         </Style>
 
         <Style x:Key="InputTextBoxWithPlaceholderStyle"
-                TargetType="TextBox">
+               TargetType="TextBox">
             <!-- 您可以继承已有的 TextBox 样式 -->
             <Setter Property="Background"
                     Value="Transparent"/>
@@ -101,7 +161,7 @@
                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                        Padding="{TemplateBinding Padding}"
-                                       Margin="15,0,0,0"
+                                       Margin="5,0,0,0"
                                        IsHitTestVisible="False"
                                        Visibility="Collapsed"/>
 
@@ -115,14 +175,14 @@
                         <ControlTemplate.Triggers>
                             <!-- 当 TextBox 的 Text 为空时，显示占位符 -->
                             <Trigger Property="Text"
-                                    Value="">
+                                     Value="">
                                 <Setter TargetName="PlaceholderText"
                                         Property="Visibility"
                                         Value="Visible"/>
                             </Trigger>
                             <!-- 当 TextBox 获得焦点时，即使 Text 为空，也隐藏占位符 -->
                             <Trigger Property="IsFocused"
-                                    Value="True">
+                                     Value="True">
                                 <Setter TargetName="PlaceholderText"
                                         Property="Visibility"
                                         Value="Collapsed"/>
@@ -158,6 +218,47 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="CloseButtonStyle"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Foreground"
+                    Value="#AAAAAA"/>
+            <Setter Property="FontFamily"
+                    Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize"
+                    Value="14"/>
+            <Setter Property="Width"
+                    Value="32"/>
+            <Setter Property="Height"
+                    Value="32"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent">
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver"
+                         Value="True">
+                    <Setter Property="Foreground"
+                            Value="#333333"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <Grid ShowGridLines="True">
@@ -173,7 +274,7 @@
               ShowGridLines="True">
             <Grid.Background>
                 <!-- 背景图片 -->
-                <ImageBrush ImageSource="E:\Computer\VS\NetEase\CoverImage\20.jpg"
+                <ImageBrush ImageSource="E:\Computer\VS\NetEase\CoverImage\27.jpg"
                             Stretch="UniformToFill"/>
             </Grid.Background>
             <!-- 半透明遮罩层，让文字更清晰 -->
@@ -206,7 +307,7 @@
                                FontSize="32"
                                Foreground="White"
                                VerticalAlignment="Center"/>
-                    <TextBlock Text="ELBOD2i"
+                    <TextBlock Text="美国"
                                FontSize="28"
                                FontWeight="Bold"
                                Foreground="White"
@@ -259,75 +360,105 @@
                 <StackPanel x:Name="ProfileSelectionPanel">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Setter Property="Visibility"
+                                    Value="Collapsed"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentState}" Value="ProfileSelection">
-                                    <Setter Property="Visibility" Value="Visible"/>
+                                <DataTrigger Binding="{Binding CurrentState}"
+                                             Value="ProfileSelection">
+                                    <Setter Property="Visibility"
+                                            Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
 
-                    <TextBlock Text="谁要玩游戏?" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <TextBlock Text="请选择你的账号"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,20"/>
 
                     <ItemsControl ItemsSource="{Binding SavedUsers}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Button Command="{Binding DataContext.SelectProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}" Margin="10">
+                                        CommandParameter="{Binding}"
+                                        Margin="10">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <ContentPresenter/>
                                         </ControlTemplate>
                                     </Button.Template>
                                     <StackPanel>
-                                        <Ellipse Width="80" Height="80">
+                                        <Ellipse Width="80"
+                                                 Height="80">
                                             <Ellipse.Fill>
-                                                <ImageBrush ImageSource="{Binding AvatarUrl}"/>
+                                                <ImageBrush ImageSource="{Binding AvatarUrl, 
+                    TargetNullValue={StaticResource DefaultAvatarImage}, 
+                    FallbackValue={StaticResource DefaultAvatarImage}}"/>
                                             </Ellipse.Fill>
                                         </Ellipse>
-                                        <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                        <TextBlock Text="{Binding Name}"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,10,0,0"/>
+                                        <Button Command="{Binding DataContext.AutoLoginCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ClickBtn}"
+                                                Content="选择"
+                                                Width="70"
+                                                Height="50"
+                                                Margin="10"/>
+
                                     </StackPanel>
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <Button Command="{Binding ShowLoginForNewUserCommand}" Margin="10">
-                        <!-- ... “+”号的样式 ... -->
+                    <Button Command="{Binding ShowLoginForNewUserCommand}"
+                            Margin="10"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource AddUserProfileButtonStyle}"
+                            ToolTip="使用其他账号登录">
+
+                        <!-- 按钮的内容 (Content) 是一个 TextBlock -->
+                        <TextBlock Text="+"
+                                   FontSize="48"
+                                   FontWeight="Light"
+                                   Foreground="#DDDDDD"
+                                   Margin="0,-4,0,0"/>
                     </Button>
                 </StackPanel>
-
 
                 <StackPanel x:Name="LoginPanel">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
                             <Setter Property="Visibility"
-                                    Value="Visible"/>
+                                    Value="Collapsed"/>
                             <Style.Triggers>
-                                <!-- 当 IsRegistering 为 True 时，隐藏登录视图 -->
                                 <DataTrigger Binding="{Binding CurrentState}"
-                                        Value="True">
+                                             Value="Login">
                                     <Setter Property="Visibility"
-                                            Value="Collapsed"/>
+                                            Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
 
                     <TextBlock Text="Login"
-                            FontSize="32"
-                            FontWeight="Bold"
-                            Foreground="#333"/>
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="#333"/>
                     <TextBlock Text="Please enter your details to login"
-                            FontSize="14"
-                            Foreground="Gray"
-                            Margin="0,5,0,20"/>
+                               FontSize="14"
+                               Foreground="Gray"
+                               Margin="0,5,0,20"/>
 
                     <Border Style="{StaticResource SignUpInputBoxStyle}">
                         <StackPanel Orientation="Horizontal">
@@ -338,7 +469,7 @@
                                        VerticalAlignment="Center"/>
                             <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
                                      Text="{Binding Email}"
-                                    Tag="Email"/>
+                                     Tag="Email"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource SignUpInputBoxStyle}">
@@ -350,7 +481,11 @@
                                        VerticalAlignment="Center"/>
                             <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
                                      Text="{Binding Password}"
-                                    Tag="Password"/>
+                                     Tag="Password"/>
+                            <!--<PasswordBox  Style="{StaticResource InputPasswordBoxWithPlaceholderStyle}"
+                                          Tag="Password"
+                                          behaviors:PasswordBoxHelper.Attach="True"
+                                          behaviors:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>-->
                         </StackPanel>
                     </Border>
 
@@ -361,18 +496,24 @@
                             Margin="0,20,0,0"
                             Width="70"
                             Height="30"/>
-                    
+
                     <Grid Margin="0,10,0,0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <!-- "记住我" CheckBox -->
-                        <CheckBox Grid.Column="0" 
-                                  Content="Remember me"
-                                  IsChecked="{Binding RememberUsername}"
-                                  VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="0">
+                            <CheckBox Content="记住用户名"
+                                      IsChecked="{Binding RememberUsername}"
+                                      Margin="10,0,0,0"/>
+
+                            <!-- 【新增】记住密码 CheckBox -->
+                            <CheckBox Content="记住密码"
+                                      IsChecked="{Binding RememberPassword}"
+                                      Margin="10,5,0,0"/>
+                        </StackPanel>
 
                         <!-- 忘记密码链接 -->
                         <Button Grid.Column="1"
@@ -384,10 +525,10 @@
                                 Cursor="Hand"/>
                     </Grid>
                     <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Center"
-                            Margin="0,40,0,0">
+                                HorizontalAlignment="Center"
+                                Margin="0,40,0,0">
                         <TextBlock Text="Don't have an account?"
-                                Foreground="Gray"/>
+                                   Foreground="Gray"/>
                         <!-- 点击此按钮切换到注册视图 -->
                         <Button Content="Sign Up"
                                 Command="{Binding ShowRegisterViewCommand}"
@@ -407,7 +548,7 @@
                             <Style.Triggers>
                                 <!-- 当 IsRegistering 为 True 时，显示注册视图 -->
                                 <DataTrigger Binding="{Binding CurrentState}"
-                                        Value="True">
+                                             Value="Register">
                                     <Setter Property="Visibility"
                                             Value="Visible"/>
                                 </DataTrigger>
@@ -536,7 +677,19 @@
                                 Margin="5,0,0,0"/>
                     </StackPanel>
                 </StackPanel>
+
             </Grid>
+
+            <Button Command="{Binding CloseCommand}"
+                    Content="&#xE711;"
+                    Style="{StaticResource CloseButtonStyle}"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,15,15,0"
+                    ToolTip="关闭"/>
         </Grid>
+
+
+
     </Grid>
 </UserControl>

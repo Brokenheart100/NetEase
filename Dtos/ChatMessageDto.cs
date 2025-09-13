@@ -15,6 +15,7 @@ namespace NetEase.Dtos
         public DateTime SentAt { get; set; }
         public string MimeType { get; set; } // 【新增】存储图片类型，如 "image/png"
         public string ImageDataBase64 { get; set; }
+        public bool IsRead { get; set; } // 【新增】确保这个字段存在
     }
 
     public class SendMessageDto

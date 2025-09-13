@@ -8,6 +8,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NetEase.Dtos;
 
 namespace NetEase.Services
 {
@@ -40,7 +41,7 @@ namespace NetEase.Services
             return new List<ChatMessage>();
             }
         }
-
+            
         public async Task<ChatMessage> SendMessageAsync(int receiverId, string content, string mimeType = null)
         {
             //var messageDto = new { ReceiverId = receiverId, Content = content };
@@ -62,6 +63,40 @@ namespace NetEase.Services
                     Debug.WriteLine($"内部异常: {ex.InnerException.Message}");
                 }
                 return null;
+            }
+        }
+       
+        public async Task<ChatMessageDto> SendMessageAsync(SendMessageDto messageDto)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/chat/send", messageDto);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ChatMessageDto>();
+            }
+            return null;
+        }
+        public async Task<List<ChatSessionDto>> GetSessionsAsync()
+        {
+            try
+            {
+                // DTO需要先在前端定义
+                return await _httpClient.GetFromJsonAsync<List<ChatSessionDto>>("api/chat/sessions");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to get sessions: {ex.Message}");
+                return new List<ChatSessionDto>();
+            }
+        }
+        public async Task MarkMessagesAsReadAsync(int contactId)
+        {
+            try
+            {
+                await _httpClient.PostAsync($"api/chat/read/{contactId}", null);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to mark messages as read: {ex.Message}");
             }
         }
     }

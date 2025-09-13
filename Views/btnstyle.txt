@@ -1083,3 +1083,6 @@
         </Grid>
     </Grid>
 </UserControl>
+
+
+                                                    <DataTrigger Binding="{Binding UnreadMessageCount, Converter={StaticResource GreaterThanZeroConverter}}" Value="True">

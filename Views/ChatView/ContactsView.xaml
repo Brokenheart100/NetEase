@@ -154,6 +154,7 @@
                           ItemsSource="{Binding FriendGroups}"
                           BorderThickness="0"
                           ItemContainerStyle="{StaticResource FriendTreeViewItemStyle}"
+                          d:ItemsSource="{d:SampleData ItemCount=4}"
                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <!-- 【新增】交互逻辑：当选中项改变时，触发命令 -->
                     <b:Interaction.Triggers>

@@ -55,6 +55,8 @@ namespace NetEase.ViewModels
         // 依赖注入的授权服务：实际处理登录/注册的业务逻辑（与后端API交互）
         private readonly AuthService _authService;
         private readonly UserProfileService _profileService; // 注入新服务
+        private readonly CredentialService _credentialService; // <-- 注入新服务
+
         /// <summary>
         /// 登录成功事件：当登录成功时触发，通知其他组件（如主窗口）切换状态
         /// </summary>
@@ -62,12 +64,7 @@ namespace NetEase.ViewModels
         [ObservableProperty]
         private AuthViewState _currentState = AuthViewState.ProfileSelection;
         public ObservableCollection<SavedUserProfile> SavedUsers { get; } = new();
-        // --- 视图状态控制属性 ---
-        /// <summary>
-        /// 是否显示注册视图（双向绑定到UI，控制登录/注册表单切换）
-        /// </summary>
-        [ObservableProperty]
-        private bool _isRegistering = false;
+      
 
         // --- 表单数据属性（绑定到UI输入框，存储用户输入） ---
         /// <summary>
@@ -104,17 +101,18 @@ namespace NetEase.ViewModels
         /// 是否记住用户名（绑定到"记住我"复选框，控制是否保存邮箱到本地设置）
         /// </summary>
         [ObservableProperty] private bool _rememberUsername;
-
+        [ObservableProperty] private bool _rememberPassword;
         /// <summary>
         /// 构造函数：通过依赖注入初始化授权服务，加载登录设置，触发自动登录
         /// </summary>
         /// <param name="authService">授权服务实例（由DI容器注入）</param>
-        public AuthenticationViewModel(AuthService authService, UserProfileService profileService)
+        public AuthenticationViewModel(AuthService authService, UserProfileService profileService, CredentialService credentialService)
         {
             _authService = authService;
             _profileService = profileService;
+            _credentialService = credentialService;
+            //Login();
             LoadSavedProfiles();
-            // 加载本地保存的登录设置（如是否记住用户名、保存的邮箱）
             LoadLoginSettings();
 
             // 自动执行登录（可能用于"记住登录状态"的场景，此处暂时直接调用）
@@ -122,6 +120,7 @@ namespace NetEase.ViewModels
         }
         private void LoadSavedProfiles()
         {
+            SavedUsers.Clear();
             var profiles = _profileService.LoadProfiles();
             if (profiles.Any())
             {
@@ -137,7 +136,12 @@ namespace NetEase.ViewModels
                 CurrentState = AuthViewState.Login;
             }
         }
-        // --- 命令（绑定到UI按钮，由MVVM工具包自动生成命令属性） ---
+
+        [RelayCommand]
+        private void Close()
+        {
+            CloseOverlay();
+        }
 
         /// <summary>
         /// 显示注册视图命令：绑定到"注册"按钮，点击后切换到注册表单
@@ -145,7 +149,7 @@ namespace NetEase.ViewModels
         [RelayCommand]
         private void ShowRegisterView()
         {
-            IsRegistering = true; // 切换状态为注册视图，UI会自动更新表单
+            CurrentState = AuthViewState.Register;
         }
 
         /// <summary>
@@ -154,7 +158,7 @@ namespace NetEase.ViewModels
         [RelayCommand]
         private void ShowLoginView()
         {
-            IsRegistering = false; // 切换状态为登录视图，UI会自动更新表单
+            CurrentState = AuthViewState.Login;
         }
 
         /// <summary>
@@ -172,9 +176,7 @@ namespace NetEase.ViewModels
             // 调用授权服务的登录方法（此处暂时硬编码测试账号，实际应使用用户输入的Email和Password）
             var (success, response, errorMessage) = await _authService.LoginAsync(Email, Password);
             //var (success, response, errorMessage) = await _authService.LoginAsync("test@example.com", "password123");
-
-            // 登录处理完成：关闭加载状态
-            IsProcessing = false;
+            //var (success, response, errorMessage) = await _authService.LoginAsync("traveler@example.com", "password123");
 
             if (success)
             {
@@ -183,7 +185,6 @@ namespace NetEase.ViewModels
                 _profileService.SaveProfile(response);
                 // 显示欢迎消息框
                 MessageBox.Show($"欢迎回来，{response.User.Name}！", "登录成功");
-
                 // 保存登录设置（如是否记住用户名）
                 SaveLoginSettings();
 
@@ -236,7 +237,7 @@ namespace NetEase.ViewModels
             {
                 // 注册成功：显示成功消息，切换回登录视图
                 MessageBox.Show("注册成功！您可以登录了。", "成功");
-                IsRegistering = false; // 切换到登录视图，方便用户直接登录
+                CurrentState = AuthViewState.Login;
             }
             else
             {
@@ -265,20 +266,85 @@ namespace NetEase.ViewModels
         /// </summary>
         private void LoadLoginSettings()
         {
+            // 从旧的配置文件加载“记住用户名”选项
             try
             {
-                // 读取"记住用户名"选项状态
+                // 1. 加载“记住用户名”选项和已保存的Email
                 RememberUsername = Settings.Default.RememberUsername;
-                // 如果需要记住用户名，将保存的邮箱加载到输入框
                 if (RememberUsername)
                 {
                     Email = Settings.Default.SavedUsername;
                 }
+
+                // 【核心修正】
+                // 2. 如果Email被成功加载，就直接尝试为这个Email获取密码
+                if (!string.IsNullOrEmpty(Email))
+                {
+                    string password = _credentialService.GetPasswordForEmail(Email);
+                    if (!string.IsNullOrEmpty(password))
+                    {
+                        // 如果成功获取到密码
+                        RememberPassword = true;
+                        Password = password; // 填充密码框
+                    }
+                    else
+                    {
+                        // 找不到密码，确保“记住密码”是未勾选状态
+                        RememberPassword = false;
+                    }
+                }
             }
             catch (Exception ex)
             {
-                // 捕获读取设置时的异常（如配置文件损坏），输出调试日志
                 Debug.WriteLine($"加载设置失败：{ex.Message}");
+            }
+        }
+        [RelayCommand]
+        private async Task AutoLogin(SavedUserProfile profile)
+        {
+            Debug.WriteLine($"进入AutoLogin(){profile}");
+            if (profile == null) return;
+
+            // 1. 尝试从安全存储中获取该用户的密码
+            string password = _credentialService.GetPasswordForEmail(profile.Email);
+
+            if (string.IsNullOrEmpty(password))
+            {
+                // 如果找不到密码（例如，用户上次登录时没有勾选“记住密码”），
+                // 就执行原来的逻辑：跳转到登录页面让用户手动输入密码。
+                SelectProfile(profile);
+                return;
+            }
+
+            // 2. 如果找到了密码，直接使用它和用户的Email发起登录
+            IsProcessing = true;
+            ErrorMessage = string.Empty;
+
+            var (success, response, errorMessage) = await _authService.LoginAsync(profile.Email, password);
+
+            IsProcessing = false;
+
+            if (success)
+            {
+                // 登录成功后的逻辑与手动登录完全一样
+                LoginSuccess?.Invoke(this, new LoginSuccessEventArgs(response));
+                _profileService.SaveProfile(response); // 刷新用户信息
+
+                // 确保“记住用户名”和“记住密码”的状态也保存
+                RememberUsername = true;
+                RememberPassword = true;
+                Email = profile.Email; // 更新Email字段以便SaveLoginSettings能正确保存
+                Password = password; // 更新Password字段
+                SaveLoginSettings();
+
+                CloseOverlay();
+            }
+            else
+            {
+                // 如果自动登录失败（例如，密码已在别处更改），
+                // 则跳转到登录页面，并提示错误。
+                SelectProfile(profile);
+                ErrorMessage = $"自动登录失败: {errorMessage}";
             }
         }
 
@@ -287,12 +353,22 @@ namespace NetEase.ViewModels
         /// </summary>
         private void SaveLoginSettings()
         {
-            // 保存"记住用户名"选项状态
-            Settings.Default.RememberUsername = RememberUsername;
-            // 如果需要记住用户名，则保存当前邮箱；否则清空保存的邮箱
-            Settings.Default.SavedUsername = RememberUsername ? Email : string.Empty;
-            // 持久化保存设置（写入配置文件）
-            Settings.Default.Save();
+
+            // 保存“记住用户名”选项到旧的配置文件
+            Properties.Settings.Default.RememberUsername = RememberUsername;
+            Properties.Settings.Default.SavedUsername = RememberUsername ? Email : string.Empty;
+            Properties.Settings.Default.Save();
+
+            // 根据“记住密码”选项来保存或清除安全凭据
+            if (RememberPassword && RememberUsername)
+            {
+                // 只有在“记住用户名”也勾选时才保存密码才有意义
+                _credentialService.SaveCredentials(Email, Password);
+            }
+            else
+            {
+                _credentialService.ClearCredentials();
+            }
         }
     }
 }

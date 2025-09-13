@@ -15,6 +15,9 @@ namespace NetEase.ViewModels
         private string _userName;
 
         [ObservableProperty]
+        private string _avatar;
+
+        [ObservableProperty]
         private bool _isUserProfileOpen;
 
         // 【新增】用户个人资料浮窗的ViewModel

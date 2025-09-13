@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetEase.Models
+namespace NetEase.Dtos
 {
-    public class SavedUserProfile
+    public class UserDto
     {
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
-        public string? AvatarUrl { get; set; } // 将来可以保存真实的头像URL
+        public string AvatarUrl { get; set; } // 【确保】有这个属性
     }
 }

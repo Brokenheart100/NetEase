@@ -24,5 +24,6 @@ namespace NetEase.Views.Pages
         {
             InitializeComponent();
         }
+        
     }
 }

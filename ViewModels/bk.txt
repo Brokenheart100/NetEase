@@ -1,656 +1,509 @@
- <!-- 2. 定义 Tab 内容的显示方式 -->
-        <ContentControl Grid.Row="1" 
-                        Margin="0,20,0,0"
-                        Content="{Binding SelectedTab.ContentViewModel}"/>
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using NetEase.Converters;
+using NetEase.Models;
+using NetEase.Services;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+// WPF UI相关类（窗口、图像渲染）
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using NetEase.Dtos;
+using static NetEase.Converters.RandomNumber;
 
+// 命名空间：聊天相关视图模型（遵循MVVM分层，ViewModel对应View）
+namespace NetEase.ViewModels.ChatViewModels
+{
+    // 【会话模型】：表示一个聊天会话（如单聊/群聊的入口信息）
+    public partial class ChatSession : ObservableObject
+    {
+        // 会话唯一ID（关联后端用户/群组ID）
+        public int Id { get; set; }
+        // 会话名称（如好友昵称、群组名称）
+        public string Name { get; set; }
+        // 会话头像URL（好友/群组头像地址）
+        public string AvatarUrl { get; set; }
+        // 【可观察属性】未读消息数（用[ObservableProperty]自动生成INotifyPropertyChanged，UI实时更新）
+        [ObservableProperty]
+        private int _unreadMessageCount;
+    }
 
-                        <UserControl x:Class="NetEase.Views.Pages.ChatView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:NetEase.Views.Pages"
-             xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
-             d:DataContext="{d:DesignInstance Type=viewmodels:ChatViewModel}"
-             mc:Ignorable="d"
-             d:DesignHeight="450"
-             d:DesignWidth="800">
-    <Grid Background="White"
-          ShowGridLines="True">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <!-- 第一栏：会话列表 -->
-            <ColumnDefinition Width="*"/>
-            <!-- 第二栏：聊天窗口 -->
-        </Grid.ColumnDefinitions>
+    // 【群成员模型】：表示群聊中的成员信息（仅存储UI展示所需的名称和头像）
+    public class GroupMember
+    {
+        // 成员名称
+        public string Name { get; set; }
+        // 成员头像URL
+        public string AvatarUrl { get; set; }
+    }
 
-        <!-- ======================= 第一栏：会话列表 ======================= -->
-        <Border Grid.Column="0"
-                Background="#F5F5F5"
-                BorderBrush="#E0E0E0"
-                BorderThickness="0,0,1,0">
-            <DockPanel>
-                <TextBox DockPanel.Dock="Top"
-                         Text="搜索"
-                         Margin="10"
-                         Padding="5"/>
-                <ListBox ItemsSource="{Binding Sessions}"
-                         BorderThickness="0">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Ellipse Grid.Column="0"
-                                         Width="40"
-                                         Height="40"
-                                         Margin="0,0,10,0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Name}"
-                                           VerticalAlignment="Center"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </DockPanel>
-        </Border>
+    // 【消息类型枚举】：区分消息是文本还是图片
+    public enum MessageType
+    {
+        Text,   // 文本消息
+        Image   // 图片消息
+    }
 
-        <!-- ======================= 第二栏：聊天窗口 ======================= -->
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- 标题栏 -->
-                <RowDefinition Height="*"/>
-                <!-- 消息列表 -->
-            </Grid.RowDefinitions>
+    // 【聊天消息实体】：用record类型（不可变对象，适合存储只读消息数据），包含UI展示和数据传输所需的所有属性
+    public record ChatMessage
+    {
+        // 消息唯一ID（后端生成）
+        public long Id { get; init; }
+        // 发送者ID（关联用户ID）
+        public int SenderId { get; init; }
+        // 消息内容（文本消息存文字，图片消息存URL/Base64标识）
+        public string Content { get; init; }
+        // 消息发送时间
+        public DateTime SentAt { get; init; }
+        // 消息类型（文本/图片）
+        public MessageType Type { get; init; }
+        // 图片URL（仅图片消息有效，指向远程/本地图片地址）
+        public string ImageUrl { get; init; }
+        // 是否是当前登录用户发送的消息（用于UI区分左/右布局）
+        public bool IsSentByMe { get; init; }
+        // 发送者名称（UI显示用，如“我”或好友昵称）
+        public string SenderName { get; init; }
+        // 发送者头像URL（UI显示用）
+        public string AvatarUrl { get; init; }
+        // 媒体类型（MIME类型，如image/jpeg，仅图片消息有效）
+        public string MimeType { get; init; }
+        // 图片源（WPF UI直接渲染的ImageSource，从Base64/URL转换而来）
+        public ImageSource ImageData { get; init; }
+        // 图片Base64字符串（从后端接收的原始图片数据，用于转换为ImageSource）
+        public string ImageDataBase64 { get; set; }
+    }
 
-            <!-- 标题栏 -->
-            <Border Grid.Row="0"
-                    Padding="10"
-                    BorderBrush="#E0E0E0"
-                    BorderThickness="0,0,0,1">
-                <Grid>
-                    <TextBlock Text="USUSUSUS"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Right">
-                        <Button Content="&#xE7C3;"
-                                FontFamily="Segoe MDL2 Assets"
-                                Margin="5,0"/>
-                        <Button Content="&#xE713;"
-                                FontFamily="Segoe MDL2 Assets"
-                                Margin="5,0"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <Grid Grid.Row="1"
-                  ShowGridLines="True">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="3*"/>
-                        <!-- 标题栏 -->
-                        <RowDefinition Height="*"/>
-                        <!-- 消息列表 -->
-                    </Grid.RowDefinitions>
-                    <ScrollViewer Grid.Row="0"
-                                  Grid.Column="0"
-                                  Padding="10">
-                        <ItemsControl ItemsSource="{Binding Messages}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,10">
-                                        <Grid.Style>
-                                            <Style TargetType="Grid">
-                                                <!-- 默认靠左对齐 -->
-                                                <Setter Property="HorizontalAlignment" Value="Left"/>
-                                                <Style.Triggers>
-                                                    <!-- 当 IsSentByMe 为 True 时，改为靠右对齐 -->
-                                                    <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Grid.Style>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+    // 【聊天视图模型】：核心ViewModel，关联聊天界面（View），处理会话、消息、成员的业务逻辑
+    // 继承BaseViewModel（自定义基类，可能包含公共属性如加载状态、错误提示等）
+    public partial class ChatViewModel : BaseViewModel
+    {
+        // 依赖注入的服务（通过构造函数注入，解耦业务逻辑）
+        private readonly ChatService _chatService;    // 聊天服务：处理消息发送、历史记录获取
+        private readonly FileService _fileService;    // 文件服务：处理图片上传
+        private readonly AuthService _authService;    // 授权服务：获取当前登录用户信息
+        private readonly SignalRService _signalRService;  // SignalR服务：处理实时消息接收
+        private readonly string _apiBaseUrl;          // API基础地址（从HttpClient获取，拼接图片URL用）
 
-                                        <Ellipse Grid.Column="0"
-                                                 Width="32"
-                                                 Height="32"
-                                                 Margin="0,0,10,0"
-                                                 VerticalAlignment="Top">
-                                            <Ellipse.Style>
-                                                <Style TargetType="Ellipse">
-                                                    <!-- 默认可见 -->
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Style.Triggers>
-                                                        <!-- 自己发送的消息，隐藏头像 -->
-                                                        <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Ellipse.Style>
-                                            <Ellipse.Fill>  
-                                                <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                            </Ellipse.Fill>
-                                        </Ellipse>
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding SenderName}"
-                                                       Foreground="Gray"
-                                                       FontSize="12"/>
-                                            <Border Background="#EEE"
-                                                    CornerRadius="8"
-                                                    Padding="10"
-                                                    Margin="0,5,50,0">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <!-- 默认是别人发送的灰色背景 -->
-                                                        <Setter Property="Background" Value="#EEE"/>
-                                                        <Style.Triggers>
-                                                            <!-- 当是自己发送时，改为蓝色背景 -->
-                                                            <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                <Setter Property="Background" Value="#007BFF"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <!-- 默认是别人发送的黑色字体 -->
-                                                            <Setter Property="Foreground" Value="Black"/>
-                                                            <Style.Triggers>
-                                                                <!-- 当是自己发送时，改为白色字体 -->
-                                                                <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                    <Setter Property="Foreground" Value="White"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </Border>
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+        // 【会话列表】：绑定UI的会话列表控件（ObservableCollection支持UI自动更新）
+        public ObservableCollection<ChatSession> Sessions { get; }
 
-                    <Border Grid.Row="1"
-                            Padding="10"
-                            BorderBrush="#E0E0E0"
-                            BorderThickness="0,1,0,0">
-                        <Grid>
-                            <TextBox Text="输入消息..."
-                                     VerticalAlignment="Stretch"
-                                     Height="80"/>
-                            <Button Content="发送(S)"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Bottom"/>
-                        </Grid>
-                    </Border>
-                </Grid>
+        // 【当前会话消息列表】：绑定UI的消息展示区域（实时更新当前会话的消息）
+        public ObservableCollection<ChatMessage> Messages { get; }
 
-                <Grid Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <!-- 标题栏 -->
-                        <RowDefinition Height="*"/>
-                        <!-- 消息列表 -->
-                    </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0"
-                                Margin="15">
-                        <TextBlock Text="群公告"
-                                   FontWeight="SemiBold"/>
-                        <TextBlock Text="APEX 账号大全..."
-                                   Margin="0,5,0,20"
-                                   TextWrapping="Wrap"/>
-                    </StackPanel>
+        // 【群成员列表】：绑定UI的群成员展示区域（仅群聊时有效）
+        public ObservableCollection<GroupMember> Members { get; }
 
-                    <StackPanel Grid.Row="1"
-                                Margin="15">
-                        <TextBlock Text="群成员 (3/12)"
-                                   FontWeight="SemiBold"
-                                   Margin="0,0,0,10"/>
-                        <ListBox ItemsSource="{Binding Members}"
-                                 BorderThickness="0">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Ellipse Grid.Column="0"
-                                                 Width="24"
-                                                 Height="24"
-                                                 Margin="0,0,10,0">
-                                            <Ellipse.Fill>
-                                                <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                            </Ellipse.Fill>
-                                        </Ellipse>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Name}"
-                                                   VerticalAlignment="Center"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </StackPanel>
-                </Grid>
-            </Grid>
-        </Grid>
-    </Grid>
-</UserControl>
-“NetEase.exe”(CoreCLR: DefaultDomain): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Private.CoreLib.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\NetEase.dll”。已加载符号。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationFramework.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\WindowsBase.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.Xaml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“d:\visualsutdio\visualstudio\common7\ide\commonextensions\microsoft\hotreload\Microsoft.Extensions.DotNetDeltaApplier.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.IO.Pipes.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Linq.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Console.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.InteropServices.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.Overlapped.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Security.AccessControl.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Security.Principal.Windows.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Security.Claims.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Loader.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“D:\VisualSutdio\visualstudio\Common7\IDE\PrivateAssemblies\Runtime\Microsoft.VisualStudio.Debugger.Runtime.NetCoreApp.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\netstandard.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.ThreadPool.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.TraceSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.Concurrent.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.ComponentModel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Text.RegularExpressions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: DefaultDomain): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Private.CoreLib.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\MusicWebAPI.dll”。已加载符号。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“d:\visualsutdio\visualstudio\common7\ide\extensions\microsoft\web tools\projectsystem\net7.0\Microsoft.WebTools.ApiEndpointDiscovery.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Linq.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\SDK\9.0.302\DotnetTools\dotnet-watch\9.0.302-servicing.25319.7\tools\net9.0\any\middleware\Microsoft.AspNetCore.Watch.BrowserRefresh.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“D:\VisualSutdio\visualstudio\Common7\IDE\Extensions\Microsoft\Web Tools\Browser Link\Microsoft.WebTools.BrowserLink.Net.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“d:\visualsutdio\visualstudio\common7\ide\commonextensions\microsoft\hotreload\Microsoft.Extensions.DotNetDeltaApplier.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.IO.Pipes.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Console.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.InteropServices.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.Overlapped.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.AccessControl.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Principal.Windows.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Claims.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.Loader.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.Concurrent.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Hosting.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Http.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Routing.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ComponentModel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Features.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.DependencyInjection.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Diagnostics.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.Core.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authentication.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authentication.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.ApiExplorer.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Hosting.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.StaticFiles.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authorization.Policy.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-单步执行: 正在逐过程执行非用户代码“MusicWebAPI.Program.<>c__DisplayClass0_0..ctor”
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.IO.Packaging.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Private.Uri.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationCore.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Hosting.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Memory.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Hosting.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.EnvironmentVariables.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\Microsoft.Win32.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.FileProviders.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\DirectWriteForwarder.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.FileProviders.Physical.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.Debug.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.FileExtensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.CompilerServices.VisualC.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\Microsoft.Win32.Registry.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Options.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.NonGeneric.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Diagnostics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.Specialized.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.DiagnosticSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.Binder.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.ComponentModel.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.Thread.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Memory.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.Configuration.ConfigurationManager.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.IO.FileSystem.Watcher.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Xml.ReaderWriter.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ComponentModel.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Private.Xml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\Microsoft.Win32.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.WebClient.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Text.Encoding.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.Encoding.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Configuration.UserSecrets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.EventLog.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.Configuration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Numerics.Vectors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Options.ConfigurationExtensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.Console.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Http.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.Debug.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Logging.EventSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.Tracing.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.DependencyInjection.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.Core.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.Transport.NamedPipes.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Quic.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Sockets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\Microsoft.Win32.Registry.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.IIS.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\CommunityToolkit.Mvvm.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.ObjectModel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.Tracing.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.ComponentModel.TypeConverter.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.Windows.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.DiagnosticSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.IISIntegration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Security.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.FileProviders.Composite.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.Encodings.Web.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.Intrinsics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Numerics.Vectors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Security.Cryptography.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-Enter LoginAsync()
-test@example.com,password123
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Http.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Text.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Text.Encodings.Web.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Intrinsics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Private.Uri.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Http.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Reflection.Emit.Lightweight.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Reflection.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Reflection.Emit.ILGeneration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Connections.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Hosting.Server.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.ObjectPool.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.HostFiltering.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.HttpOverrides.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.NetworkInformation.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Routing.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ObjectModel.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authentication.Core.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Authorization.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.Cors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Cors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.DataAnnotations.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.DataProtection.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.DataProtection.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Sockets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Cryptography.Internal.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.NameResolution.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.WebEncoders.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.OpenApi.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Localization.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\UIAutomationTypes.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Mvc.Razor.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Http.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.Thread.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\System.Diagnostics.EventLog.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.Specialized.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ComponentModel.TypeConverter.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.ThreadPool.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\System.IO.Pipelines.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Reflection.Emit.Lightweight.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Reflection.Emit.ILGeneration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Reflection.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\netstandard.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Net.Http.Headers.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\System.Windows.Controls.Ribbon.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Http.Features.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\WindowsFormsIntegration.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Linq.Expressions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.Numerics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.Requests.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Net.WebHeaderCollection.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Metadata.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.Process.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.RegularExpressions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationFramework.Aero2.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.ComponentModel.Annotations.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\zh-Hans\PresentationFramework.resources.dll”。模块已生成，不包含符号。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\UIAutomationProvider.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Xml.XDocument.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Private.Xml.Linq.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Private.Xml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\NetEase\bin\Debug\net9.0-windows\Microsoft.Xaml.Behaviors.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.IO.MemoryMappedFiles.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.Extensions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Diagnostics.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.FileProviders.Embedded.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\zh-Hans\PresentationCore.resources.dll”。模块已生成，不包含符号。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“Anonymously Hosted DynamicMethods Assembly”。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.Diagnostics.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Http.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationFramework-SystemXml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Cryptography.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.NonGeneric.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.Security.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-Microsoft.Hosting.Lifetime: Information: Now listening on: http://localhost:5215
-“NetEase.exe”(CoreCLR: clrhost): 已加载“d:\visualsutdio\visualstudio\common7\ide\commonextensions\microsoft\xamldiagnostics\Core\x64\Microsoft.VisualStudio.DesignTools.WpfTap.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Threading.Tasks.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Serialization.Json.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Private.DataContractSerialization.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Serialization.Xml.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Serialization.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Resources.ResourceManager.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-Microsoft.Hosting.Lifetime: Information: Application started. Press Ctrl+C to shut down.
-Microsoft.Hosting.Lifetime: Information: Hosting environment: Development
-Microsoft.Hosting.Lifetime: Information: Content root path: E:\Computer\VS\MusicWebAPI
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.IO.Pipelines.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.WebSockets.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Threading.Tasks.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Xml.ReaderWriter.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.AspNetCore.WebUtilities.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Collections.Immutable.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-引发的异常:“System.Net.Http.HttpRequestException”(位于 System.Private.CoreLib.dll 中)
-获取播放列表失败: Response status code does not indicate success: 401 (Unauthorized).
-enter ClearAllSelections()
-Enter LoadInitialPlaylistAsync() 
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Caching.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.SqlServer.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Data.Common.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Transactions.Local.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-引发的异常:“System.Net.Http.HttpRequestException”(位于 System.Private.CoreLib.dll 中)
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\BCrypt.Net-Next.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-获取播放列表失败: Response status code does not indicate success: 401 (Unauthorized).
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Linq.Queryable.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=CoverImage; DataItem=null; target element is 'ImageBrush' (HashCode=8745607); target property is 'ImageSource' (type 'ImageSource')
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\PresentationUI.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Caching.Memory.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\9.0.7\zh-Hans\PresentationUI.resources.dll”。模块已生成，不包含符号。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.NetworkInformation.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Cryptography.Algorithms.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.NameResolution.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\runtimes\win\lib\net6.0\Microsoft.Data.SqlClient.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.StackTrace.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.Process.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Runtime.InteropServices.RuntimeInformation.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Net.WebClient.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Security.Cryptography.Primitives.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.Identity.Client.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Text.Encoding.CodePages.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.18\System.Diagnostics.TraceSource.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-线程 16476 已退出，返回值为 0 (0x0)。
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.SqlServer.Server.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (59ms) [Parameters=[@__loginDto_Email_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
-SELECT TOP(1) [u].[Id], [u].[CreatedAt], [u].[Email], [u].[MobileNumber], [u].[Name], [u].[PasswordHash], [u].[PhoneNumber]
-FROM [Users] AS [u]
-WHERE [u].[Email] = @__loginDto_Email_0
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“E:\Computer\VS\MusicWebAPI\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-User Brokenheart100 logged in. Loading user-specific data...
-“MusicWebAPI.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.18\Microsoft.Extensions.Identity.Core.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (5ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT [p].[Id], [p].[Name], [p].[CoverImageUrl]
-FROM [Playlists] AS [p]
-WHERE [p].[UserId] = @__userId_0
-Enter GetMyPlaylistsAsync(): System.Collections.Generic.List`1[NetEase.Dtos.PlaylistSummaryDto]
-enter ClearAllSelections()
-Enter LoadInitialPlaylistAsync() 
-Enter LoadPlaylistAsync playlistId:1 
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Diagnostics.StackTrace.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Reflection.Metadata.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Collections.Immutable.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-System.Windows.Data Error: 23 : Cannot convert '<null>' from type '<null>' to type 'System.Windows.Media.ImageSource' for 'en-US' culture with default conversions; consider using Converter property of Binding. NotSupportedException:'System.NotSupportedException: ImageSourceConverter cannot convert from (null).
-   at System.ComponentModel.TypeConverter.GetConvertFromException(Object value)
-   at System.Windows.Media.ImageSourceConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
-   at MS.Internal.Data.DefaultValueConverter.ConvertHelper(Object o, Type destinationType, DependencyObject targetElement, CultureInfo culture, Boolean isForward)'
-System.Windows.Data Error: 23 : Cannot convert '<null>' from type '<null>' to type 'System.Windows.Media.ImageSource' for 'en-US' culture with default conversions; consider using Converter property of Binding. NotSupportedException:'System.NotSupportedException: ImageSourceConverter cannot convert from (null).
-   at System.ComponentModel.TypeConverter.GetConvertFromException(Object value)
-   at System.Windows.Media.ImageSourceConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
-   at MS.Internal.Data.DefaultValueConverter.ConvertHelper(Object o, Type destinationType, DependencyObject targetElement, CultureInfo culture, Boolean isForward)'
-System.Windows.Data Error: 23 : Cannot convert '<null>' from type '<null>' to type 'System.Windows.Media.ImageSource' for 'en-US' culture with default conversions; consider using Converter property of Binding. NotSupportedException:'System.NotSupportedException: ImageSourceConverter cannot convert from (null).
-   at System.ComponentModel.TypeConverter.GetConvertFromException(Object value)
-   at System.Windows.Media.ImageSourceConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
-   at MS.Internal.Data.DefaultValueConverter.ConvertHelper(Object o, Type destinationType, DependencyObject targetElement, CultureInfo culture, Boolean isForward)'
-Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (2ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT [p].[Id], [p].[Name], [p].[CoverImageUrl]
-FROM [Playlists] AS [p]
-WHERE [p].[UserId] = @__userId_0
-Enter GetMyPlaylistsAsync(): System.Collections.Generic.List`1[NetEase.Dtos.PlaylistSummaryDto]
-Enter LoadPlaylistAsync playlistId:1 
-Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (13ms) [Parameters=[@__playlistId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT [t].[Id], [t].[CoverImageUrl], [t].[Description], [t].[Name], [t].[UserId], [t].[Id0], [t].[CreatedAt], [t].[Email], [t].[MobileNumber], [t].[Name0], [t].[PasswordHash], [t].[PhoneNumber], [t0].[PlaylistsId], [t0].[SongsId], [t0].[Id], [t0].[Album], [t0].[Artist], [t0].[CoverImageUrl], [t0].[Duration], [t0].[FilePath], [t0].[Title]
-FROM (
-    SELECT TOP(1) [p].[Id], [p].[CoverImageUrl], [p].[Description], [p].[Name], [p].[UserId], [u].[Id] AS [Id0], [u].[CreatedAt], [u].[Email], [u].[MobileNumber], [u].[Name] AS [Name0], [u].[PasswordHash], [u].[PhoneNumber]
-    FROM [Playlists] AS [p]
-    INNER JOIN [Users] AS [u] ON [p].[UserId] = [u].[Id]
-    WHERE [p].[Id] = @__playlistId_0
-) AS [t]
-LEFT JOIN (
-    SELECT [p0].[PlaylistsId], [p0].[SongsId], [s].[Id], [s].[Album], [s].[Artist], [s].[CoverImageUrl], [s].[Duration], [s].[FilePath], [s].[Title]
-    FROM [PlaylistSong] AS [p0]
-    INNER JOIN [Songs] AS [s] ON [p0].[SongsId] = [s].[Id]
-) AS [t0] ON [t].[Id] = [t0].[PlaylistsId]
-ORDER BY [t].[Id], [t].[Id0], [t0].[PlaylistsId], [t0].[SongsId]
-线程 11620 已退出，返回值为 0 (0x0)。
-Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (3ms) [Parameters=[@__playlistId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT [t].[Id], [t].[CoverImageUrl], [t].[Description], [t].[Name], [t].[UserId], [t].[Id0], [t].[CreatedAt], [t].[Email], [t].[MobileNumber], [t].[Name0], [t].[PasswordHash], [t].[PhoneNumber], [t0].[PlaylistsId], [t0].[SongsId], [t0].[Id], [t0].[Album], [t0].[Artist], [t0].[CoverImageUrl], [t0].[Duration], [t0].[FilePath], [t0].[Title]
-FROM (
-    SELECT TOP(1) [p].[Id], [p].[CoverImageUrl], [p].[Description], [p].[Name], [p].[UserId], [u].[Id] AS [Id0], [u].[CreatedAt], [u].[Email], [u].[MobileNumber], [u].[Name] AS [Name0], [u].[PasswordHash], [u].[PhoneNumber]
-    FROM [Playlists] AS [p]
-    INNER JOIN [Users] AS [u] ON [p].[UserId] = [u].[Id]
-    WHERE [p].[Id] = @__playlistId_0
-) AS [t]
-LEFT JOIN (
-    SELECT [p0].[PlaylistsId], [p0].[SongsId], [s].[Id], [s].[Album], [s].[Artist], [s].[CoverImageUrl], [s].[Duration], [s].[FilePath], [s].[Title]
-    FROM [PlaylistSong] AS [p0]
-    INNER JOIN [Songs] AS [s] ON [p0].[SongsId] = [s].[Id]
-) AS [t0] ON [t].[Id] = [t0].[PlaylistsId]
-ORDER BY [t].[Id], [t].[Id0], [t0].[PlaylistsId], [t0].[SongsId]
-Canon (Over a Basso Ostinato)
-Canon In D (Piano)
-Violin Concerto No.2
-Canon (Over a Basso Ostinato)
-Canon In D (Piano)
-Violin Concerto No.2
-线程 35648 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (3288) 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (21640) 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (7812) 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (13988) 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (19180) 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (14076) 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (27996) 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (28288) 已退出，返回值为 0 (0x0)。
-线程 '.NET TP Worker' (23164) 已退出，返回值为 0 (0x0)。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Runtime.Serialization.Formatters.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-“NetEase.exe”(CoreCLR: clrhost): 已加载“C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.7\System.Xml.XmlSerializer.dll”。已跳过加载符号。模块进行了优化，并且调试器选项“仅我的代码”已启用。
-enter ClearAllSelections()
-Enter LoadFriendsAsync()
-Microsoft.EntityFrameworkCore.Database.Command: Information: Executed DbCommand (8ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
-SELECT [t].[Id], [t].[Name]
-FROM (
-    SELECT [u].[Id], [u].[CreatedAt], [u].[Email], [u].[MobileNumber], [u].[Name], [u].[PasswordHash], [u].[PhoneNumber]
-    FROM [Friendships] AS [f]
-    INNER JOIN [Users] AS [u] ON [f].[AddresseeId] = [u].[Id]
-    WHERE [f].[RequesterId] = @__userId_0 AND [f].[Status] = 1
-    UNION
-    SELECT [u0].[Id], [u0].[CreatedAt], [u0].[Email], [u0].[MobileNumber], [u0].[Name], [u0].[PasswordHash], [u0].[PhoneNumber]
-    FROM [Friendships] AS [f0]
-    INNER JOIN [Users] AS [u0] ON [f0].[RequesterId] = [u0].[Id]
-    WHERE [f0].[AddresseeId] = @__userId_0 AND [f0].[Status] = 1
-) AS [t]
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-friends :NetEase.Models.Friend
-Enter SelectFriend(), selectedFriend: NetEase.Models.Friend
-Enter SelectFriend(), selectedFriend: 
-ChatviewModel Enter LoadChatDetails(NetEase.ViewModels.ChatViewModels.ChatSession)
-System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=AvatarUrl; DataItem=null; target element is 'ImageBrush' (HashCode=32534423); target property is 'ImageSource' (type 'ImageSource')
-System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=AvatarUrl; DataItem=null; target element is 'ImageBrush' (HashCode=59272617); target property is 'ImageSource' (type 'ImageSource')
-System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=AvatarUrl; DataItem=null; target element is 'ImageBrush' (HashCode=36352712); target property is 'ImageSource' (type 'ImageSource')
-System.Windows.Data Error: 2 : Cannot find governing FrameworkElement or FrameworkContentElement for target element. BindingExpression:Path=AvatarUrl; DataItem=null; target element is 'ImageBrush' (HashCode=3345069); target property is 'ImageSource' (type 'ImageSource')
-程序“[32952] MusicWebAPI.exe”已退出，返回值为 4294967295 (0xffffffff)。
-程序“[1828] NetEase.exe”已退出，返回值为 4294967295 (0xffffffff)。
+        // 【可观察属性】当前聊天的好友（可能用于单聊场景的额外信息）
+        [ObservableProperty]
+        private Friend _currentChatFriend;
 
+        // 【可观察属性】当前选中的会话（切换会话时触发UI更新，加载对应消息）
+        [ObservableProperty]
+        private ChatSession _selectedSession;
 
+        // 【可观察属性】新消息输入框内容（绑定UI输入框，且通知SendMessageCommand更新可用状态）
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SendMessageCommand))]
+        private string _newMessageText;
+
+        // 【构造函数】：通过依赖注入初始化服务，初始化集合，订阅实时消息事件
+        public ChatViewModel(SignalRService signalRService, ChatService chatService,
+                            FileService fileService, AuthService authService, HttpClient httpClient)
+        {
+            // 赋值注入的服务
+            _chatService = chatService;
+            _fileService = fileService;
+            _authService = authService;
+            _signalRService = signalRService;
+            // 从HttpClient获取API基础地址（用于拼接图片的完整URL）
+            _apiBaseUrl = httpClient.BaseAddress.ToString();
+
+            // 初始化可观察集合（避免UI绑定时空引用）
+            Sessions = new ObservableCollection<ChatSession>();
+            Messages = new ObservableCollection<ChatMessage>();
+            Members = new ObservableCollection<GroupMember>();
+
+            // 订阅SignalR的实时消息接收事件（收到新消息时触发OnMessageReceived）
+            _signalRService.OnMessageReceived += OnMessageReceived;
+         
+        }
+
+        // 【SignalR实时消息接收回调】：收到后端推送的新消息时执行
+        private void OnMessageReceived(ChatMessageDto message)
+        {
+            // 检查：1. 是否有选中的会话 2. 消息是否属于当前会话（发送者/接收者ID匹配会话ID）
+            if (SelectedSession != null && (message.SenderId == SelectedSession.Id || message.ReceiverId == SelectedSession.Id))
+            {
+                // 关键：SignalR回调运行在后台线程，WPF UI更新必须在UI线程，用Dispatcher.Invoke切换
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    // 再次检查当前会话（避免切换线程过程中会话变化）
+                    if (SelectedSession != null && message.SenderId == SelectedSession.Id)
+                    {
+                        // 属于当前会话：转换DTO为UI消息对象，添加到消息列表
+                        var uiMessage = ConvertDtoToChatMessage(message, SelectedSession);
+                        Messages.Add(uiMessage);
+                        // TODO：后续可添加“标记消息为已读”的API调用
+                    }
+                    else
+                    {
+                        // 不属于当前会话：找到对应会话，增加未读消息数（UI会实时显示小红点）
+                        var targetSession = Sessions.FirstOrDefault(s => s.Id == message.SenderId);
+                        if (targetSession != null)
+                        {
+                            targetSession.UnreadMessageCount++;
+                        }
+                        else
+                        {
+                            // TODO：如果会话列表没有该发送者，需调用API获取用户信息，创建新会话
+                        }
+                    }
+                });
+            }
+            else
+            {
+                // TODO：非当前会话的新消息，可显示全局提示（如系统托盘通知）
+            }
+        }
+
+        // 【DTO转UI消息对象】：将后端传递的ChatMessageDto转换为UI可渲染的ChatMessage
+        private ChatMessage ConvertDtoToChatMessage(ChatMessageDto dto, ChatSession session)
+        {
+            // 获取当前登录用户ID，判断消息是否是自己发送的
+            var currentUserId = _authService.GetCurrentUserId();
+            bool isMe = dto.SenderId == currentUserId.Value;
+
+            // 构建UI消息对象
+            return new ChatMessage
+            {
+                Id = dto.Id,                      // 消息ID（后端传递）
+                SenderId = dto.SenderId,          // 发送者ID
+                Content = dto.Content,            // 消息内容
+                SentAt = dto.SentAt,              // 发送时间
+                // 消息类型：判断内容是否是图片URL（/images/开头），是则为Image，否则为Text
+                Type = IsImageUrl(dto.Content) ? MessageType.Image : MessageType.Text,
+                // 图片URL：如果是图片消息，拼接API基础地址为完整URL
+                ImageUrl = IsImageUrl(dto.Content) ? $"{_apiBaseUrl}{dto.Content}" : null,
+                IsSentByMe = isMe,                // 是否自己发送
+                SenderName = isMe ? "我" : session.Name,  // 发送者名称（自己显示“我”，他人显示会话名称）
+                AvatarUrl = GetRandomAvatarUrl()  // 临时用随机头像（后续可替换为真实头像URL）
+            };
+        }
+
+        // 【选中会话变化时触发】：当UI选中的会话改变时，自动执行（由[ObservableProperty]生成的OnXXXChanged方法）
+        partial void OnSelectedSessionChanged(ChatSession value)
+        {
+            if (value != null)
+            {
+                // 关键：用户点开会话后，将未读消息数清零（UI小红点消失）
+                if (value.UnreadMessageCount > 0)
+                {
+                    value.UnreadMessageCount = 0;
+                    // TODO：调用API通知后端“该会话消息已读”，避免下次加载仍显示未读
+                }
+                // 加载选中会话的详情（历史消息、群成员）
+                LoadChatDetails(value);
+            }
+            else
+            {
+                // 未选中任何会话：清空消息列表和成员列表
+                Messages.Clear();
+                Members.Clear();
+            }
+        }
+
+        // 【旧版图片发送逻辑】：上传本地图片到服务器，发送图片消息（可能与SendMessageInternal重复，需后续整合）
+        private async void UploadAndSendMessage(string localImagePath)
+        {
+            Debug.WriteLine($"进入UploadAndSendMessage()，本地图片路径：{localImagePath}");
+            // 检查是否有选中的会话（无会话则不发送）
+            if (SelectedSession == null) return;
+
+            // 1. 乐观更新UI：先添加一条“发送中”的临时消息，提升用户体验
+            var pendingMessage = new ChatMessage
+            {
+                SenderName = "我",                // 发送者为当前用户
+                IsSentByMe = true,               // 自己发送的消息
+                Type = MessageType.Image,        // 消息类型为图片
+                ImageUrl = localImagePath,       // 临时用本地路径预览
+                Content = "发送中...",           // 显示发送状态
+                AvatarUrl = GetRandomAvatarUrl() // 临时随机头像
+            };
+            Messages.Add(pendingMessage);
+
+            // 2. 异步上传图片到服务器（调用FileService，不阻塞UI）
+            var remoteImageUrl = await _fileService.UploadFileAsync(localImagePath);
+
+            // 3. 处理上传结果
+            if (string.IsNullOrEmpty(remoteImageUrl))
+            {
+                // 上传失败：移除临时消息，添加“发送失败”的消息
+                Messages.Remove(pendingMessage);
+                // 用record的with表达式创建新对象（record不可变，不能直接修改属性）
+                var failedMessage = pendingMessage with { Content = "发送失败" };
+                Messages.Add(failedMessage);
+                return;
+            }
+
+            // 4. 上传成功：调用ChatService发送包含远程图片URL的消息
+            var savedMessageDto = await _chatService.SendMessageAsync(SelectedSession.Id, remoteImageUrl);
+
+            if (savedMessageDto != null)
+            {
+                // 5. 发送成功：移除临时消息，添加后端返回的正式消息
+                Messages.Remove(pendingMessage);
+                var finalMessage = new ChatMessage
+                {
+                    Id = savedMessageDto.Id,                // 后端生成的消息ID
+                    SenderId = savedMessageDto.SenderId,    // 发送者ID（当前用户）
+                    Content = savedMessageDto.Content,      // 消息内容（远程图片URL）
+                    SentAt = savedMessageDto.SentAt,        // 后端记录的发送时间
+                    IsSentByMe = true,                     // 自己发送
+                    SenderName = "我",                      // 发送者名称
+                    Type = MessageType.Image,               // 图片消息
+                    ImageUrl = savedMessageDto.Content,     // 图片URL（远程地址）
+                    AvatarUrl = pendingMessage.AvatarUrl    // 复用临时消息的头像
+                };
+                Messages.Add(finalMessage);
+            }
+            else
+            {
+                // 消息保存失败：移除临时消息，添加失败提示
+                Messages.Remove(pendingMessage);
+                var failedMessage = pendingMessage with { Content = "发送失败" };
+                Messages.Add(failedMessage);
+            }
+        }
+
+        // 【发送图片命令】：绑定UI的“选择图片”按钮，触发文件选择和图片发送
+        [RelayCommand]
+        private async void SendImage()
+        {
+            Debug.WriteLine("进入SendImage()");
+            // 1. 创建文件选择对话框，配置仅显示图片格式
+            var openFileDialog = new OpenFileDialog
+            {
+                Title = "选择要发送的图片",  // 对话框标题
+                // 筛选文件类型：常见图片格式 + 所有文件（兜底）
+                Filter = "图片文件 (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|*.jpg;*.jpeg;*.png;*.gif;*.bmp|所有文件 (*.*)|*.*"
+            };
+
+            // 2. 显示对话框，判断用户是否选择了文件（点击“确定”）
+            if (openFileDialog.ShowDialog() == true)
+            {
+                // 3. 读取选中的图片文件，转换为Base64字符串（用于前端预览和后端传输）
+                byte[] imageBytes = File.ReadAllBytes(openFileDialog.FileName);  // 读取文件为字节数组
+                string base64String = Convert.ToBase64String(imageBytes);       // 字节数组转Base64
+                // 获取图片MIME类型（如image/jpg，根据文件扩展名判断）
+                string mimeType = "image/" + Path.GetExtension(openFileDialog.FileName).TrimStart('.');
+                // 构建DataURL（格式：data:MIME类型;base64,Base64字符串，用于WPF Image控件直接渲染）
+                string dataUrl = $"data:{mimeType};base64,{base64String}";
+
+                // 4. 调用统一发送方法，发送图片消息（复用文本消息的乐观更新逻辑）
+                await SendMessageInternal(dataUrl, MessageType.Image, mimeType);
+            }
+        }
+
+        // 【Base64转ImageSource】：将Base64格式的图片数据转换为WPF可渲染的ImageSource
+        private ImageSource CreateImageFromBase64(string dataUrl)
+        {
+            try
+            {
+                // 提取Base64字符串（DataURL格式：data:xxx;base64,xxx，从逗号后开始截取）
+                var base64Data = dataUrl.Substring(dataUrl.IndexOf(',') + 1);
+                // Base64字符串转字节数组
+                byte[] imageBytes = Convert.FromBase64String(base64Data);
+                // 用内存流读取字节数组（WPF BitmapImage需要流作为数据源）
+                using (var ms = new MemoryStream(imageBytes))
+                {
+                    var bitmapImage = new BitmapImage();
+                    // 初始化BitmapImage（BeginInit/EndInit是WPF的标准流程）
+                    bitmapImage.BeginInit();
+                    // 缓存选项：加载后立即缓存，避免流关闭后图片失效
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    // 设置流数据源
+                    bitmapImage.StreamSource = ms;
+                    bitmapImage.EndInit();
+                    // 冻结对象：使ImageSource可跨线程访问，提升性能（WPF自由线程对象）
+                    bitmapImage.Freeze();
+                    return bitmapImage;
+                }
+            }
+            catch (Exception ex)
+            {
+                // 捕获转换异常（如Base64格式错误、图片损坏），输出日志
+                Debug.WriteLine($"Base64转图片失败：{ex.Message}");
+                return null;  // 转换失败返回null，UI可显示默认图片
+            }
+        }
+
+        // 【发送文本消息命令】：绑定UI的“发送”按钮，触发文本消息发送
+        [RelayCommand(CanExecute = nameof(CanSendMessage))]  // CanExecute控制命令是否可用（依赖CanSendMessage方法）
+        private async void SendMessage()
+        {
+            // 获取输入框内容（避免后续清空输入框后丢失数据）
+            string messageContent = NewMessageText;
+            // 清空输入框（UI双向绑定，输入框会同步清空）
+            NewMessageText = string.Empty;
+            // 调用统一发送方法，发送文本消息
+            await SendMessageInternal(messageContent, MessageType.Text);
+        }
+
+        // 【发送命令可用状态判断】：控制“发送”按钮是否可点击（输入框非空则可用）
+        private bool CanSendMessage()
+        {
+            // 检查输入框内容：非null、非空字符串、非纯空格
+            return !string.IsNullOrWhiteSpace(NewMessageText);
+        }
+
+        // 【外部调用方法】：供父ViewModel（如好友列表ViewModel）调用，启动与指定好友的聊天
+        public void StartChatWith(Friend friend)
+        {
+            // 检查好友对象是否为空（避免空引用）
+            if (friend == null) return;
+
+            // 检查会话列表中是否已存在该好友的会话（根据好友ID匹配）
+            var session = Sessions.FirstOrDefault(s => s.Id == friend.Id);
+            if (session == null)
+            {
+                // 不存在：创建新会话，插入到会话列表顶部（最新会话优先显示）
+                session = new ChatSession
+                {
+                    Id = friend.Id,          // 会话ID = 好友ID
+                    Name = friend.Name,      // 会话名称 = 好友昵称
+                    AvatarUrl = friend.AvatarUrl  // 会话头像 = 好友头像
+                };
+                Sessions.Insert(0, session);
+            }
+
+            // 关键：将新会话/已有会话设为当前选中会话（触发OnSelectedSessionChanged，加载消息）
+            SelectedSession = session;
+        }
+
+        // 【统一消息发送方法】：整合文本/图片消息的发送逻辑，支持乐观更新和失败处理
+        private async Task SendMessageInternal(string content, MessageType type, string mimeType = null)
+        {
+            // 检查是否有选中的会话（无会话则不发送）
+            if (SelectedSession == null) return;
+
+            // 1. 乐观更新UI：先添加“发送中”的临时消息（提升用户体验，无需等待后端响应）
+            var pendingMessage = new ChatMessage
+            {
+                Type = type,                          // 消息类型（文本/图片）
+                // 内容：文本消息显示输入内容，图片消息显示“[图片]”占位
+                Content = type == MessageType.Text ? content : "[图片]",
+                // 图片源：图片消息则从DataURL转换为ImageSource（前端预览），文本消息为null
+                ImageData = type == MessageType.Image ? CreateImageFromBase64(content) : null,
+                SenderName = "我",                    // 发送者名称
+                IsSentByMe = true,                   // 自己发送的消息
+                AvatarUrl = GetRandomAvatarUrl(),    // 临时随机 头像
+                SentAt = DateTime.UtcNow             // 临时发送时间（后续用后端时间替换）
+            };
+            Messages.Add(pendingMessage);
+
+            // 2. 异步调用ChatService发送消息到后端（传递会话ID、内容、MIME类型）
+            var savedMessageDto = await _chatService.SendMessageAsync(SelectedSession.Id, content, mimeType);
+
+            // 3. 处理后端响应结果
+            Messages.Remove(pendingMessage);  // 先移除临时消息
+            if (savedMessageDto != null)
+            {
+                // 发送成功：添加后端返回的正式消息（用后端数据覆盖临时数据）
+                var finalMessage = new ChatMessage
+                {
+                    Id = savedMessageDto.Id,                  // 后端生成的消息ID
+                    SenderId = savedMessageDto.SenderId,      // 发送者ID（当前用户）
+                    Content = savedMessageDto.Content,        // 后端存储的内容（文本/图片标识）
+                    SentAt = savedMessageDto.SentAt,          // 后端记录的发送时间（更准确）
+                    // 消息类型：根据后端返回的MIME类型判断（有则为图片，无则为文本）
+                    Type = string.IsNullOrEmpty(savedMessageDto.MimeType) ? MessageType.Text : MessageType.Image,
+                    // 图片源：如果后端返回Base64，转换为ImageSource（用于渲染图片）
+                    ImageData = !string.IsNullOrEmpty(savedMessageDto.ImageDataBase64) ?
+                        CreateImageFromBase64($"data:{savedMessageDto.MimeType};base64,{savedMessageDto.ImageDataBase64}") : null,
+                    IsSentByMe = true,                       // 自己发送
+                    SenderName = "我",                        // 发送者名称
+                    AvatarUrl = pendingMessage.AvatarUrl      // 复用临时消息的头像
+                };
+                Messages.Add(finalMessage);
+            }
+            else
+            {
+                // 发送失败：添加“发送失败”的消息（保留原内容，追加失败提示）
+                var failedMessage = pendingMessage with { Content = $"{pendingMessage.Content}\n(发送失败)" };
+                Messages.Add(failedMessage);
+            }
+        }
+
+        // 【加载会话详情】：选中会话后，加载该会话的历史消息和群成员（单聊则成员列表为空）
+        private async void LoadChatDetails(ChatSession session)
+        {
+            Debug.WriteLine($"进入LoadChatDetails()，会话：{session}");
+            // 清空现有数据（避免残留上一个会话的消息/成员）
+            Messages.Clear();
+            Members.Clear();
+
+            // 获取当前登录用户信息（未登录则不加载）
+            var currentUserId = _authService.GetCurrentUserId();
+            var currentUserName = _authService.GetCurrentUserName();
+            Debug.WriteLine($"当前登录用户：ID={currentUserId}，Name={currentUserName}");
+            if (currentUserId == null)
+            {
+                // 用户未登录：终止加载（避免API调用失败）
+                return;
+            }
+
+            // 2. 异步调用ChatService获取会话历史消息（传递会话ID）
+            var historyDtos = await _chatService.GetHistoryAsync(session.Id);
+
+            if (historyDtos != null)
+            {
+                // 3. 转换历史消息DTO为UI消息对象（批量转换）
+                var uiMessages = historyDtos.Select(dto => new ChatMessage
+                {
+                    // 从DTO复制核心数据（后端传递的不可变数据）
+                    Id = dto.Id,
+                    SenderId = dto.SenderId,
+                    Content = dto.Content,
+                    SentAt = dto.SentAt,
+                    // 图片URL：临时逻辑（后续可替换为后端返回的ImageUrl）
+                    ImageUrl = IsImageUrl(dto.Content) ? dto.Content : GetRandomAvatarUrl(),
+
+                    // 计算UI所需的动态属性
+                    IsSentByMe = dto.SenderId == currentUserId.Value,  // 是否自己发送
+                    // 发送者名称：自己显示“我”，他人显示会话名称（群聊/单聊通用）
+                    SenderName = (dto.SenderId == currentUserId.Value) ? "我" : session.Name,
+                    AvatarUrl = GetRandomAvatarUrl(),  // 临时随机头像
+                    // 消息类型：根据MIME类型判断（有则为图片，无则为文本）
+                    Type = string.IsNullOrEmpty(dto.MimeType) ? MessageType.Text : MessageType.Image,
+                    // 图片源：如果后端返回Base64，转换为ImageSource（用于渲染历史图片消息）
+                    ImageData = !string.IsNullOrEmpty(dto.ImageDataBase64) ?
+                        CreateImageFromBase64($"data:{dto.MimeType};base64,{dto.ImageDataBase64}") : null,
+                });
+
+                // 4. 批量添加历史消息到UI列表（避免多次触发UI更新，提升性能）
+                foreach (var msg in uiMessages)
+                {
+                    Messages.Add(msg);
+                }
+            }
+            // TODO：群聊场景需添加“加载群成员”的逻辑（调用MembersService获取成员列表）
+        }
+
+        // 【图片URL判断】：简单判断消息内容是否为图片（根据后端约定的URL前缀“/images/”）
+        private bool IsImageUrl(string content)
+        {
+            // 检查内容：非空 + 以“/images/”开头（后端图片存储的URL前缀）
+            if (string.IsNullOrEmpty(content)) return false;
+            return content.StartsWith("/images/");
+        }
+    }
+}

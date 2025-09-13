@@ -37,8 +37,11 @@ namespace NetEase.ViewModels.ChatViewModels
         }
         public async Task SyncDataAsync()
         {
-            Debug.WriteLine("FriendsViewModel: Syncing data after login...");
-
+            Debug.WriteLine("FriendsViewModel: SyncDataAsync() Syncing data after login...");
+            if (_chatVM != null)
+            {
+                await _chatVM.InitializeAsync();
+            }
             // 1. 如果Tabs是空的，就先创建它们
             if (!Tabs.Any())
             {

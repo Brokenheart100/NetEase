@@ -1,6 +1,7 @@
 ﻿using NetEase.Services;
 using NetEase.ViewModels;
 using System.Windows;
+using System.Windows.Input;
 
 namespace NetEase.Views
 {
@@ -17,6 +18,12 @@ namespace NetEase.Views
             {
                 mediaPlayerService.Initialize(this.MediaPlayer);
             };
+        }
+        private void SignUpView_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 将事件标记为“已处理”
+            // 这样它就不会再向上“冒泡”到父控件（如SignUpOverlayGrid）
+            e.Handled = true;
         }
     }
 }

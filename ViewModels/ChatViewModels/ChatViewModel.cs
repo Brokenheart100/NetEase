@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using NetEase.Converters;
+using NetEase.Dtos;
 using NetEase.Models;
 using NetEase.Services;
 using System;
@@ -17,7 +19,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using NetEase.Dtos;
 using static NetEase.Converters.RandomNumber;
 
 // 命名空间：聊天相关视图模型（遵循MVVM分层，ViewModel对应View）
@@ -54,7 +55,7 @@ namespace NetEase.ViewModels.ChatViewModels
     }
 
     // 【聊天消息实体】：用record类型（不可变对象，适合存储只读消息数据），包含UI展示和数据传输所需的所有属性
-    public record ChatMessage
+    public partial class ChatMessage : ObservableObject
     {
         // 消息唯一ID（后端生成）
         public long Id { get; init; }
@@ -80,17 +81,20 @@ namespace NetEase.ViewModels.ChatViewModels
         public ImageSource ImageData { get; init; }
         // 图片Base64字符串（从后端接收的原始图片数据，用于转换为ImageSource）
         public string ImageDataBase64 { get; set; }
+        [ObservableProperty]
+        private bool _isRead;
     }
 
     // 【聊天视图模型】：核心ViewModel，关联聊天界面（View），处理会话、消息、成员的业务逻辑
     // 继承BaseViewModel（自定义基类，可能包含公共属性如加载状态、错误提示等）
-    public partial class ChatViewModel : BaseViewModel
+    public partial class ChatViewModel : BaseViewModel, IDisposable
     {
         // 依赖注入的服务（通过构造函数注入，解耦业务逻辑）
         private readonly ChatService _chatService;    // 聊天服务：处理消息发送、历史记录获取
         private readonly FileService _fileService;    // 文件服务：处理图片上传
         private readonly AuthService _authService;    // 授权服务：获取当前登录用户信息
         private readonly SignalRService _signalRService;  // SignalR服务：处理实时消息接收
+        private readonly UserProfileService _profileService;
         private readonly string _apiBaseUrl;          // API基础地址（从HttpClient获取，拼接图片URL用）
 
         // 【会话列表】：绑定UI的会话列表控件（ObservableCollection支持UI自动更新）
@@ -117,13 +121,14 @@ namespace NetEase.ViewModels.ChatViewModels
 
         // 【构造函数】：通过依赖注入初始化服务，初始化集合，订阅实时消息事件
         public ChatViewModel(SignalRService signalRService, ChatService chatService,
-                            FileService fileService, AuthService authService, HttpClient httpClient)
+                            FileService fileService, AuthService authService, HttpClient httpClient, UserProfileService profileService)
         {
             // 赋值注入的服务
             _chatService = chatService;
             _fileService = fileService;
             _authService = authService;
             _signalRService = signalRService;
+            _profileService = profileService;
             // 从HttpClient获取API基础地址（用于拼接图片的完整URL）
             _apiBaseUrl = httpClient.BaseAddress.ToString();
 
@@ -134,53 +139,160 @@ namespace NetEase.ViewModels.ChatViewModels
 
             // 订阅SignalR的实时消息接收事件（收到新消息时触发OnMessageReceived）
             _signalRService.OnMessageReceived += OnMessageReceived;
-        }
+            _signalRService.OnMessagesRead += OnMessagesRead;
 
-        // 【SignalR实时消息接收回调】：收到后端推送的新消息时执行
-        private void OnMessageReceived(ChatMessageDto message)
+        }
+     
+        private void OnMessagesRead(int readerId, List<long> readMessageIds)
         {
-            // 检查：1. 是否有选中的会话 2. 消息是否属于当前会话（发送者/接收者ID匹配会话ID）
-            if (SelectedSession != null && (message.SenderId == SelectedSession.Id || message.ReceiverId == SelectedSession.Id))
+            // 检查这个回执是否与当前打开的会话有关
+            if (SelectedSession != null && readerId == SelectedSession.Id)
             {
-                // 关键：SignalR回调运行在后台线程，WPF UI更新必须在UI线程，用Dispatcher.Invoke切换
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    // 再次检查当前会话（避免切换线程过程中会话变化）
-                    if (SelectedSession != null && message.SenderId == SelectedSession.Id)
+                    foreach (var msgId in readMessageIds)
                     {
-                        // 属于当前会话：转换DTO为UI消息对象，添加到消息列表
-                        var uiMessage = ConvertDtoToChatMessage(message, SelectedSession);
-                        Messages.Add(uiMessage);
-                        // TODO：后续可添加“标记消息为已读”的API调用
-                    }
-                    else
-                    {
-                        // 不属于当前会话：找到对应会话，增加未读消息数（UI会实时显示小红点）
-                        var targetSession = Sessions.FirstOrDefault(s => s.Id == message.SenderId);
-                        if (targetSession != null)
+                        var messageToUpdate = Messages.FirstOrDefault(m => m.Id == msgId);
+                        if (messageToUpdate != null)
                         {
-                            targetSession.UnreadMessageCount++;
-                        }
-                        else
-                        {
-                            // TODO：如果会话列表没有该发送者，需调用API获取用户信息，创建新会话
+                            // 更新消息的已读状态
+                            messageToUpdate.IsRead = true;
                         }
                     }
                 });
             }
-            else
+        }
+        public async Task InitializeAsync()
+        {
+            Debug.WriteLine($"Enter InitializeAsync()");
+            // 1. 加载历史会话列表
+            await LoadRecentSessionsAsync();
+
+            // 2. 加载并恢复上次的应用状态
+            var appState = _profileService.LoadAppState();
+            if (appState?.LastActiveSessionId != null)
             {
-                // TODO：非当前会话的新消息，可显示全局提示（如系统托盘通知）
+                // 查找上次活动的会话
+                var lastSession = Sessions.FirstOrDefault(s => s.Id == appState.LastActiveSessionId.Value);
+                if (lastSession != null)
+                {
+                    // 如果找到了，就自动将其设置为当前选中会话
+                    // 这会自动触发 OnSelectedSessionChanged，从而加载聊天记录
+                    SelectedSession = lastSession;
+                }
             }
         }
+        private async Task LoadRecentSessionsAsync()
+        {
+            var sessionDtos = await _chatService.GetSessionsAsync();
+            Debug.WriteLine($"Enter LoadRecentSessionsAsync() _chatService.GetSessionsAsync() : {sessionDtos}");
+            //Sessions.Clear();
+            //if (sessionDtos != null)
+            //{
+            //    foreach (var dto in sessionDtos)
+            //    {
+            //        // 将 DTO 转换为前端的 ChatSession 模型
+            //        Sessions.Add(new ChatSession
+            //        {
+            //            Id = dto.ContactId,
+            //            Name = dto.Name,
+            //            AvatarUrl = dto.AvatarUrl,
+            //            UnreadMessageCount = dto.UnreadCount
+            //            // 还可以添加一个 LastMessage 属性用于UI显示
+            //        });
+            //    }
+            //}
+            // 在UI线程上执行所有集合操作
+            Application.Current.Dispatcher.Invoke(async () =>
+            {
+                Sessions.Clear();
+                if (sessionDtos != null)
+                {
+                    foreach (var dto in sessionDtos)
+                    {
+                        Sessions.Add(new ChatSession
+                        {
+                            Id = dto.ContactId,
+                            Name = dto.Name,
+                            AvatarUrl = dto.AvatarUrl,
+                            UnreadMessageCount = dto.UnreadCount
+                        });
+                    }
+                    Debug.WriteLine($"Sessions collection updated. Count: {Sessions.Count}");
+                }
+            });
+        }
+        // 【SignalR实时消息接收回调】：收到后端推送的新消息时执行
+        private void OnMessageReceived(ChatMessageDto message)
+        {
+            // 检查：1. 是否有选中的会话 2. 消息是否属于当前会话（发送者/接收者ID匹配会话ID）
 
+            Application.Current.Dispatcher.Invoke(async () => // 标记为 async
+            {
+                Debug.WriteLine($"Enter OnMessageReceived({message}) ");
+                var targetSession = Sessions.FirstOrDefault(s => s.Id == message.SenderId);
+
+                // 【核心修正】如果会话不存在，就创建一个
+                if (targetSession == null)
+                {
+                    // TODO: 这里需要一个服务来根据用户ID(message.SenderId)获取用户名和头像
+                    // 我们先用一个临时的方法
+                    targetSession = await CreateNewSessionFromId(message.SenderId);
+                    if (targetSession != null)
+                    {
+                        Sessions.Insert(0, targetSession);
+                    }
+                }
+
+                if (targetSession == null) return; // 如果创建失败，则退出
+
+                if (SelectedSession != null && targetSession.Id == SelectedSession.Id)
+                {
+                    // 是当前会话
+                    Debug.WriteLine($"Enter OnMessageReceived if (SelectedSession != null && targetSession.Id == SelectedSession.Id){targetSession} ");
+
+                    var uiMessage = ConvertDtoToChatMessage(message, targetSession);
+                    Messages.Add(uiMessage);
+                }
+                else
+                {
+                    // 不是当前会话，增加未读数
+                    targetSession.UnreadMessageCount++;
+                }
+            });
+        }
+        public void Dispose()
+        {
+            _signalRService.OnMessageReceived -= OnMessageReceived;
+            _signalRService.OnMessagesRead -= OnMessagesRead; // <-- 【新增】取消订阅
+            GC.SuppressFinalize(this);
+        }
+        private async Task<ChatSession> CreateNewSessionFromId(int userId)
+        {
+            // 在真实应用中:
+            // var userDto = await _userService.GetUserProfileAsync(userId);
+            // return new ChatSession { Id = userDto.Id, Name = userDto.Name, ... };
+
+            // 暂时返回一个占位会话
+            return new ChatSession { Id = userId, Name = $"新消息来自用户 {userId}", AvatarUrl = null };
+        }
         // 【DTO转UI消息对象】：将后端传递的ChatMessageDto转换为UI可渲染的ChatMessage
+        private bool IsUrlBasedImage(string content)
+        {
+            return !string.IsNullOrEmpty(content) && content.StartsWith("/images/");
+        }
+
         private ChatMessage ConvertDtoToChatMessage(ChatMessageDto dto, ChatSession session)
         {
             // 获取当前登录用户ID，判断消息是否是自己发送的
             var currentUserId = _authService.GetCurrentUserId();
+            if (currentUserId == null) return null; // 安全检查
             bool isMe = dto.SenderId == currentUserId.Value;
-
+            bool isImage = !string.IsNullOrEmpty(dto.MimeType) && dto.MimeType.StartsWith("image");
+            if (!isImage && IsUrlBasedImage(dto.Content))
+            {
+                isImage = true;
+            }
             // 构建UI消息对象
             return new ChatMessage
             {
@@ -193,14 +305,16 @@ namespace NetEase.ViewModels.ChatViewModels
                 // 图片URL：如果是图片消息，拼接API基础地址为完整URL
                 ImageUrl = IsImageUrl(dto.Content) ? $"{_apiBaseUrl}{dto.Content}" : null,
                 IsSentByMe = isMe,                // 是否自己发送
-                SenderName = isMe ? "我" : session.Name,  // 发送者名称（自己显示“我”，他人显示会话名称）
-                AvatarUrl = GetRandomAvatarUrl()  // 临时用随机头像（后续可替换为真实头像URL）
+                SenderName = isMe ? "我" : session?.Name ?? $"用户 {dto.SenderId}",
+                AvatarUrl = GetRandomAvatarUrl(), // 临时用随机头像（后续可替换为真实头像URL）
+                IsRead = dto.IsRead
             };
         }
 
         // 【选中会话变化时触发】：当UI选中的会话改变时，自动执行（由[ObservableProperty]生成的OnXXXChanged方法）
         partial void OnSelectedSessionChanged(ChatSession value)
         {
+            _profileService.SaveLastActiveSession(value?.Id);
             if (value != null)
             {
                 // 关键：用户点开会话后，将未读消息数清零（UI小红点消失）
@@ -211,6 +325,13 @@ namespace NetEase.ViewModels.ChatViewModels
                 }
                 // 加载选中会话的详情（历史消息、群成员）
                 LoadChatDetails(value);
+                if (value.UnreadMessageCount > 0)
+                {
+                    // 乐观更新UI
+                    value.UnreadMessageCount = 0;
+                    // 异步发送已读通知
+                    Task.Run(() => _chatService.MarkMessagesAsReadAsync(value.Id));
+                }
             }
             else
             {
@@ -219,67 +340,58 @@ namespace NetEase.ViewModels.ChatViewModels
                 Members.Clear();
             }
         }
-
-        // 【旧版图片发送逻辑】：上传本地图片到服务器，发送图片消息（可能与SendMessageInternal重复，需后续整合）
         private async void UploadAndSendMessage(string localImagePath)
         {
-            Debug.WriteLine($"进入UploadAndSendMessage()，本地图片路径：{localImagePath}");
-            // 检查是否有选中的会话（无会话则不发送）
             if (SelectedSession == null) return;
 
-            // 1. 乐观更新UI：先添加一条“发送中”的临时消息，提升用户体验
+            // 1. 乐观更新UI
             var pendingMessage = new ChatMessage
             {
-                SenderName = "我",                // 发送者为当前用户
-                IsSentByMe = true,               // 自己发送的消息
-                Type = MessageType.Image,        // 消息类型为图片
-                ImageUrl = localImagePath,       // 临时用本地路径预览
-                Content = "发送中...",           // 显示发送状态
-                AvatarUrl = GetRandomAvatarUrl() // 临时随机头像
+                SenderName = "我",
+                IsSentByMe = true,
+                Type = MessageType.Image,
+                ImageUrl = localImagePath,
+                Content = "发送中...",
+                AvatarUrl = GetRandomAvatarUrl()
             };
             Messages.Add(pendingMessage);
 
-            // 2. 异步上传图片到服务器（调用FileService，不阻塞UI）
+            // 2. 调用文件服务上传图片
             var remoteImageUrl = await _fileService.UploadFileAsync(localImagePath);
 
-            // 3. 处理上传结果
+            Messages.Remove(pendingMessage); // 移除"发送中"状态
+
             if (string.IsNullOrEmpty(remoteImageUrl))
             {
-                // 上传失败：移除临时消息，添加“发送失败”的消息
-                Messages.Remove(pendingMessage);
-                // 用record的with表达式创建新对象（record不可变，不能直接修改属性）
-                var failedMessage = pendingMessage with { Content = "发送失败" };
-                Messages.Add(failedMessage);
+                //var failedMessage = pendingMessage with
+                //{
+                //    Content = "[图片发送失败]"
+                //    // ImageUrl 保持不变，仍然是本地路径，以便显示预览
+                //};
+            
+                //Messages.Add(failedMessage);
                 return;
             }
 
-            // 4. 上传成功：调用ChatService发送包含远程图片URL的消息
-            var savedMessageDto = await _chatService.SendMessageAsync(SelectedSession.Id, remoteImageUrl);
+            // 3. 上传成功后，调用聊天服务发送消息（内容为URL）
+            var savedMessageDto = await _chatService.SendMessageAsync(new SendMessageDto
+            {
+                ReceiverId = SelectedSession.Id,
+                Content = remoteImageUrl,
+                MimeType = "image/url" // 标记为URL图片
+            });
 
             if (savedMessageDto != null)
             {
-                // 5. 发送成功：移除临时消息，添加后端返回的正式消息
-                Messages.Remove(pendingMessage);
-                var finalMessage = new ChatMessage
-                {
-                    Id = savedMessageDto.Id,                // 后端生成的消息ID
-                    SenderId = savedMessageDto.SenderId,    // 发送者ID（当前用户）
-                    Content = savedMessageDto.Content,      // 消息内容（远程图片URL）
-                    SentAt = savedMessageDto.SentAt,        // 后端记录的发送时间
-                    IsSentByMe = true,                     // 自己发送
-                    SenderName = "我",                      // 发送者名称
-                    Type = MessageType.Image,               // 图片消息
-                    ImageUrl = savedMessageDto.Content,     // 图片URL（远程地址）
-                    AvatarUrl = pendingMessage.AvatarUrl    // 复用临时消息的头像
-                };
-                Messages.Add(finalMessage);
+                // 发送成功
+                Messages.Add(ConvertDtoToChatMessage(savedMessageDto, SelectedSession));
             }
             else
             {
-                // 消息保存失败：移除临时消息，添加失败提示
-                Messages.Remove(pendingMessage);
-                var failedMessage = pendingMessage with { Content = "发送失败" };
-                Messages.Add(failedMessage);
+                // 消息保存失败
+                //var failedMessage = pendingMessage with { Content = "[图片发送失败]", ImageUrl = localImagePath };
+                //var failedMessage = pendingMessage with { Content = "发送失败" };
+                //Messages.Add(failedMessage);
             }
         }
 
@@ -306,7 +418,7 @@ namespace NetEase.ViewModels.ChatViewModels
                 string mimeType = "image/" + Path.GetExtension(openFileDialog.FileName).TrimStart('.');
                 // 构建DataURL（格式：data:MIME类型;base64,Base64字符串，用于WPF Image控件直接渲染）
                 string dataUrl = $"data:{mimeType};base64,{base64String}";
-
+                UploadAndSendMessage(openFileDialog.FileName);
                 // 4. 调用统一发送方法，发送图片消息（复用文本消息的乐观更新逻辑）
                 await SendMessageInternal(dataUrl, MessageType.Image, mimeType);
             }
@@ -347,14 +459,45 @@ namespace NetEase.ViewModels.ChatViewModels
 
         // 【发送文本消息命令】：绑定UI的“发送”按钮，触发文本消息发送
         [RelayCommand(CanExecute = nameof(CanSendMessage))]  // CanExecute控制命令是否可用（依赖CanSendMessage方法）
-        private async void SendMessage()
+        private async Task SendMessage()
         {
-            // 获取输入框内容（避免后续清空输入框后丢失数据）
+            if (SelectedSession == null) return;
+
             string messageContent = NewMessageText;
-            // 清空输入框（UI双向绑定，输入框会同步清空）
             NewMessageText = string.Empty;
-            // 调用统一发送方法，发送文本消息
-            await SendMessageInternal(messageContent, MessageType.Text);
+
+            // 1. 乐观更新UI
+            var pendingMessage = new ChatMessage
+            {
+                SenderName = "我",
+                IsSentByMe = true,
+                Type = MessageType.Text,
+                Content = messageContent,
+                AvatarUrl = GetRandomAvatarUrl(),
+                SentAt = DateTime.UtcNow
+            };
+            Messages.Add(pendingMessage);
+
+            // 2. 调用HTTP服务发送
+            var savedMessageDto = await _chatService.SendMessageAsync(new SendMessageDto
+            {
+                ReceiverId = SelectedSession.Id,
+                Content = messageContent
+            });
+
+            // 3. 状态同步
+            Messages.Remove(pendingMessage);
+            if (savedMessageDto != null)
+            {
+                // 发送成功，用后端返回的权威数据更新UI
+                Messages.Add(ConvertDtoToChatMessage(savedMessageDto, SelectedSession));
+            }
+            else
+            {
+                // 发送失败
+                //var failedMessage = pendingMessage with { Content = $"{pendingMessage.Content}\n(发送失败)" };
+                //Messages.Add(failedMessage);
+            }
         }
 
         // 【发送命令可用状态判断】：控制“发送”按钮是否可点击（输入框非空则可用）
@@ -437,8 +580,8 @@ namespace NetEase.ViewModels.ChatViewModels
             else
             {
                 // 发送失败：添加“发送失败”的消息（保留原内容，追加失败提示）
-                var failedMessage = pendingMessage with { Content = $"{pendingMessage.Content}\n(发送失败)" };
-                Messages.Add(failedMessage);
+                //var failedMessage = pendingMessage with { Content = $"{pendingMessage.Content}\n(发送失败)" };
+                //Messages.Add(failedMessage);
             }
         }
 

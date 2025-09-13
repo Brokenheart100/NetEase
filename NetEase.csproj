@@ -72,7 +72,7 @@
     <EmbeddedResource Include="CoverImage\10.jpg" />
     <EmbeddedResource Include="CoverImage\11.jpg" />
     <EmbeddedResource Include="CoverImage\12.jpg" />
-    <Content Include="CoverImage\13.jpg" />
+    <EmbeddedResource Include="CoverImage\13.jpg" />
     <EmbeddedResource Include="CoverImage\14.jpg" />
     <EmbeddedResource Include="CoverImage\15.jpg" />
     <EmbeddedResource Include="CoverImage\16.jpg" />
