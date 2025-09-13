@@ -1,278 +1,278 @@
-<UserControl x:Class="NetEase.Views.Pages.ChatView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:NetEase.Views.Pages"
-             xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
-             d:DataContext="{d:DesignInstance Type=viewmodels:ChatViewModel}"
-             mc:Ignorable="d"
-             d:DesignHeight="450"
-             d:DesignWidth="800">
-    <Grid Background="White"
-          ShowGridLines="True">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <!-- 第一栏：会话列表 -->
-            <ColumnDefinition Width="*"/>
-            <!-- 第二栏：聊天窗口 -->
-        </Grid.ColumnDefinitions>
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
+using NetEase.Models;
+using NetEase.Services;
+using NetEase.Views.Pages;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Input;
+using HandyControl.Tools.Extension;
 
-        <!-- ======================= 第一栏：会话列表 ======================= -->
-        <Border Grid.Column="0"
-                Background="#F5F5F5"
-                BorderBrush="#E0E0E0"
-                BorderThickness="0,0,1,0">
-            <DockPanel>
-                <TextBox DockPanel.Dock="Top"
-                         Text="搜索"
-                         Margin="10"
-                         Padding="5"/>
-                <ListBox ItemsSource="{Binding Sessions}"
-                         BorderThickness="0">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Ellipse Grid.Column="0"
-                                         Width="40"
-                                         Height="40"
-                                         Margin="0,0,10,0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Name}"
-                                           VerticalAlignment="Center"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </DockPanel>
-        </Border>
+// 播放器控制相关的视图模型命名空间
+namespace NetEase.ViewModels
+{
+    /// <summary>
+    /// 播放器控制视图模型，继承自基础视图模型
+    /// 负责管理播放器的状态、处理用户交互命令，并与播放器服务交互
+    /// </summary>
+    public partial class PlayerControlViewModel : BaseViewModel
+    {
+        // 播放器服务实例，用于处理实际的音频播放、暂停、切换歌曲等核心逻辑
+        private readonly PlayerService _playerService;
 
-        <!-- ======================= 第二栏：聊天窗口 ======================= -->
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- 标题栏 -->
-                <RowDefinition Height="*"/>
-                <!-- 消息列表 -->
-            </Grid.RowDefinitions>
+        // --- 可观察属性（由CommunityToolkit.Mvvm自动生成属性更改通知） ---
 
-            <!-- 标题栏 -->
-            <Border Grid.Row="0"
-                    Padding="10"
-                    BorderBrush="#E0E0E0"
-                    BorderThickness="0,0,0,1">
-                <Grid>
-                    <TextBlock Text="USUSUSUS"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Right">
-                        <Button Content="&#xE7C3;"
-                                FontFamily="Segoe MDL2 Assets"
-                                Margin="5,0"/>
-                        <Button Content="&#xE713;"
-                                FontFamily="Segoe MDL2 Assets"
-                                Margin="5,0"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <Grid Grid.Row="1"
-                  ShowGridLines="True">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="3*"/>
-                        <!-- 标题栏 -->
-                        <RowDefinition Height="*"/>
-                        <!-- 消息列表 -->
-                    </Grid.RowDefinitions>
-                    <ScrollViewer Grid.Row="0"
-                                  Padding="10">
-                        <ItemsControl ItemsSource="{Binding Messages}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- 根 Grid，负责整体左右对齐 -->
-                                    <Grid Margin="0,10">
-                                        <Grid.Style>
-                                            <Style TargetType="Grid">
-                                                <Setter Property="HorizontalAlignment" Value="Left"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Grid.Style>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
+        /// <summary>
+        /// 当前正在播放的歌曲对象
+        /// 当值变化时会自动通知UI更新
+        /// </summary>
+        [ObservableProperty]
+        private Song _currentSong;
 
-                                            <!-- 1. 别人的头像 (始终在第 0 列) -->
-                                            <Ellipse Grid.Column="0" Width="32" Height="32" Margin="0,0,10,0" VerticalAlignment="Top">
-                                                <Ellipse.Style>
-                                                    <Style TargetType="Ellipse">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Ellipse.Style>
-                                                <Ellipse.Fill>
-                                                    <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                                </Ellipse.Fill>
-                                            </Ellipse>
+        /// <summary>
+        /// 播放音量（范围0.0-1.0）
+        /// 音量变化时会触发VolumeIcon属性的更新通知
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(VolumeIcon))]
+        private double _playbackVolume;
 
-                                            <!-- 2. 消息内容 (StackPanel) -->
-                                            <StackPanel VerticalAlignment="Top">
-                                                <StackPanel.Style>
-                                                    <Style TargetType="StackPanel">
-                                                        <!-- 默认情况下，消息内容在第 1 列 (头像右侧) -->
-                                                        <Setter Property="Grid.Column" Value="1"/>
-                                                        <Style.Triggers>
-                                                            <!-- 当是我方消息时，消息内容移动到第 0 列 -->
-                                                            <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                <Setter Property="Grid.Column" Value="0"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </StackPanel.Style>
+        /// <summary>
+        /// 播放/暂停按钮的图标字符（使用Unicode字符表示）
+        /// </summary>
+        [ObservableProperty]
+        private string _playPauseIcon;
 
-                                                <!-- 发送者名称 -->
-                                                <TextBlock Text="{Binding SenderName}" Foreground="Gray" FontSize="12">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="HorizontalAlignment" Value="Left"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
+        /// <summary>
+        /// 当前播放进度（百分比，0-100）
+        /// </summary>
+        [ObservableProperty]
+        private double _currentProgress;
 
-                                                <!-- 消息气泡 -->
-                                                <Border CornerRadius="8" Padding="12" Margin="0,5,0,0" MaxWidth="400">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="Background" Value="#EEE"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                    <Setter Property="Background" Value="#007BFF"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Foreground" Value="Black"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsSentByMe}" Value="True">
-                                                                        <Setter Property="Foreground" Value="White"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </Border>
-                                            </StackPanel>
+        /// <summary>
+        /// 当前播放时间（格式化字符串，如"01:23"）
+        /// </summary>
+        [ObservableProperty]
+        private string _currentTime;
 
-                                            <!-- 3. 我方的头像 (始终在第 1 列) -->
-                                            <Ellipse Grid.Column="1" Width="32" Height="32" Margin="10,0,0,0" VerticalAlignment="Top">
+        /// <summary>
+        /// 歌曲总时长（格式化字符串，如"03:45"）
+        /// </summary>
+        [ObservableProperty]
+        private string _totalTime;
 
+        /// <summary>
+        /// 是否正在拖动进度条
+        /// 用于避免拖动过程中频繁更新播放进度（防止UI与实际播放状态冲突）
+        /// </summary>
+        public bool IsDragging { get; set; } = false;
 
-                                                <Ellipse.Fill>
-                                                    <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                                </Ellipse.Fill>
-                                            </Ellipse>
+        /// <summary>
+        /// 记录最后一次非静音状态的音量值
+        /// 用于取消静音时恢复到之前的音量
+        /// </summary>
+        private double _lastPlaybackVolume;
 
-                                        </Grid>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+        /// <summary>
+        /// 音量图标（根据当前音量值显示不同状态的图标）
+        /// 使用Unicode字符表示静音、低/中/高音量状态
+        /// </summary>
+        public string VolumeIcon
+        {
+            get
+            {
+                if (PlaybackVolume == 0) return "\uE992"; // 静音图标
+                if (PlaybackVolume < 0.33) return "\uE993"; // 低音量图标
+                if (PlaybackVolume < 0.66) return "\uE994"; // 中音量图标
+                return "\uE995"; // 高音量图标
+            }
+        }
 
-                    <Border Grid.Row="1"
-                            Padding="10"
-                            BorderBrush="#E0E0E0"
-                            BorderThickness="0,1,0,0">
-                        <Grid>
-                            <TextBox Text="输入消息..."
-                                     VerticalAlignment="Stretch"
-                                     Height="80"/>
-                            <Button Content="发送(S)"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Bottom"/>
-                        </Grid>
-                    </Border>
-                </Grid>
+        // --- 命令定义（用于绑定UI交互，如按钮点击等） ---
 
-                <Grid Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <!-- 标题栏 -->
-                        <RowDefinition Height="*"/>
-                        <!-- 消息列表 -->
-                    </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0"
-                                Margin="15">
-                        <TextBlock Text="群公告"
-                                   FontWeight="SemiBold"/>
-                        <TextBlock Text="APEX 账号大全..."
-                                   Margin="0,5,0,20"
-                                   TextWrapping="Wrap"/>
-                    </StackPanel>
+        /// <summary>
+        /// 静音切换命令（绑定到音量按钮）
+        /// </summary>
+        public ICommand MuteCommand { get; }
 
-                    <StackPanel Grid.Row="1"
-                                Margin="15">
-                        <TextBlock Text="群成员 (3/12)"
-                                   FontWeight="SemiBold"
-                                   Margin="0,0,0,10"/>
-                        <ListBox ItemsSource="{Binding Members}"
-                                 BorderThickness="0">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Ellipse Grid.Column="0"
-                                                 Width="24"
-                                                 Height="24"
-                                                 Margin="0,0,10,0">
-                                            <Ellipse.Fill>
-                                                <ImageBrush ImageSource="{Binding AvatarUrl}"/>
-                                            </Ellipse.Fill>
-                                        </Ellipse>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Name}"
-                                                   VerticalAlignment="Center"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </StackPanel>
-                </Grid>
-            </Grid>
-        </Grid>
-    </Grid>
-</UserControl>
+        /// <summary>
+        /// 播放/暂停切换命令（绑定到播放/暂停按钮）
+        /// </summary>
+        public ICommand TogglePlayPauseCommand { get; }
+
+        /// <summary>
+        /// 下一首歌曲命令（绑定到下一首按钮）
+        /// </summary>
+        public ICommand NextSongCommand { get; }
+
+        /// <summary>
+        /// 上一首歌曲命令（绑定到上一首按钮）
+        /// </summary>
+        public ICommand PreviousSongCommand { get; }
+
+        /// <summary>
+        /// 服务提供者，用于获取应用中的其他服务实例
+        /// </summary>
+        private readonly IServiceProvider _serviceProvider;
+
+        /// <summary>
+        /// 构造函数，通过依赖注入获取服务实例并初始化
+        /// </summary>
+        /// <param name="playerService">播放器服务实例</param>
+        /// <param name="serviceProvider">服务提供者实例</param>
+        public PlayerControlViewModel(PlayerService playerService, IServiceProvider serviceProvider)
+        {
+            _playerService = playerService;
+            _serviceProvider = serviceProvider;
+
+            // 1. 初始化所有交互命令，绑定到对应的处理方法
+            MuteCommand = new RelayCommand(ToggleMute);
+            TogglePlayPauseCommand = new RelayCommand(_playerService.TogglePlayPause);
+            NextSongCommand = new RelayCommand(_playerService.PlayNextSong);
+            PreviousSongCommand = new RelayCommand(_playerService.PlayPreviousSong);
+
+            // 2. 初始化状态变量（音量默认为最大1.0）
+            _playbackVolume = 1.0;
+            _lastPlaybackVolume = 1.0;
+
+            // 3. 订阅播放器服务的事件，以便响应状态变化
+            _playerService.PlaybackStatusChanged += OnPlaybackStatusChanged; // 播放状态变化事件
+            _playerService.CurrentSongChanged += OnCurrentSongChanged; // 当前歌曲变化事件
+            _playerService.ProgressUpdated += OnProgressUpdated; // 播放进度更新事件
+
+            // 4. 初始化UI显示状态
+            ResetForNewSong(); // 重置进度相关显示
+            OnPlaybackStatusChanged(); // 设置初始播放/暂停图标
+        }
+
+        /// <summary>
+        /// 当请求显示歌曲详情时触发的事件
+        /// 由视图层订阅以打开详情页面
+        /// </summary>
+        public event EventHandler<Song> ShowSongDetailRequested;
+
+        /// <summary>
+        /// 显示当前歌曲详情的命令（由UI触发）
+        /// 触发ShowSongDetailRequested事件并传递当前歌曲信息
+        /// </summary>
+        [RelayCommand]
+        private void ShowSongDetail()
+        {
+            if (CurrentSong != null)
+            {
+                // 触发事件，通知视图层显示歌曲详情
+                ShowSongDetailRequested?.Invoke(this, CurrentSong);
+            }
+        }
+
+        /// <summary>
+        /// 播放进度更新事件的处理器
+        /// 接收播放器服务推送的当前时间和总时长，更新UI显示
+        /// </summary>
+        /// <param name="currentTime">当前播放时间</param>
+        /// <param name="totalTime">歌曲总时长</param>
+        private void OnProgressUpdated(TimeSpan currentTime, TimeSpan totalTime)
+        {
+            // 仅在未拖动进度条时更新（避免拖动时的冲突）
+            if (!IsDragging)
+            {
+                // 计算进度百分比（0-100）
+                CurrentProgress = currentTime.TotalSeconds / totalTime.TotalSeconds * 100;
+                // 格式化时间显示（mm:ss格式）
+                CurrentTime = currentTime.ToString(@"mm\:ss");
+                TotalTime = totalTime.ToString(@"mm\:ss");
+            }
+        }
+
+        // --- 事件处理器 ---
+
+        /// <summary>
+        /// 当前歌曲变化时的处理方法（由ObservableProperty自动生成调用）
+        /// 更新当前歌曲属性
+        /// </summary>
+        /// <param name="newSong">新的歌曲对象</param>
+        partial void OnCurrentSongChanged(Song newSong)
+        {
+            CurrentSong = newSong;
+        }
+
+        /// <summary>
+        /// 播放状态变化事件的处理器
+        /// 根据播放器当前状态更新播放/暂停图标
+        /// </summary>
+        private void OnPlaybackStatusChanged()
+        {
+            // 根据播放器服务的当前状态设置对应图标
+            switch (_playerService.CurrentStatus)
+            {
+                case PlaybackStatus.Playing:
+                    PlayPauseIcon = "\uE769"; // 暂停图标
+                    break;
+                case PlaybackStatus.Paused:
+                case PlaybackStatus.Stopped:
+                    PlayPauseIcon = "\uE768"; // 播放图标
+                    break;
+            }
+        }
+
+        // --- 由CommunityToolkit.Mvvm自动调用的Partial方法（属性变化时触发） ---
+
+        /// <summary>
+        /// 播放音量变化时的处理方法
+        /// 通知播放器服务更新实际播放音量
+        /// </summary>
+        /// <param name="value">新的音量值（0.0-1.0）</param>
+        partial void OnPlaybackVolumeChanged(double value)
+        {
+            _playerService.SetVolume(value);
+        }
+
+        /// <summary>
+        /// 当前进度变化时的处理方法
+        /// 仅在拖动进度条时（IsDragging为true）通知播放器服务调整播放进度
+        /// </summary>
+        /// <param name="value">新的进度值（百分比）</param>
+        partial void OnCurrentProgressChanged(double value)
+        {
+            if (IsDragging)
+            {
+                _playerService.Seek(value); // 通知服务跳转到指定进度
+            }
+        }
+
+        // --- 公共方法 ---
+
+        /// <summary>
+        /// 为新歌曲重置进度相关的UI显示
+        /// 将进度条、当前时间和总时长重置为初始状态
+        /// </summary>
+        public void ResetForNewSong()
+        {
+            CurrentProgress = 0;
+            CurrentTime = "00:00";
+            TotalTime = "00:00";
+        }
+
+        // --- 私有命令逻辑（处理具体的命令执行） ---
+
+        /// <summary>
+        /// 切换静音状态的逻辑
+        /// - 非静音时：记录当前音量并设为0（静音）
+        /// - 静音时：恢复到上次记录的音量（默认1.0）
+        /// </summary>
+        private void ToggleMute()
+        {
+            if (PlaybackVolume > 0)
+            {
+                _lastPlaybackVolume = PlaybackVolume; // 保存当前音量
+                PlaybackVolume = 0; // 设为静音
+            }
+            else
+            {
+                // 恢复音量（如果上次记录为0则默认最大音量）
+                PlaybackVolume = _lastPlaybackVolume > 0 ? _lastPlaybackVolume : 1.0;
+            }
+        }
+    }
+}

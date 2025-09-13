@@ -111,7 +111,7 @@ namespace NetEase
             services.AddTransient<SessionsViewModel>();
             // 用户资料视图模型（transient：用户资料页面的交互逻辑）
             services.AddTransient<UserProfileViewModel>();
-
+            services.AddTransient<SongDetailViewModel>();
             // --- 视图（View）注册 ---
             // 注册WPF窗口，用于通过依赖注入创建视图实例
 

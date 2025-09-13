@@ -212,14 +212,32 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
+        <Style x:Key="TransparentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <!-- 通常用于包裹图片的按钮没有内边距 -->
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <!-- 
+                        这个模板只包含一个ContentPresenter，
+                        它会直接显示按钮的Content（在这里就是那个带图片的Border），
+                        而不会添加任何额外的按钮背景、边框或点击效果。
+                        -->
+                        <ContentPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
     </UserControl.Resources>
 
 
     <Grid>
 
-        <Border>
+        <Border IsHitTestVisible="False">
             <Border.Background>
                 <!-- 您可以调整颜色和透明度 (例如 #AA000000) -->
                 <SolidColorBrush Color="Black" Opacity="0.7"/>
@@ -261,14 +279,16 @@
                 <StackPanel Grid.Column="0"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
+                    <Button Command="{Binding ShowSongDetailCommand}" Style="{StaticResource TransparentButtonStyle}">
                     <Border Width="70"
-                        Height="70"
-                        CornerRadius="4">
+                            Height="70"
+                            CornerRadius="4">
                         <Border.Background>
                             <ImageBrush ImageSource="{Binding CurrentSong.CoverImage}"
                                     Stretch="UniformToFill"/>
                         </Border.Background>
                     </Border>
+                    </Button>
                     <StackPanel VerticalAlignment="Center"
                             Margin="10,0,0,0">
                         <TextBlock Text="{Binding CurrentSong.Title}"

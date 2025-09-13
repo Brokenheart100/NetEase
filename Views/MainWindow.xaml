@@ -1057,13 +1057,7 @@
                                         <CubicEase EasingMode="EaseOut"/>
                                     </DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
-                                <!--<DoubleAnimation Storyboard.TargetName="PlayerTriggerArea"
-                                                 Storyboard.TargetProperty="Height"
-                                                 Duration="0:0:0.1">
-                                    <DoubleAnimation.To>
-                                        <Binding Path="ActualHeight" ElementName="PlayerControl"/>
-                                    </DoubleAnimation.To>
-                                </DoubleAnimation>-->
+                         
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
@@ -1082,10 +1076,7 @@
                                         <CubicEase EasingMode="EaseIn"/>
                                     </DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
-                                <!--<DoubleAnimation Storyboard.TargetName="PlayerTriggerArea"
-                                                 Storyboard.TargetProperty="Height"
-                                                 To="20" 
-                                                 Duration="0:0:0.1"/>-->
+                             
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
@@ -1102,12 +1093,6 @@
                 </components:PlayerControlView>
 
                 <Border Height="20" VerticalAlignment="Bottom" Background="Transparent"/>
-
-                <!--<Border x:Name="PlayerTriggerArea"
-                        Height="20" 
-                        Background="Transparent"
-                        Panel.ZIndex="0"
-                        VerticalAlignment="Bottom"/>-->
                 
             </Grid>
         </Grid>
