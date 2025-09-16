@@ -63,6 +63,8 @@ namespace NetEase.ViewModels
         /// 播放器控制视图模型（管理播放器的状态和控制
         /// </summary>
         public PlayerControlViewModel PlayerControlVM { get; }
+        public SongDetailViewModel SongDetailVM { get; }
+
         /// <summary>
         /// 认证视图模型（管理登录/注册相关UI和逻辑）
         /// </summary>
@@ -97,8 +99,8 @@ namespace NetEase.ViewModels
         /// <summary>
         /// 歌曲详情视图模型（管理歌曲详情面板的内容）
         /// </summary>
-        [ObservableProperty]
-        private SongDetailViewModel _songDetailVM;
+        //[ObservableProperty]
+        //public SongDetailViewModel _songDetailVM;
 
         /// <summary>
         /// 构造函数，通过依赖注入初始化服务和子视图模型
@@ -112,11 +114,12 @@ namespace NetEase.ViewModels
         /// <param name="authVM">认证视图模型</param>
         /// <param name="playlistService">播放列表服务</param>
         /// <param name="friendsViewModel">好友视图模型</param>
-        public MainViewModel(IServiceProvider serviceProvider, AuthService authService, SignalRService signalRService, TitleBarViewModel titleBarVM, PlayerControlViewModel playerControlVM, AuthenticationViewModel authVM, PlaylistService playlistService, FriendsViewModel friendsViewModel)
+        public MainViewModel(SongDetailViewModel songDetailVM, IServiceProvider serviceProvider, AuthService authService, SignalRService signalRService, TitleBarViewModel titleBarVM, PlayerControlViewModel playerControlVM, AuthenticationViewModel authVM, PlaylistService playlistService, FriendsViewModel friendsViewModel)
         {
             _serviceProvider = serviceProvider;
             TitleBarVM = titleBarVM;
             PlayerControlVM = playerControlVM;
+            SongDetailVM = songDetailVM;
             AuthVM = authVM;
             _signalRService = signalRService;
             _playlistService = playlistService;
@@ -174,7 +177,6 @@ namespace NetEase.ViewModels
             vm.RequestClose += OnCloseSongDetailRequested;
 
             // 显示歌曲详情面板
-            SongDetailVM = vm;
             IsSongDetailVisible = true;
         }
 

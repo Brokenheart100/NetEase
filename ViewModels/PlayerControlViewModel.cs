@@ -159,9 +159,19 @@ namespace NetEase.ViewModels
         [RelayCommand]
         private void ShowSongDetail()
         {
+            // 断点 A: 放在这里，确认方法是否进入
+            Debug.WriteLine("ShowSongDetail command executed.");
+
             if (CurrentSong != null)
             {
+                // 断点 B: 放在这里，确认条件是否满足
+                Debug.WriteLine($"CurrentSong is '{CurrentSong.Title}'. Firing event...");
                 ShowSongDetailRequested?.Invoke(this, CurrentSong);
+            }
+            else
+            {
+                // 断点 C: 放在这里，检查CurrentSong是否为null
+                Debug.WriteLine("CurrentSong is null. Event not fired.");
             }
         }
 

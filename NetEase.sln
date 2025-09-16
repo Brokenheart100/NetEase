@@ -7,6 +7,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetEase", "NetEase.csproj",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicWebAPI", "..\MusicWebAPI\MusicWebAPI.csproj", "{46A94A30-619F-46B6-81EE-21F652E102C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetEase.ApiGateway", "..\NetEase.ApiGateway\NetEase.ApiGateway.csproj", "{4D7CA347-7CB5-4616-A42F-04D2969EC575}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetEase.Catalog.API", "..\NetEase.Catalog.API\NetEase.Catalog.API.csproj", "{8889F7A1-8E81-408F-9888-946974841164}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetEase.Library.API", "..\NetEase.Library.API\NetEase.Library.API.csproj", "{ED455787-45E9-4668-944E-8D8CCDAD770D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetEase.Auth.API", "..\NetEase.Auth.API\NetEase.Auth.API.csproj", "{61430004-BD66-43DD-B785-2DFAEC2C8AC8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +29,22 @@ Global
 		{46A94A30-619F-46B6-81EE-21F652E102C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46A94A30-619F-46B6-81EE-21F652E102C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46A94A30-619F-46B6-81EE-21F652E102C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D7CA347-7CB5-4616-A42F-04D2969EC575}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D7CA347-7CB5-4616-A42F-04D2969EC575}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D7CA347-7CB5-4616-A42F-04D2969EC575}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D7CA347-7CB5-4616-A42F-04D2969EC575}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8889F7A1-8E81-408F-9888-946974841164}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8889F7A1-8E81-408F-9888-946974841164}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8889F7A1-8E81-408F-9888-946974841164}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8889F7A1-8E81-408F-9888-946974841164}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED455787-45E9-4668-944E-8D8CCDAD770D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED455787-45E9-4668-944E-8D8CCDAD770D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED455787-45E9-4668-944E-8D8CCDAD770D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED455787-45E9-4668-944E-8D8CCDAD770D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61430004-BD66-43DD-B785-2DFAEC2C8AC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61430004-BD66-43DD-B785-2DFAEC2C8AC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61430004-BD66-43DD-B785-2DFAEC2C8AC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61430004-BD66-43DD-B785-2DFAEC2C8AC8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

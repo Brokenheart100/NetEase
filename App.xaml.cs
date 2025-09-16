@@ -47,9 +47,11 @@ namespace NetEase
             // --- HTTP 客户端配置 ---
             // 注册HttpClient单例实例，用于网络请求
             // 配置基础地址为后端API服务地址（此处为本地开发环境地址）
+            //http://localhost:5215
             services.AddSingleton<HttpClient>(sp => new HttpClient
             {
-                BaseAddress = new Uri("http://localhost:5215/")
+                BaseAddress = new Uri("http://localhost:5240/")
+
             });
 
             // --- 业务服务注册 ---
@@ -68,6 +70,8 @@ namespace NetEase
             // SignalR服务（单例：实时通信连接管理，全局唯一连接）
             services.AddSingleton<SignalRService>();
             services.AddSingleton<CredentialService>();
+            services.AddTransient<LyricService>();
+
             // --- 视图模型（ViewModel）注册 ---
             // 注册MVVM模式中的视图模型，负责数据处理和视图交互逻辑
 
@@ -112,6 +116,7 @@ namespace NetEase
             // 用户资料视图模型（transient：用户资料页面的交互逻辑）
             services.AddTransient<UserProfileViewModel>();
             services.AddTransient<SongDetailViewModel>();
+
             // --- 视图（View）注册 ---
             // 注册WPF窗口，用于通过依赖注入创建视图实例
 

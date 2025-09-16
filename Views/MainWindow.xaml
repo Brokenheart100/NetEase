@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
+        x:Name="TheMainWindow"
         xmlns:vm="clr-namespace:NetEase.ViewModels"
         xmlns:converters="clr-namespace:NetEase.Converters"
         xmlns:pages="clr-namespace:NetEase.Views.Pages"
@@ -16,91 +17,9 @@
         Width="1380">
 
     <Window.Resources>
-        <Style x:Key="ModernScrollViewerStyle"
-                TargetType="{x:Type ScrollViewer}">
-            <Setter Property="OverridesDefaultStyle"
-                    Value="True"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
-                        <Grid Background="{TemplateBinding Background}">
-                            <!-- 1. 内容区域 -->
-                            <ScrollContentPresenter CanContentScroll="True"/>
-                            <ScrollBar Name="PART_VerticalScrollBar"
-                                       Value="{TemplateBinding VerticalOffset}"
-                                       Maximum="{TemplateBinding ScrollableHeight}"
-                                       ViewportSize="{TemplateBinding ViewportHeight}"
-                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
-                                       HorizontalAlignment="Right"
-                                       Opacity="0"
-                                       Width="2">
-                                <!-- 包含一些空白区域，更容易悬浮 -->
-                                <ScrollBar.Style>
-                                    <Style TargetType="ScrollBar">
-                                        <Setter Property="Background"
-                                                Value="Transparent"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ScrollBar">
-                                                    <!-- Thumb 是滚动条可拖动的部分 -->
-                                                    <Thumb Width="6"
-                                                           HorizontalAlignment="Center"
-                                                           Background="#88FFFFFF"
-                                                           Opacity="0.6">
-                                                        <Thumb.Style>
-                                                            <Style TargetType="Thumb">
-                                                                <Setter Property="Template">
-                                                                    <Setter.Value>
-                                                                        <ControlTemplate TargetType="Thumb">
-                                                                            <Border Background="{TemplateBinding Background}"
-                                                                                    CornerRadius="3"/>
-                                                                        </ControlTemplate>
-                                                                    </Setter.Value>
-                                                                </Setter>
-                                                            </Style>
-                                                        </Thumb.Style>
-                                                    </Thumb>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </ScrollBar.Style>
-                            </ScrollBar>
-                        </Grid>
-
-                        <ControlTemplate.Triggers>
-                            <!-- 当鼠标悬浮在整个 ScrollViewer 区域时 -->
-                            <Trigger Property="IsMouseOver"
-                                    Value="True">
-                                <!-- 使用动画让滚动条淡入 -->
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar"
-                                                             Storyboard.TargetProperty="Opacity"
-                                                             To="1"
-                                                    Duration="0:0:0.2"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <!-- 鼠标离开时，让滚动条淡出 -->
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar"
-                                                             Storyboard.TargetProperty="Opacity"
-                                                             To="0"
-                                                    Duration="0:0:0.3"/>
-                                            <!-- 离开时稍慢一点 -->
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <converters:InvertValueConverter x:Key="InvertValueConverter"/>
+        <converters:NegativeMarginConverter x:Key="NegativeMarginConverter"/>
+      
         <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
             <pages:FeaturedView/>
         </DataTemplate>
@@ -116,84 +35,6 @@
         <DataTemplate DataType="{x:Type vm:MyFavoriteMusicViewModel}">
             <pages:MyFavoriteMusicView/>
         </DataTemplate>
-        <!-- ================== 自定义悬浮显示滚动条的样式 ================== -->
-        <Style x:Key="OverlayScrollViewerStyle"
-               TargetType="{x:Type ScrollViewer}">
-            <Setter Property="OverridesDefaultStyle"
-                    Value="True"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
-                        <Grid>
-                            <ScrollContentPresenter CanContentScroll="True"/>
-
-                            <ScrollBar Name="PART_VerticalScrollBar"
-                                       Value="{TemplateBinding VerticalOffset}"
-                                       Maximum="{TemplateBinding ScrollableHeight}"
-                                       ViewportSize="{TemplateBinding ViewportHeight}"
-                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
-                                       HorizontalAlignment="Right"
-                                       Opacity="0"
-                                       Width="8">
-                                <ScrollBar.Style>
-                                    <Style TargetType="ScrollBar">
-                                        <Setter Property="Background"
-                                                Value="Transparent"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ScrollBar">
-                                                    <!-- Thumb 是滚动条可拖动的部分 -->
-                                                    <Thumb Width="4"
-                                                           HorizontalAlignment="Center"
-                                                           Background="#88FFFFFF"
-                                                           Opacity="0.5">
-                                                        <Thumb.Template>
-                                                            <ControlTemplate TargetType="Thumb">
-                                                                <Border Background="{TemplateBinding Background}"
-                                                                        CornerRadius="2"/>
-                                                            </ControlTemplate>
-                                                        </Thumb.Template>
-                                                    </Thumb>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </ScrollBar.Style>
-                            </ScrollBar>
-                        </Grid>
-
-                        <ControlTemplate.Triggers>
-                            <!-- 当鼠标悬浮在整个 ScrollViewer 区域时 -->
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-                                <!-- 使用动画让滚动条淡入 -->
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar"
-                                                             Storyboard.TargetProperty="Opacity"
-                                                             To="1"
-                                                             Duration="0:0:0.2"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <!-- 鼠标离开时，让滚动条淡出 -->
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="PART_VerticalScrollBar"
-                                                             Storyboard.TargetProperty="Opacity"
-                                                             To="0"
-                                                             Duration="0:0:0.2"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
 
         <!-- 默认导航按钮样式 -->
         <Style x:Key="NavButtonStyle"
@@ -250,22 +91,7 @@
             </Setter>
         </Style>
 
-        <!-- ================== 1. 创建可复用的导航项模板 ================== -->
-        <ControlTemplate x:Key="NavigationItemTemplate"
-                TargetType="ContentControl">
-            <Border x:Name="border"
-                    Background="{Binding Path=Background, RelativeSource={RelativeSource TemplatedParent}}"
-                    CornerRadius="6"
-                    Padding="{Binding Path=Padding, RelativeSource={RelativeSource TemplatedParent}}">
-                <!-- 
-            使用 TextElement 附加属性来传递 Foreground 和 FontWeight
-            这样模板内部的 TextBlock 就能继承这些值
-        -->
-                <ContentPresenter HorizontalAlignment="Stretch"
-                                  TextElement.Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource TemplatedParent}}"
-                                  TextElement.FontWeight="{Binding Path=FontWeight, RelativeSource={RelativeSource TemplatedParent}}"/>
-            </Border>
-        </ControlTemplate>
+      
         <!-- 分区标题文字样式 -->
         <Style x:Key="SectionHeaderStyle"
                TargetType="TextBlock">
@@ -322,57 +148,7 @@
                 </MultiDataTrigger>
             </Style.Triggers>
         </Style>
-
-        <Style x:Key="PlaylistListBoxItemStyle"
-                TargetType="ListBoxItem">
-            <Setter Property="Background"
-                    Value="Transparent"/>
-            <Setter Property="Foreground"
-                    Value="#CCCCCC"/>
-            <Setter Property="Padding"
-                    Value="15,5"/>
-            <Setter Property="Margin"
-                    Value="10,2"/>
-            <Setter Property="Height"
-                    Value="45"/>
-            <Setter Property="HorizontalContentAlignment"
-                    Value="Stretch"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="ItemBorder"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="6"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsSelected}"
-                        Value="True">
-                    <Setter Property="Background"
-                            Value="#EC4141"/>
-                    <Setter Property="Foreground"
-                            Value="White"/>
-                </DataTrigger>
-
-                <!-- 只在【未选中】时应用悬浮效果 -->
-                <MultiDataTrigger>
-                    <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding IsSelected}"
-                                Value="False"/>
-                        <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
-                                Value="True"/>
-                    </MultiDataTrigger.Conditions>
-                    <Setter Property="Background"
-                            Value="#333333"/>
-                </MultiDataTrigger>
-            </Style.Triggers>
-        </Style>
-        <!-- 在 MainWindow.xaml 的 <Window.Resources> 中 -->
-
+    
         <!-- 为 ToggleButton 创建一个专门的导航样式 -->
         <Style x:Key="NavToggleButtonSyle"
                 TargetType="ToggleButton">
@@ -600,48 +376,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <!-- 垂直 ScrollBar 模板 -->
-        <ControlTemplate x:Key="VerticalScrollBarTemplate"
-                         TargetType="{x:Type ScrollBar}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition MaxHeight="18"/>
-                    <RowDefinition Height="0.00001*"/>
-                    <RowDefinition MaxHeight="18"/>
-                </Grid.RowDefinitions>
-                <Border Grid.RowSpan="3"
-                        CornerRadius="2"
-                        Background="#F0F0F0"/>
-                <RepeatButton Grid.Row="0"
-                              Style="{StaticResource ScrollBarLineButtonStyle}"
-                              Height="18"
-                              Command="ScrollBar.LineUpCommand"
-                              Content="M 0 4 L 8 4 L 4 0 Z"/>
-                <Track Name="PART_Track"
-                       Grid.Row="1"
-                       IsDirectionReversed="True">
-                    <Track.DecreaseRepeatButton>
-                        <RepeatButton Style="{StaticResource ScrollBarPageButtonStyle}"
-                                      Command="ScrollBar.PageUpCommand"/>
-                    </Track.DecreaseRepeatButton>
-                    <Track.Thumb>
-                        <Thumb Style="{StaticResource ScrollBarThumbStyle}"
-                               Margin="1,0,1,0"
-                               Width="8"/>
-                    </Track.Thumb>
-                    <Track.IncreaseRepeatButton>
-                        <RepeatButton Style="{StaticResource ScrollBarPageButtonStyle}"
-                                      Command="ScrollBar.PageDownCommand"/>
-                    </Track.IncreaseRepeatButton>
-                </Track>
-                <RepeatButton Grid.Row="2"
-                              Style="{StaticResource ScrollBarLineButtonStyle}"
-                              Height="18"
-                              Command="ScrollBar.LineDownCommand"
-                              Content="M 0 0 L 4 4 L 8 0 Z"/>
-            </Grid>
-        </ControlTemplate>
 
     </Window.Resources>
     <!-- 主容器，使用圆角边框包裹 -->
@@ -1038,63 +772,141 @@
             </Grid>
 
 
+            <!-- 定义一个网格容器，垂直对齐方式为底部，命名为PlayerContainer以便在代码中引用 -->
+            <!-- ShowGridLines="True"用于显示网格线，通常在调试阶段使用，便于布局调整 -->
             <Grid VerticalAlignment="Bottom"
-                  x:Name="PlayerContainer"
-                  ShowGridLines="True">
-                <!--<Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>-->
+                    x:Name="PlayerContainer"
+                    ShowGridLines="True">
 
+                <!-- 网格容器的触发器集合，用于定义响应特定事件的动画行为 -->
                 <Grid.Triggers>
+                    <!-- 鼠标进入网格区域时触发的事件触发器 -->
                     <EventTrigger RoutedEvent="Grid.MouseEnter">
                         <BeginStoryboard>
+                            <!-- 动画故事板，包含一组要执行的动画 -->
                             <Storyboard>
-                                <DoubleAnimation Storyboard.TargetName="PlayerControl"
-                                                 Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
-                                                 To="0"
-                                                 Duration="0:0:0.3">
+                                <!-- 定义一个双精度数值动画，用于控制元素的平移效果 -->
+                                <DoubleAnimation 
+                                    Storyboard.TargetName="PlayerControl"  
+                                    Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                    To="0"
+                                    Duration="0:0:0.3">
+                                    <!-- 动画持续时间：0小时0分0.3秒 -->
+
+                                    <!-- 动画的缓动函数，控制动画速度变化曲线 -->
                                     <DoubleAnimation.EasingFunction>
                                         <CubicEase EasingMode="EaseOut"/>
+                                        <!--  cubic缓动模式，先快后慢，使动画更自然 -->
                                     </DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
-                         
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
 
-                    <!-- 当鼠标离开下方的触发区域时 -->
+                    <!-- 鼠标离开网格区域时触发的事件触发器 -->
                     <EventTrigger RoutedEvent="Grid.MouseLeave">
                         <BeginStoryboard>
                             <Storyboard>
-                                <DoubleAnimation Storyboard.TargetName="PlayerControl"
-                                                 Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
-                                                 Duration="0:0:0.5">
+                                <DoubleAnimation 
+                                    Storyboard.TargetName="PlayerControl"  
+                                    Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                 
+                                    Duration="0:0:0.5">
+                                    <!-- 动画持续时间：0.5秒，比滑入稍慢，提升交互体验 -->
+
+                                    <!-- 动画结束时的目标值，绑定到PlayerControl的Tag属性 -->
                                     <DoubleAnimation.To>
                                         <Binding Path="Tag" ElementName="PlayerControl"/>
                                     </DoubleAnimation.To>
+
+                                    <!-- 缓动函数设置为EaseIn，即先慢后快，使隐藏动画更自然 -->
                                     <DoubleAnimation.EasingFunction>
                                         <CubicEase EasingMode="EaseIn"/>
                                     </DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
-                             
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
                 </Grid.Triggers>
 
+                <!-- 自定义播放器控件，命名为PlayerControl以便动画引用 -->
                 <components:PlayerControlView x:Name="PlayerControl"
-                                              DataContext="{Binding PlayerControlVM}"
+                                              DataContext="{Binding PlayerControlVM}"  
                                               Tag="{Binding Path=ActualHeight, ElementName=PlayerControl}">
+                    <!-- Tag属性存储控件自身的实际高度，用于计算隐藏位置 -->
 
+                    <!-- 定义控件的渲染变换，用于实现平移动画 -->
                     <components:PlayerControlView.RenderTransform>
+                        <!-- 初始状态下，Y轴平移值绑定到自身Tag属性（即自身高度），使控件完全隐藏在容器底部 -->
                         <TranslateTransform Y="{Binding Path=Tag, ElementName=PlayerControl}"/>
                     </components:PlayerControlView.RenderTransform>
 
                 </components:PlayerControlView>
 
+                <!-- 底部透明边框，高度20像素 -->
+                <!-- 作用：扩展鼠标检测区域，即使鼠标移动到播放器控件下方的空白区域，也能触发MouseEnter事件，提升交互便捷性 -->
                 <Border Height="20" VerticalAlignment="Bottom" Background="Transparent"/>
-                
+
             </Grid>
+
+
+            <!-- 将这个容器的 VerticalAlignment 从 Bottom 改为 Top -->
+            <Grid VerticalAlignment="Top"
+                x:Name="SongDetailPage">
+
+                <Grid.Triggers>
+                    <!-- MouseEnter 触发器保持不变 -->
+                    <EventTrigger RoutedEvent="Grid.MouseEnter">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <!-- 动画目标值 To="0" 保持不变，表示滑入到最终位置 -->
+                                <DoubleAnimation Storyboard.TargetName="SongDetail"  
+                                     Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                     To="0"
+                                     Duration="0:0:0.3">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+
+                    <!-- MouseLeave 触发器 -->
+                    <EventTrigger RoutedEvent="Grid.MouseLeave">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="SongDetail"  
+                                     Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                     Duration="0:0:0.5">
+                                    <!-- 【核心修正 #1】: 动画的目标值需要是负数 -->
+                                    <DoubleAnimation.To>
+                                        <!-- 我们在这里使用一个转换器来将正的高度值变为负值 -->
+                                        <Binding Path="Tag" ElementName="SongDetail" Converter="{StaticResource InvertValueConverter}"/>
+                                    </DoubleAnimation.To>
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseIn"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Grid.Triggers>
+
+                <pages:SongDetailView x:Name="SongDetail"
+                          DataContext="{Binding SongDetailVM}"  
+                          Tag="{Binding Path=ActualHeight, ElementName=SongDetail}">
+                    <pages:SongDetailView.RenderTransform>
+                        <TranslateTransform Y="{Binding Path=Tag,ElementName=SongDetail, Converter={StaticResource InvertValueConverter}}"/>
+                    </pages:SongDetailView.RenderTransform>
+                </pages:SongDetailView>
+
+                <!-- 【核心修正 #3】: 将触发区域的对齐方式改为 Top -->
+                <Border Height="40" VerticalAlignment="Top" Background="Transparent"/>
+
+            </Grid>
+
+            
         </Grid>
         
 

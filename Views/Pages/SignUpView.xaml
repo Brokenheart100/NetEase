@@ -274,7 +274,7 @@
               ShowGridLines="True">
             <Grid.Background>
                 <!-- 背景图片 -->
-                <ImageBrush ImageSource="E:\Computer\VS\NetEase\CoverImage\27.jpg"
+                <ImageBrush ImageSource="E:\Computer\VS\NetEase\CoverImage\24.jpg"
                             Stretch="UniformToFill"/>
             </Grid.Background>
             <!-- 半透明遮罩层，让文字更清晰 -->

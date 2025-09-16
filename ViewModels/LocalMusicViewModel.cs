@@ -37,9 +37,6 @@ namespace NetEase.ViewModels
         public string Author { get; set; }
         public string CreateDate { get; set; }
 
-        // --- 命令 ---
-        public IRelayCommand AddLocalFolderCommand { get; }
-        public IRelayCommand<Song> PlaySongCommand { get; }
 
         // 构造函数现在非常简洁，只负责依赖注入和命令初始化
         public LocalMusicViewModel(PlayerService playerService, PlaylistService playlistService)
@@ -47,9 +44,6 @@ namespace NetEase.ViewModels
             _playerService = playerService;
             _playlistService = playlistService;
 
-            // 初始化命令
-            AddLocalFolderCommand = new RelayCommand(AddLocalFolder);
-            PlaySongCommand = new RelayCommand<Song>(PlaySong);
 
             // 初始化静态头部信息
             CoverImageUrl = "E:\\Computer\\VS\\NetEase\\CoverImage\\25.jpg";
@@ -60,6 +54,8 @@ namespace NetEase.ViewModels
             //LoadInitialPlaylistAsync();
             // 异步加载所有数据
             LoadDataAsync();
+            //PlaySong(Songs[6]);
+
         }
         /// <summary>
         /// 加载用户的第一个播放列表（例如 "我喜欢的音乐"）
@@ -161,27 +157,29 @@ namespace NetEase.ViewModels
 
             SongCount = Songs.Count;
             IsLoading = false;
+            PlaySong(Songs[8]);
         }
 
-        // 修改 PlaySong 方法以接受可空参数 Song?，以匹配 Action<Song?> 委托签名
+        [RelayCommand]
+        private void AddLocalFolder()
+        {
+            var dialog = new CommonOpenFileDialog { IsFolderPicker = true };
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                Task.Run(() => ScanAndLoadSongsFromPath(dialog.FileName));
+            }
+        }
+
+        [RelayCommand]
         private void PlaySong(Song? song)
         {
-            Debug.WriteLine("Enter PlaySong(Song? song)");
+            Debug.WriteLine($"Enter PlaySong({song})");
             if (song != null)
             {
                 _playerService.StartPlayback(song, this.Songs);
             }
         }
 
-        private void AddLocalFolder()
-        {
-            var dialog = new CommonOpenFileDialog { IsFolderPicker = true };
-            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                // 异步扫描新文件夹
-                Task.Run(() => ScanAndLoadSongsFromPath(dialog.FileName));
-            }
-        }
 
         private void ScanAndLoadSongsFromPath(string folderPath)
         {

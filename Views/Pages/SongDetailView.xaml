@@ -3,11 +3,57 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:NetEase.Views.Pages" xmlns:viewmodels="clr-namespace:NetEase.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:SongDetailViewModel}"
+             xmlns:local="clr-namespace:NetEase.Views.Pages" 
+             xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
+             xmlns:behaviors="clr-namespace:NetEase.Behaviors"
+             xmlns:converters="clr-namespace:NetEase.Converters"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             d:DataContext="{d:DesignInstance Type=viewmodels:SongDetailViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="1050" d:DesignWidth="1200">
 
     <UserControl.Resources>
+        <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/40.jpg" />
+        <converters:ScrollToOpacityConverter x:Key="ScrollToOpacityConverter"/>
+        <converters:ScrollToParallaxConverter x:Key="ScrollToParallaxConverter "/>
+        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
+        <converters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter"/>
+
+        <Style x:Key="TitleBarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#A0A0A0"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Tabs按钮样式 -->
+        <Style x:Key="TabButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#383838"/>
+            <Setter Property="Foreground" Value="#D0D0D0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15, 6"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="12">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <!-- 当前高亮歌词的样式 -->
         <Style x:Key="CurrentLyricLineStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="White"/>
@@ -22,88 +68,368 @@
         </Style>
     </UserControl.Resources>
 
-    <Border Background="#2B2B2B" CornerRadius="8">
-        <Grid>
-            <!-- 顶部控制栏 -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="15">
-                <!-- TODO: 添加返回按钮，绑定到关闭此视图的命令 -->
-                <Button Content="&#xE097;" Command="{Binding CloseDetailViewCommand}"/>
-            </StackPanel>
+    <!-- 【核心】根Grid，用于分层 -->
+    <Grid ShowGridLines="True">
+        <!-- 1. 背景层 (固定) -->
+        <Image Source="{Binding CurrentSong.CoverImageUrl}" Stretch="UniformToFill" Opacity="0.7">
+            <Image.Effect>
+                <BlurEffect Radius="10"/>
+            </Image.Effect>
+        </Image>
+        <Border Background="#A01A1A1A"/>
 
-            <Grid Margin="50">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+        <!-- 2. 内容层 (使用Grid进行布局) -->
+        <Grid ShowGridLines="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- a. 固定的顶部控制栏区域 -->
+                <RowDefinition Height="*"/>
+                <!-- b. 可滚动的内容区域 -->
+            </Grid.RowDefinitions>
 
-                <!-- 1. 左侧：黑胶唱片动画 -->
-                <Grid Grid.Column="0">
-                    <Path Data="M 20,20 A 15,15 0 0 1 35,35 L 100,100 A 5,5 0 0 1 95,105 L 30,40 A 15,15 0 0 1 20,20 Z"
-                          Width="100" 
-                          Height="100"
-                          Stretch="Uniform"
-                          HorizontalAlignment="Right" 
-                          VerticalAlignment="Top"
-                          Margin="0,50,-20,0"/>
-
-                    <!-- 唱片 (旋转动画) -->
-                    <Grid x:Name="VinylDisc" RenderTransformOrigin="0.5,0.5">
-                        <Grid.RenderTransform>
-                            <RotateTransform Angle="0"/>
-                        </Grid.RenderTransform>
-                        <!-- 黑胶外圈 -->
-                        <Ellipse Stroke="#444" StrokeThickness="30"/>
-                        <!-- 专辑封面 -->
-                        <Ellipse Width="250" Height="250">
-                            <Ellipse.Fill>
-                                <ImageBrush ImageSource="{Binding CurrentSong.CoverImageUrl}"/>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                    </Grid>
-                    <!-- 可以在ViewModel的IsPlaying属性变化时，通过DataTrigger启动或暂停旋转动画 -->
-                </Grid>
-
-                <!-- 2. 右侧：歌曲信息和歌词 -->
-                <StackPanel Grid.Column="1" Margin="30,0,0,0">
-                    <!-- 歌曲标题和信息 -->
-                    <TextBlock Text="{Binding CurrentSong.Title}" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,10">
-                        <!-- ... VIP, 本地等标签 ... -->
-                    </StackPanel>
-                    <TextBlock Text="{Binding CurrentSong.Artist, StringFormat='歌手: {0}'}" Foreground="#A0A0A0"/>
-
-                    <!-- 歌词/百科/推荐 Tabs -->
-                    <StackPanel Orientation="Horizontal" Margin="0,20,0,30">
-                        <!-- ... Tab按钮 ... -->
-                    </StackPanel>
-
-                    <!-- 歌词滚动区域 -->
-                    <ScrollViewer Height="300" VerticalScrollBarVisibility="Hidden">
-                        <ItemsControl ItemsSource="{Binding Lyrics}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="0,10">
-                                        <!-- 原文歌词 -->
-                                        <TextBlock Text="{Binding OriginalText}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock" BasedOn="{StaticResource NormalLyricLineStyle}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsCurrentLine}" Value="True">
-                                                            <Setter Property="Style" Value="{StaticResource CurrentLyricLineStyle}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                        <!-- 翻译歌词 -->
-                                        <TextBlock Text="{Binding TranslatedText}" Foreground="#666" FontSize="16" Margin="0,5,0,0"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+            <!-- a. 固定的顶部控制栏 -->
+            <!-- Panel.ZIndex=1 确保它始终在最上层 -->
+            <Border Grid.Row="0" Panel.ZIndex="1">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="20">
+                    <Button Content="&#xE097;" Style="{StaticResource TitleBarButtonStyle}" ToolTip="播放器模式" IsEnabled="False"/>
+                    <Button Content="&#xE738;" Style="{StaticResource TitleBarButtonStyle}" ToolTip="全屏" IsEnabled="False"/>
+                    <Button Content="&#xE921;" Style="{StaticResource TitleBarButtonStyle}" ToolTip="最小化" IsEnabled="False"/>
+                    <Button Content="&#xE922;" Style="{StaticResource TitleBarButtonStyle}" ToolTip="最大化" IsEnabled="False"/>
+                    <Button Content="&#xE8BB;" Command="{Binding CloseDetailViewCommand}" Style="{StaticResource TitleBarButtonStyle}" ToolTip="返回"/>
                 </StackPanel>
-            </Grid>
+            </Border>
+
+            <!-- b. 可滚动的内容区域 -->
+            <!-- Grid.RowSpan="2" 让ScrollViewer可以从顶部开始，实现沉浸式效果 -->
+            <ScrollViewer x:Name="MainScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- 播放详情区 -->
+                    <Grid x:Name="SongDetailPanel" Height="600" ShowGridLines="True">
+                        <!-- 高度可以根据您的设计调整 -->
+                        <Grid.Opacity>
+                            <Binding ElementName="MainScrollViewer" Path="VerticalOffset" Converter="{StaticResource ScrollToOpacityConverter}"/>
+                        </Grid.Opacity>
+                        <Grid.RenderTransform>
+                            <TranslateTransform Y="{Binding ElementName=MainScrollViewer, Path=VerticalOffset, Converter={StaticResource ScrollToOpacityConverter}}"/>
+                        </Grid.RenderTransform>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 左侧: 黑胶唱片 -->
+                        <Grid Grid.Column="0" ShowGridLines="True"
+                             >
+                            <!-- 唱片 (旋转动画) -->
+                            <Grid x:Name="VinylDisc" RenderTransformOrigin="0.5,0.5"
+                                  ShowGridLines="True"
+                                  HorizontalAlignment="Center" 
+                                  VerticalAlignment="Center"
+                                  Width="360" Height="360">
+                                <Grid.RenderTransform>
+                                    <RotateTransform Angle="0"/>
+                                </Grid.RenderTransform>
+                                <Ellipse Width="340" 
+                                         Height="340"
+                                         Fill="#33FFFFFF" />
+                                <!-- 一个非常淡的半透明白色 -->
+                                <!-- 黑胶外圈 -->
+                                <Ellipse Width="320" 
+                                         Height="320"
+                                         Fill="#1A1A1A" />
+                                <!-- 深灰色，模拟黑胶材质 -->
+                                <!-- 专辑封面 -->
+                                <Ellipse Width="250" Height="250">
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="{Binding CurrentSong.CoverImageUrl}"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 右侧: 歌曲信息和歌词 -->
+                        <Grid Grid.Column="1" Margin="15">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <!-- 歌曲信息区 -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- Tabs区 -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- 分割线 -->
+                                <RowDefinition Height="*"/>
+                                <!-- 歌词区 (占据所有剩余空间) -->
+                            </Grid.RowDefinitions>
+                            <!-- 歌曲标题和信息 -->
+                            <!-- 歌曲信息区 -->
+                            <StackPanel Grid.Row="0">
+
+                                <!-- 1. 主标题 和 标签 -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding CurrentSong.Title, FallbackValue='未选择歌曲'}" 
+                                               FontSize="28" 
+                                               FontWeight="Bold" 
+                                               Foreground="White" 
+                                               VerticalAlignment="Center"/>
+
+                                    <!-- “本地” 标签 -->
+                                    <Border Background="Transparent" 
+                                            BorderBrush="#888888" 
+                                            BorderThickness="1" 
+                                            CornerRadius="3" 
+                                            Padding="4,1" 
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Visibility="Visible">
+                                        <TextBlock Text="本地" Foreground="#888888" FontSize="10"/>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- 2. 副标题/翻译标题 -->
+                                <TextBlock Text="American"
+                                           Foreground="#A0A0A0"
+                                           FontSize="14"
+                                           Margin="0,15,0,0"/>
+
+                                <!-- 3. 专辑、歌手、来源信息 -->
+                                <TextBlock Foreground="#A0A0A0"
+                                           FontSize="12"
+                                           Margin="0,15,0,0"
+                                           TextTrimming="CharacterEllipsis"> 
+            
+                                    <Run Text="专辑: "/>
+                                    <Run Text="{Binding CurrentSong.Album , FallbackValue='未选择歌曲'}" Foreground="#87CEEB"/>
+            
+                                    <Run Text="   歌手: "/>
+                                    <Run Text="{Binding CurrentSong.Artist, FallbackValue='未选择歌曲'}" Foreground="#87CEEB"/>
+
+                                    <Run Text="   来源: "/>
+                                    <Run Text="Brokenheart100" Foreground="#87CEEB"/>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <!-- Tabs区 -->
+                            <Border Grid.Row="1" 
+            Background="#22FFFFFF" 
+            CornerRadius="18" 
+            HorizontalAlignment="Left"
+            Margin="0,30,0,30">
+                                <!-- 
+        我们使用一个ItemsControl来水平排列我们的 "Tab" 按钮。
+        每个按钮实际上是一个RadioButton。
+        -->
+                                <ItemsControl>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+
+                                    <ItemsControl.Resources>
+                                        <!-- 定义RadioButton的样式 -->
+                                        <Style x:Key="SegmentedTabRadioButtonStyle" TargetType="RadioButton">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Foreground" Value="#A0A0A0"/>
+                                            <Setter Property="Padding" Value="20,8"/>
+                                            <Setter Property="FontSize" Value="14"/>
+                                            <Setter Property="Cursor" Value="Hand"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="RadioButton">
+                                                        <Border Background="{TemplateBinding Background}" 
+                                        CornerRadius="15"
+                                        Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Style.Triggers>
+                                                <!-- 当RadioButton被【选中】时 -->
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter Property="Background" Value="#44FFFFFF"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                </Trigger>
+                                                <!-- 当鼠标悬浮在【未选中】的RadioButton上时 -->
+                                                <MultiTrigger>
+                                                    <MultiTrigger.Conditions>
+                                                        <Condition Property="IsChecked" Value="False"/>
+                                                        <Condition Property="IsMouseOver" Value="True"/>
+                                                    </MultiTrigger.Conditions>
+                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                </MultiTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ItemsControl.Resources>
+
+                                    <!-- 定义各个Tab按钮 -->
+                                    <!-- IsChecked属性与ViewModel的枚举进行双向绑定 -->
+                                    <RadioButton Content="歌词" 
+                         Style="{StaticResource SegmentedTabRadioButtonStyle}"
+                         GroupName="SongDetailTabs"
+                         IsChecked="{Binding SelectedTab, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Lyrics}"/>
+
+                                    <RadioButton Content="百科" 
+                         Style="{StaticResource SegmentedTabRadioButtonStyle}"
+                         GroupName="SongDetailTabs"
+                         IsChecked="{Binding SelectedTab, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Wiki}"
+                         IsEnabled="False"/>
+                                    <!-- 暂时禁用 -->
+
+                                    <RadioButton Content="相似推荐" 
+                         Style="{StaticResource SegmentedTabRadioButtonStyle}"
+                         GroupName="SongDetailTabs"
+                         IsChecked="{Binding SelectedTab, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Similar}"
+                         IsEnabled="False"/>
+                                    <!-- 暂时禁用 -->
+
+                                </ItemsControl>
+                            </Border>
+
+                            <!-- 分割线 -->
+                            <Separator Grid.Row="2" Background="#444" Height="1" Margin="0,0,0,10"/>
+
+                            <!-- 歌词滚动区域 -->
+                            <ScrollViewer Grid.Row="3"  >
+                                <ItemsControl ItemsSource="{Binding Lyrics}"
+                                                    behaviors:AutoScrollBehavior.AutoScroll="True">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,10">
+                                                <!-- 原文歌词 -->
+                                                <TextBlock Text="{Binding OriginalText}">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource NormalLyricLineStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCurrentLine}" Value="True">
+
+                                                                    <Setter Property="Foreground" Value="White"/>
+                                                                    <Setter Property="FontSize" Value="22"/>
+                                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <!-- 翻译歌词 -->
+                                                <TextBlock Text="{Binding TranslatedText}" Foreground="#666" FontSize="16" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Grid>
+
+                    <!-- 评论区 -->
+                    <Border Background="#2B2B2B" Padding="30, 20">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Comments.Count, StringFormat='全部评论 {0}'}" 
+                                   Foreground="White" FontSize="18" FontWeight="Bold"/>
+
+                            <!-- 使用ItemsControl显示评论列表 -->
+                            <ItemsControl ItemsSource="{Binding Comments}" 
+                                          d:ItemsSource="{d:SampleData ItemCount=3}"
+                                          Margin="0,20,0,0">
+
+                                <!-- 在 SongDetailView.xaml 的评论区 ItemsControl 内部 -->
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,25">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <!-- 头像 -->
+                                                    <ColumnDefinition Width="*"/>
+                                                    <!-- 昵称、评论内容、时间 -->
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <!-- 点赞、回复等按钮 -->
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- 1. 左侧：头像 -->
+                                                <Ellipse Grid.Column="0" Width="40" Height="40" VerticalAlignment="Top">
+                                                    <Ellipse.Fill>
+                                                        <ImageBrush ImageSource="{Binding AvatarUrl, FallbackValue={StaticResource DefaultAvatarImage}}"/>
+                                                    </Ellipse.Fill>
+                                                </Ellipse>
+
+                                                <!-- 2. 中间：主要内容 -->
+                                                <StackPanel Grid.Column="1" Margin="15,0,0,0">
+                                                    <!-- 昵称和VIP标识 -->
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding UserName}" Foreground="#87CEEB" Cursor="Hand"/>
+                                                        <Border Background="Gold" CornerRadius="8" Padding="5,1" Margin="8,0"
+                                                                Visibility="Visible">
+                                                            <TextBlock Text="{Binding VipLevel}" Foreground="Black" FontSize="9" FontWeight="Bold"/>
+                                                        </Border>
+                                                    </StackPanel>
+
+                                                    <!-- 评论正文 -->
+                                                    <TextBlock Text="{Binding Content}" Foreground="White" TextWrapping="Wrap" Margin="0,10,0,10"/>
+
+                                                    <!-- 时间戳 -->
+                                                    <TextBlock Text="{Binding Timestamp}" Foreground="#666666" FontSize="12"/>
+                                                </StackPanel>
+
+                                                <!-- 3. 右侧：交互按钮 -->
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom">
+                                                    <!-- 点赞数和点赞按钮 -->
+                                                    <TextBlock Text="{Binding LikeCount}" Foreground="#888" VerticalAlignment="Center"/>
+                                                    <Button ToolTip="点赞" Margin="8,0,15,0"
+                            Command="{Binding DataContext.ToggleLikeCommentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Foreground" Value="#888"/>
+                                                                <Style.Triggers>
+                                                                    <!-- 当已点赞时，改变颜色 -->
+                                                                    <DataTrigger Binding="{Binding IsLiked}" Value="True">
+                                                                        <Setter Property="Foreground" Value="#EC4141"/>
+                                                                        <!-- 红色 -->
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                        <!-- 根据是否已点赞，显示不同图标 -->
+                                                        <TextBlock>
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Text" Value="&#xE8E1;"/>
+                                                                    <!-- 空心拇指 -->
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsLiked}" Value="True">
+                                                                            <Setter Property="Text" Value="&#xE8E0;"/>
+                                                                            <!-- 实心拇指 -->
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Button>
+
+                                                    <!-- 转发按钮 -->
+                                                    <Button Content="&#xE72D;" ToolTip="转发" />
+
+                                                    <!-- 评论按钮 -->
+                                                    <Button Content="&#xE90A;" ToolTip="回复"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- 每条评论下方的分割线 -->
+                                            <Separator Background="#383838" Margin="55,0,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
-    </Border>
+    </Grid>
+
+
+
+
 </UserControl>
