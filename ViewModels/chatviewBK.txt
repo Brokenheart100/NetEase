@@ -1,278 +1,729 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
-using NetEase.Models;
-using NetEase.Services;
-using NetEase.Views.Pages;
-using System.Diagnostics;
-using System.Windows;
-using System.Windows.Input;
-using HandyControl.Tools.Extension;
+<UserControl x:Class="NetEase.Views.Pages.SearchResultView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NetEase.Views.Pages"
+             xmlns:converters="clr-namespace:NetEase.Converters"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
+            <!-- 基础属性设置 (从您原来的 DataGrid 标签上移到这里) -->
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="CanUserResizeColumns" Value="True"/>
+            <Setter Property="CanUserReorderColumns" Value="False"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="AlternationCount" Value="2"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
 
-// 播放器控制相关的视图模型命名空间
-namespace NetEase.ViewModels
-{
-    /// <summary>
-    /// 播放器控制视图模型，继承自基础视图模型
-    /// 负责管理播放器的状态、处理用户交互命令，并与播放器服务交互
-    /// </summary>
-    public partial class PlayerControlViewModel : BaseViewModel
-    {
-        // 播放器服务实例，用于处理实际的音频播放、暂停、切换歌曲等核心逻辑
-        private readonly PlayerService _playerService;
+            <!-- 
+      ================== 关键修改点 ==================
+      重写 ControlTemplate 来替换内部的 ScrollViewer 样式
+  -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGrid}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" 
+                      BorderThickness="{TemplateBinding BorderThickness}" 
+                      Background="{TemplateBinding Background}" 
+                      Padding="{TemplateBinding Padding}" 
+                      SnapsToDevicePixels="True">
 
-        // --- 可观察属性（由CommunityToolkit.Mvvm自动生成属性更改通知） ---
+                            <!-- 
+                      找到 DataGrid 内部的 ScrollViewer (它的名字是 PART_RowsPresenter)，
+                      并将它的 Style 设置为我们的 ModernScrollViewerStyle。
+                  -->
+                            <ScrollViewer x:Name="PART_RowsPresenter" 
+                                Style="{StaticResource for_scrollviewer}"
+                                Focusable="False">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        /// <summary>
-        /// 当前正在播放的歌曲对象
-        /// 当值变化时会自动通知UI更新
-        /// </summary>
-        [ObservableProperty]
-        private Song _currentSong;
+        <!-- ScrollViewer 样式 -->
+        <Style x:Key="ModernScrollViewer"
+             TargetType="{x:Type ScrollViewer}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <!-- 内容呈现 -->
+                            <ScrollContentPresenter Grid.Column="0"
+                                                  Grid.Row="0"
+                                                  CanContentScroll="{TemplateBinding CanContentScroll}"
+                                                  Content="{TemplateBinding Content}"/>
+                            <!-- 垂直滚动条 -->
+                            <ScrollBar Grid.Column="1"
+                                     Grid.Row="0"
+                                     Name="PART_VerticalScrollBar"
+                                     Orientation="Vertical"
+                                     Maximum="{TemplateBinding ScrollableHeight}"
+                                     ViewportSize="{TemplateBinding ViewportHeight}"
+                                     Value="{TemplateBinding VerticalOffset}"
+                                     Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                            <!-- 水平滚动条 -->
+                            <ScrollBar Grid.Column="0"
+                                     Grid.Row="1"
+                                     Name="PART_HorizontalScrollBar"
+                                     Orientation="Horizontal"
+                                     Maximum="{TemplateBinding ScrollableWidth}"
+                                     ViewportSize="{TemplateBinding ViewportWidth}"
+                                     Value="{TemplateBinding HorizontalOffset}"
+                                     Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
+                            <!-- 右下角填充（可选） -->
+                            <Rectangle Grid.Column="1"
+                                     Grid.Row="1"
+                                     Fill="LightGray"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <!-- 自定义 ScrollViewer 的额外属性 -->
+            <Setter Property="Background"
+                  Value="White"/>
+            <Setter Property="BorderBrush"
+                  Value="Gray"/>
+            <Setter Property="BorderThickness"
+                  Value="1"/>
+        </Style>
 
-        /// <summary>
-        /// 播放音量（范围0.0-1.0）
-        /// 音量变化时会触发VolumeIcon属性的更新通知
-        /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(VolumeIcon))]
-        private double _playbackVolume;
+        <!-- 定义按钮样式 -->
+        <Style x:Key="ActionButtonStyle"
+             TargetType="Button">
+            <Setter Property="Foreground"
+                  Value="White"/>
+            <Setter Property="BorderThickness"
+                  Value="1"/>
+            <Setter Property="BorderBrush"
+                  Value="#555555"/>
+            <Setter Property="Background"
+                  Value="#333333"/>
+            <Setter Property="Padding"
+                  Value="8,8"/>
+            <Setter Property="Margin"
+                  Value="0,0,10,0"/>
+            <Setter Property="Cursor"
+                  Value="Hand"/>
+            <Setter Property="Height"
+                  Value="40"/>
+            <Setter Property="Width"
+                  Value="80"/>
 
-        /// <summary>
-        /// 播放/暂停按钮的图标字符（使用Unicode字符表示）
-        /// </summary>
-        [ObservableProperty]
-        private string _playPauseIcon;
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PlayAllButtonStyle"
+             BasedOn="{StaticResource ActionButtonStyle}"
+             TargetType="Button">
+            <Setter Property="Background"
+                  Value="#EC4141"/>
+            <Setter Property="BorderBrush"
+                  Value="Transparent"/>
+        </Style>
 
-        /// <summary>
-        /// 当前播放进度（百分比，0-100）
-        /// </summary>
-        [ObservableProperty]
-        private double _currentProgress;
+        <!-- ================== 自定义 ListView 列标题样式 ================== -->
+        <Style x:Key="CustomColumnHeaderStyle"
+             TargetType="{x:Type GridViewColumnHeader}">
+            <Setter Property="Background"
+                  Value="Transparent"/>
+            <Setter Property="Foreground"
+                  Value="#888888"/>
+            <Setter Property="BorderThickness"
+                  Value="0,0,1,1"/>
+            <Setter Property="BorderBrush"
+                  Value="#333333"/>
+            <Setter Property="Padding"
+                  Value="10,5"/>
+            <Setter Property="HorizontalContentAlignment"
+                  Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
+                        <Grid>
+                            <!-- 1. 正常状态下显示的内容 -->
+                            <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  Background="{TemplateBinding Background}"
+                                  Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalAlignment="Center"/>
+                            </Border>
 
-        /// <summary>
-        /// 当前播放时间（格式化字符串，如"01:23"）
-        /// </summary>
-        [ObservableProperty]
-        private string _currentTime;
+                            <!-- 2. 悬浮时才显示的内容 (初始不可见) -->
+                            <Border x:Name="HoverContent"
+                                  Background="#3A3A3B"
+                                  Padding="{TemplateBinding Padding}"
+                                  CornerRadius="4"
+                                  Opacity="0">
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- 排序图标 -->
+                                    <TextBlock Text="&#xE8CB;"
+                                             FontFamily="Segoe MDL2 Assets"
+                                             Foreground="#CCCCCC"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,5,0"/>
+                                    <!-- 排序文字 -->
+                                    <TextBlock Text="默认排序"
+                                             Foreground="#CCCCCC"
+                                             VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
 
-        /// <summary>
-        /// 歌曲总时长（格式化字符串，如"03:45"）
-        /// </summary>
-        [ObservableProperty]
-        private string _totalTime;
+                        <ControlTemplate.Triggers>
+                            <!-- 当鼠标悬浮在列标题上时 -->
+                            <Trigger Property="IsMouseOver"
+                                   Value="True">
+                                <Setter Property="Foreground"
+                                      Value="#CCCCCC"/>
+                                <!-- 使用动画让悬浮内容淡入 -->
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverContent"
+                                                           Storyboard.TargetProperty="Opacity"
+                                                           To="1"
+                                                           Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="HoverContent"
+                                                           Storyboard.TargetProperty="Opacity"
+                                                           To="0"
+                                                           Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="IconButtonStyle"
+             TargetType="Button">
+            <Setter Property="Background"
+                  Value="Transparent"/>
+            <Setter Property="Foreground"
+                  Value="#CCCCCC"/>
+            <Setter Property="BorderThickness"
+                  Value="0"/>
+            <Setter Property="Width"
+                  Value="32"/>
+            <Setter Property="Height"
+                  Value="32"/>
+            <Setter Property="FontSize"
+                  Value="18"/>
+            <Setter Property="FontFamily"
+                  Value="Segoe MDL2 Assets"/>
+            <Setter Property="Cursor"
+                  Value="Hand"/>
+            <Setter Property="Margin"
+                  Value="0,0,1,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <!-- 我们需要一个模板来确保背景真正受我们控制 -->
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver"
+                       Value="True">
+                    <Setter Property="Foreground"
+                          Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
-        /// <summary>
-        /// 是否正在拖动进度条
-        /// 用于避免拖动过程中频繁更新播放进度（防止UI与实际播放状态冲突）
-        /// </summary>
-        public bool IsDragging { get; set; } = false;
 
-        /// <summary>
-        /// 记录最后一次非静音状态的音量值
-        /// 用于取消静音时恢复到之前的音量
-        /// </summary>
-        private double _lastPlaybackVolume;
+        <!-- ================== 1. 自定义 TabItem 样式 ================== -->
+        <Style x:Key="CustomTabItemStyle"
+             TargetType="{x:Type TabItem}">
+            <Setter Property="Width"
+                  Value="70"/>
+            <Setter Property="Foreground"
+                  Value="#888888"/>
+            <Setter Property="FontSize"
+                  Value="15"/>
+            <Setter Property="Padding"
+                  Value="10,10,10,10"/>
+            <Setter Property="Margin"
+                  Value="0,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Grid HorizontalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <!-- 内容行 -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- 指示器行 -->
+                            </Grid.RowDefinitions>
 
-        /// <summary>
-        /// 音量图标（根据当前音量值显示不同状态的图标）
-        /// 使用Unicode字符表示静音、低/中/高音量状态
-        /// </summary>
-        public string VolumeIcon
-        {
-            get
-            {
-                if (PlaybackVolume == 0) return "\uE992"; // 静音图标
-                if (PlaybackVolume < 0.33) return "\uE993"; // 低音量图标
-                if (PlaybackVolume < 0.66) return "\uE994"; // 中音量图标
-                return "\uE995"; // 高音量图标
-            }
-        }
+                            <!-- 头部内容 -->
+                            <ContentPresenter x:Name="ContentSite"
+                                            Grid.Row="0"
+                                            ContentSource="Header"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
 
-        // --- 命令定义（用于绑定UI交互，如按钮点击等） ---
+                            <!-- 选中时的红色下划线指示器 -->
+                            <Border x:Name="SelectionIndicator"
+                                  Grid.Row="1"
+                                  Background="#EC4141"
+                                  Height="3"
+                                  Margin="0,0,0,0"
+                                  Visibility="Collapsed"/>
+                        </Grid>
 
-        /// <summary>
-        /// 静音切换命令（绑定到音量按钮）
-        /// </summary>
-        public ICommand MuteCommand { get; }
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected"
+                                   Value="True">
+                                <Setter Property="Foreground"
+                                      Value="White"/>
+                                <Setter Property="FontWeight"
+                                      Value="Bold"/>
+                                <Setter TargetName="SelectionIndicator"
+                                      Property="Visibility"
+                                      Value="Visible"/>
+                            </Trigger>
 
-        /// <summary>
-        /// 播放/暂停切换命令（绑定到播放/暂停按钮）
-        /// </summary>
-        public ICommand TogglePlayPauseCommand { get; }
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected"
+                                             Value="False"/>
+                                    <Condition Property="IsMouseOver"
+                                             Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Foreground"
+                                      Value="#BBBBBB"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        /// <summary>
-        /// 下一首歌曲命令（绑定到下一首按钮）
-        /// </summary>
-        public ICommand NextSongCommand { get; }
+        <!-- ================== 2. 自定义 TabControl 样式 ================== -->
+        <Style x:Key="CustomTabControlStyle"
+             TargetType="{x:Type TabControl}">
+            <Setter Property="BorderThickness"
+                  Value="0"/>
+            <Setter Property="Background"
+                  Value="Transparent"/>
+            <Setter Property="Padding"
+                  Value="0,0,0,10"/>
+        </Style>
+        <converters:WidthConverter x:Key="WidthConverter"/>
+    </UserControl.Resources>
 
-        /// <summary>
-        /// 上一首歌曲命令（绑定到上一首按钮）
-        /// </summary>
-        public ICommand PreviousSongCommand { get; }
+    <Grid Margin="15,15"
+        ShowGridLines="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Tab区域 -->
+            <RowDefinition Height="*"/>
+            <!-- 歌曲列表 -->
+        </Grid.RowDefinitions>
 
-        /// <summary>
-        /// 服务提供者，用于获取应用中的其他服务实例
-        /// </summary>
-        private readonly IServiceProvider _serviceProvider;
+        <!-- 2. Tab 切换区域 -->
+        <TabControl Grid.Row="0"
+                  Style="{StaticResource CustomTabControlStyle}">
+            <TabControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1"/>
+                </ItemsPanelTemplate>
+            </TabControl.ItemsPanel>
 
-        /// <summary>
-        /// 构造函数，通过依赖注入获取服务实例并初始化
-        /// </summary>
-        /// <param name="playerService">播放器服务实例</param>
-        /// <param name="serviceProvider">服务提供者实例</param>
-        public PlayerControlViewModel(PlayerService playerService, IServiceProvider serviceProvider)
-        {
-            _playerService = playerService;
-            _serviceProvider = serviceProvider;
+            <TabItem Style="{StaticResource CustomTabItemStyle}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="歌曲"/>
+                        <TextBlock Text="{Binding SongCount}"
+                                 FontSize="10"
+                                 Margin="0,0,0,10"
+                                 VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
 
-            // 1. 初始化所有交互命令，绑定到对应的处理方法
-            MuteCommand = new RelayCommand(ToggleMute);
-            TogglePlayPauseCommand = new RelayCommand(_playerService.TogglePlayPause);
-            NextSongCommand = new RelayCommand(_playerService.PlayNextSong);
-            PreviousSongCommand = new RelayCommand(_playerService.PlayPreviousSong);
+            <TabItem Style="{StaticResource CustomTabItemStyle}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="评论"/>
+                        <TextBlock Text=""
+                                 FontSize="10"
+                                 Margin="0,0,0,10"
+                                 VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
 
-            // 2. 初始化状态变量（音量默认为最大1.0）
-            _playbackVolume = 1.0;
-            _lastPlaybackVolume = 1.0;
+            <TabItem Style="{StaticResource CustomTabItemStyle}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="收藏者"/>
+                        <TextBlock Text="{Binding SongCount}"
+                                 FontSize="10"
+                                 Margin="0,0,0,10"
+                                 VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
 
-            // 3. 订阅播放器服务的事件，以便响应状态变化
-            _playerService.PlaybackStatusChanged += OnPlaybackStatusChanged; // 播放状态变化事件
-            _playerService.CurrentSongChanged += OnCurrentSongChanged; // 当前歌曲变化事件
-            _playerService.ProgressUpdated += OnProgressUpdated; // 播放进度更新事件
+        </TabControl>
+        <Grid Grid.Row="1">
+            <!-- 3. 歌曲列表 -->
+            <DataGrid ItemsSource="{Binding Songs}"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    d:ItemsSource="{d:SampleData ItemCount=3}"
+                    HeadersVisibility="Column"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    RowHeaderWidth="0"
+                    HorizontalScrollBarVisibility="Disabled">
 
-            // 4. 初始化UI显示状态
-            ResetForNewSong(); // 重置进度相关显示
-            OnPlaybackStatusChanged(); // 设置初始播放/暂停图标
-        }
+                <!-- 1. 双击播放的交互逻辑 (现在附加在 DataGridRow 上) -->
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseDoubleClick">
+                        <b:InvokeCommandAction
+                          Command="{Binding DataContext.PlaySongCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
 
-        /// <summary>
-        /// 当请求显示歌曲详情时触发的事件
-        /// 由视图层订阅以打开详情页面
-        /// </summary>
-        public event EventHandler<Song> ShowSongDetailRequested;
+                <!-- 2. 列标题样式 -->
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Foreground"
+                              Value="#888888"/>
+                        <Setter Property="Background"
+                              Value="Transparent"/>
+                        <Setter Property="BorderThickness"
+                              Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush"
+                              Value="#333333"/>
+                        <Setter Property="Padding"
+                              Value="10,5"/>
+                        <Setter Property="HorizontalContentAlignment"
+                              Value="Left"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
 
-        /// <summary>
-        /// 显示当前歌曲详情的命令（由UI触发）
-        /// 触发ShowSongDetailRequested事件并传递当前歌曲信息
-        /// </summary>
-        [RelayCommand]
-        private void ShowSongDetail()
-        {
-            if (CurrentSong != null)
-            {
-                // 触发事件，通知视图层显示歌曲详情
-                ShowSongDetailRequested?.Invoke(this, CurrentSong);
-            }
-        }
+                <!-- 3. 行样式 (替代 ItemContainerStyle) -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background"
+                              Value="Transparent"/>
+                        <Setter Property="BorderThickness"
+                              Value="5"/>
+                        <Setter Property="Margin"
+                              Value="5"/>
 
-        /// <summary>
-        /// 播放进度更新事件的处理器
-        /// 接收播放器服务推送的当前时间和总时长，更新UI显示
-        /// </summary>
-        /// <param name="currentTime">当前播放时间</param>
-        /// <param name="totalTime">歌曲总时长</param>
-        private void OnProgressUpdated(TimeSpan currentTime, TimeSpan totalTime)
-        {
-            // 仅在未拖动进度条时更新（避免拖动时的冲突）
-            if (!IsDragging)
-            {
-                // 计算进度百分比（0-100）
-                CurrentProgress = currentTime.TotalSeconds / totalTime.TotalSeconds * 100;
-                // 格式化时间显示（mm:ss格式）
-                CurrentTime = currentTime.ToString(@"mm\:ss");
-                TotalTime = totalTime.ToString(@"mm\:ss");
-            }
-        }
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridRow">
+                                    <Border x:Name="DGR_Border"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          SnapsToDevicePixels="True">
+                                        <DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                                    </Border>
 
-        // --- 事件处理器 ---
+                                    <ControlTemplate.Triggers>
+                                        <!-- 隔行变色 -->
+                                        <Trigger Property="AlternationIndex" Value="1">
+                                            <Setter TargetName="DGR_Border" Property="Background" Value="#1A202022"/>
+                                        </Trigger>
 
-        /// <summary>
-        /// 当前歌曲变化时的处理方法（由ObservableProperty自动生成调用）
-        /// 更新当前歌曲属性
-        /// </summary>
-        /// <param name="newSong">新的歌曲对象</param>
-        partial void OnCurrentSongChanged(Song newSong)
-        {
-            CurrentSong = newSong;
-        }
+                                        <!-- 鼠标悬浮 -->
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="DGR_Border" Property="Background" Value="#2AFFFFFF"/>
+                                            <!-- 悬浮时，添加圆角 -->
+                                            <Setter TargetName="DGR_Border" Property="CornerRadius" Value="10"/>
+                                        </Trigger>
 
-        /// <summary>
-        /// 播放状态变化事件的处理器
-        /// 根据播放器当前状态更新播放/暂停图标
-        /// </summary>
-        private void OnPlaybackStatusChanged()
-        {
-            // 根据播放器服务的当前状态设置对应图标
-            switch (_playerService.CurrentStatus)
-            {
-                case PlaybackStatus.Playing:
-                    PlayPauseIcon = "\uE769"; // 暂停图标
-                    break;
-                case PlaybackStatus.Paused:
-                case PlaybackStatus.Stopped:
-                    PlayPauseIcon = "\uE768"; // 播放图标
-                    break;
-            }
-        }
+                                        <!-- 选中 -->
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="DGR_Border" Property="Background" Value="#40EC4141"/>
+                                            <!-- 选中时，也添加圆角 -->
+                                            <Setter TargetName="DGR_Border" Property="CornerRadius" Value="10"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
 
-        // --- 由CommunityToolkit.Mvvm自动调用的Partial方法（属性变化时触发） ---
+                    </Style>
+                </DataGrid.RowStyle>
 
-        /// <summary>
-        /// 播放音量变化时的处理方法
-        /// 通知播放器服务更新实际播放音量
-        /// </summary>
-        /// <param name="value">新的音量值（0.0-1.0）</param>
-        partial void OnPlaybackVolumeChanged(double value)
-        {
-            _playerService.SetVolume(value);
-        }
+                <!-- 4. 单元格样式 (可以统一设置 Padding 等) -->
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Background"
+                              Value="Transparent"/>
+                        <Setter Property="BorderThickness"
+                              Value="0"/>
+                        <Setter Property="Padding"
+                              Value="8,8"/>
+                        <Setter Property="Margin"
+                              Value="1"/>
 
-        /// <summary>
-        /// 当前进度变化时的处理方法
-        /// 仅在拖动进度条时（IsDragging为true）通知播放器服务调整播放进度
-        /// </summary>
-        /// <param name="value">新的进度值（百分比）</param>
-        partial void OnCurrentProgressChanged(double value)
-        {
-            if (IsDragging)
-            {
-                _playerService.Seek(value); // 通知服务跳转到指定进度
-            }
-        }
+                        <Style.Triggers>
+                            <!-- 当行被选中时，让单元格的前景也变色 -->
+                            <Trigger Property="IsSelected"
+                                   Value="True">
+                                <Setter Property="Foreground"
+                                      Value="White"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.CellStyle>
 
-        // --- 公共方法 ---
+                <!-- 5. 列定义 -->
+                <DataGrid.Columns>
+                    <!-- # 列 -->
+                    <DataGridTemplateColumn Header="#"
+                                          Width="40"
+                                          CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid Height="50"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <TextBlock x:Name="IndexText"
+                                             Text="{Binding Index, StringFormat='{}{0:D2}',FallbackValue='01'}"
+                                             VerticalAlignment="Center"
+                                             Foreground="#999999"/>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
 
-        /// <summary>
-        /// 为新歌曲重置进度相关的UI显示
-        /// 将进度条、当前时间和总时长重置为初始状态
-        /// </summary>
-        public void ResetForNewSong()
-        {
-            CurrentProgress = 0;
-            CurrentTime = "00:00";
-            TotalTime = "00:00";
-        }
+                    <!-- 标题列 -->
+                    <DataGridTemplateColumn Header="标题"
+                                          Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- 封面 -->
+                                    <Border Width="50"
+                                          Height="50"
+                                          Margin="5"
+                                          CornerRadius="4">
+                                        <Border.Background>
+                                            <ImageBrush ImageSource="{Binding CoverImage}"
+                                                      Stretch="UniformToFill"/>
+                                        </Border.Background>
+                                    </Border>
 
-        // --- 私有命令逻辑（处理具体的命令执行） ---
+                                    <StackPanel VerticalAlignment="Center"
+                                              Margin="10,0,0,0">
 
-        /// <summary>
-        /// 切换静音状态的逻辑
-        /// - 非静音时：记录当前音量并设为0（静音）
-        /// - 静音时：恢复到上次记录的音量（默认1.0）
-        /// </summary>
-        private void ToggleMute()
-        {
-            if (PlaybackVolume > 0)
-            {
-                _lastPlaybackVolume = PlaybackVolume; // 保存当前音量
-                PlaybackVolume = 0; // 设为静音
-            }
-            else
-            {
-                // 恢复音量（如果上次记录为0则默认最大音量）
-                PlaybackVolume = _lastPlaybackVolume > 0 ? _lastPlaybackVolume : 1.0;
-            }
-        }
-    }
-}
+                                        <!-- 第一行：歌曲标题 -->
+                                        <TextBlock Text="{Binding Title}"
+                                                 Foreground="White"
+                                                 TextTrimming="CharacterEllipsis"
+                                                 FontWeight="Normal"/>
+                                        <!-- 正常状态下字体不加粗 -->
+
+                                        <!-- 第二行：图标、标签和艺术家 -->
+                                        <StackPanel Orientation="Horizontal"
+                                                  Margin="0,5,0,0">
+
+                                            <!-- 对勾图标 (根据 IsDownloaded 属性控制可见性) -->
+                                            <Border Width="16"
+                                                  Height="16"
+                                                  CornerRadius="8"
+                                                  Background="#4A6EBF"
+                                                  Margin="0,0,5,0">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility"
+                                                              Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDownloaded}"
+                                                                       Value="True">
+                                                                <Setter Property="Visibility"
+                                                                      Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <!-- 对勾符号 -->
+                                                <TextBlock Text="&#xE73E;"
+                                                         FontFamily="Segoe MDL2 Assets"
+                                                         FontSize="9"
+                                                         Foreground="White"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <!-- 标签 (ItemsControl) -->
+                                            <ItemsControl ItemsSource="{Binding Tags}"
+                                                        VerticalAlignment="Center">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="{Binding BorderBrush}"
+                                                              BorderThickness="1"
+                                                              CornerRadius="3"
+                                                              Background="{Binding Background}"
+                                                              Padding="3,1"
+                                                              Margin="0,0,4,0">
+                                                            <TextBlock Text="{Binding Text}"
+                                                                     Foreground="{Binding Foreground}"
+                                                                     FontSize="9"/>
+                                                        </Border>
+
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <!-- 艺术家 -->
+                                            <TextBlock Text="{Binding Artist}"
+                                                     Foreground="#999999"
+                                                     VerticalAlignment="Center"
+                                                     Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 专辑列 (星号 sizing) -->
+                    <DataGridTemplateColumn Header="专辑"
+                                          Width="1*"
+                                          CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Album}"
+                                         FontSize="16"
+                                         Foreground="White"
+                                         VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 喜欢列 -->
+                    <DataGridTemplateColumn Header="喜欢"
+                                          Width="50"
+                                          CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <!-- 将整个单元格变成一个可点击的按钮 -->
+                                <Button VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        Command="{Binding DataContext.ToggleLikeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}">
+
+                                    <!-- 图标 -->
+                                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="20">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <!-- 默认显示空心 -->
+                                                <Setter Property="Text" Value="&#xE006;"/>
+                                                <!-- FavoriteStar -->
+                                                <Setter Property="Foreground" Value="Gray"/>
+                                                <Style.Triggers>
+                                                    <!-- 当 IsLiked 为 True 时，变为红色实心 -->
+                                                    <DataTrigger Binding="{Binding IsLiked}" Value="True">
+                                                        <Setter Property="Text" Value="&#xE00B;"/>
+                                                        <Setter Property="Foreground" Value="Red"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 时长列 -->
+                    <DataGridTemplateColumn Header="时长"
+                      Width="60">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Duration}"
+                     FontSize="16"
+                     Foreground="White"
+                     VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                </DataGrid.Columns>
+            </DataGrid>
+            <Grid/>
+            <!-- 3b. 加载指示器 -->
+            <!-- 它只在 IsLoading 为 True 时可见 -->
+            <ProgressBar IsIndeterminate="True"
+                       Width="50"
+                       Height="50"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center">
+                <ProgressBar.Style>
+                    <Style TargetType="ProgressBar">
+                        <Setter Property="Visibility"
+                              Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoading}"
+                                       Value="True">
+                                <Setter Property="Visibility"
+                                      Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ProgressBar.Style>
+            </ProgressBar>
+        </Grid>
+    </Grid>
+
+</UserControl>

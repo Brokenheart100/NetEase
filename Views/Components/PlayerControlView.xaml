@@ -9,7 +9,10 @@
              mc:Ignorable="d"
              d:DesignHeight="150"
              d:DesignWidth="1000">
+
     <UserControl.Resources>
+        <BitmapImage x:Key="DefaultMusicCoverImage" UriSource="/CoverImage/14.jpg" />
+
         <!-- 定义透明背景的图标按钮样式 -->
         <Style x:Key="IconButtonStyle"
                TargetType="Button">
@@ -284,7 +287,7 @@
                             Height="70"
                             CornerRadius="4">
                         <Border.Background>
-                            <ImageBrush ImageSource="{Binding CurrentSong.CoverImage}"
+                                <ImageBrush ImageSource="{Binding CurrentSong.CoverImageUrl,FallbackValue={StaticResource DefaultMusicCoverImage }}"
                                     Stretch="UniformToFill"/>
                         </Border.Background>
                     </Border>

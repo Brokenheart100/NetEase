@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -23,8 +25,10 @@ namespace NetEase.Services
         private readonly string _filePath;
         private readonly string _profileFilePath;
         private readonly string _stateFilePath; // <-- 新增状态文件路径
-        public UserProfileService()
+        private readonly HttpClient _httpClient;
+        public UserProfileService(HttpClient httpClient)
         {
+            _httpClient = httpClient;
             _filePath = GetProfilePath();
             Debug.WriteLine($"User profiles path set to: {_filePath}");
 
@@ -110,7 +114,6 @@ namespace NetEase.Services
                 Debug.WriteLine($"Failed to save app state: {ex.Message}");
             }
         }
-
         public AppState LoadAppState()
         {
             if (!File.Exists(_stateFilePath))
@@ -173,6 +176,59 @@ namespace NetEase.Services
 
             var json = JsonSerializer.Serialize(profiles, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_profileFilePath, json);
+        }
+        /// <summary>
+        /// 上传用户头像到后端API
+        /// </summary>
+        /// <param name="localFilePath">用户在本地选择的图片文件路径</param>
+        /// <returns>上传成功后，由服务器返回的新的头像URL</returns>
+        public async Task<string> UploadAvatarAsync(string localFilePath)
+        {
+            if (!File.Exists(localFilePath))
+            {
+                return null;
+            }
+
+            // 【重要】替换为您的头像上传API的实际地址
+            // 这个地址应该指向您的 Auth.API 或一个专门的用户服务
+            var requestUri = "/api/users/avatar";
+
+            // 使用 multipart/form-data 来构建请求体
+            using var multipartFormContent = new MultipartFormDataContent();
+
+            // 1. 读取文件内容
+            var fileStreamContent = new StreamContent(File.OpenRead(localFilePath));
+
+            // 2. 设置文件的 MIME 类型
+            fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/png"); // 可以根据文件扩展名动态设置
+
+            // 3. 将文件内容添加到表单中
+            // "avatarFile" 是后端API期望接收的表单字段名
+            // Path.GetFileName(localFilePath) 是上传到服务器的文件名
+            multipartFormContent.Add(fileStreamContent, name: "avatarFile", fileName: Path.GetFileName(localFilePath));
+
+            // (可选) 如果API需要其他参数，也可以添加
+            // multipartFormContent.Add(new StringContent("some_value"), name: "some_key");
+
+            try
+            {
+                // 4. 发送 POST 请求
+                var response = await _httpClient.PostAsync(requestUri, multipartFormContent);
+                response.EnsureSuccessStatusCode(); // 如果响应不是2xx，则抛出异常
+
+                // 5. 解析服务器返回的JSON，获取新的URL
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                // 假设后端返回一个JSON对象，如: { "avatarUrl": "https://.../new_avatar.jpg" }
+                using var jsonDoc = JsonDocument.Parse(responseBody);
+                return jsonDoc.RootElement.GetProperty("avatarUrl").GetString();
+            }
+            catch (HttpRequestException ex)
+            {
+                // 处理网络或API错误
+                System.Diagnostics.Debug.WriteLine($"Avatar upload failed: {ex.Message}");
+                return null;
+            }
         }
     }
 }

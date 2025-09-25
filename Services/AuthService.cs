@@ -1,8 +1,10 @@
 ﻿using NetEase.Dtos;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.IO;
 
 namespace NetEase.Services
 {
@@ -20,13 +22,31 @@ namespace NetEase.Services
             _httpClient = httpClient;
         }
 
-        public async Task<(bool Success, string ErrorMessage)> RegisterAsync(string name, string mobile, string email, string password)
+        public async Task<(bool Success, string ErrorMessage)> RegisterAsync(string name, string mobile, string email, string password, string avatarFilePath)
         {
-            var registerData = new { Name = name, MobileNumber = mobile, Email = email, Password = password };
+            // var registerData = new { Name = name, MobileNumber = mobile, Email = email, Password = password };
+            // 使用 multipart/form-data 来同时发送表单数据和文件
+            using var multipartFormContent = new MultipartFormDataContent
+            {
+                // 1. 添加表单文本数据
+                { new StringContent(name), "Name" },
+                { new StringContent(mobile), "MobileNumber" },
+                { new StringContent(email), "Email" },
+                { new StringContent(password), "Password" }
+            };
 
+            // 2. 如果用户选择了头像文件，则添加文件内容
+            if (!string.IsNullOrEmpty(avatarFilePath) && File.Exists(avatarFilePath))
+            {
+                var fileStreamContent = new StreamContent(File.OpenRead(avatarFilePath));
+                fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpg"); // 可动态设置
+
+                // "AvatarFile" 是后端API期望的字段名
+                multipartFormContent.Add(fileStreamContent, name: "AvatarFile", fileName: Path.GetFileName(avatarFilePath));
+            }
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/auth/register", registerData);
+                var response = await _httpClient.PostAsync("api/auth/register", multipartFormContent);
 
                 if (response.IsSuccessStatusCode)
                 {

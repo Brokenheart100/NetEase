@@ -16,6 +16,8 @@
 
     
     <UserControl.Resources>
+        <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/32.jpg" />
+
         <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
             <!-- 基础属性设置 (从您原来的 DataGrid 标签上移到这里) -->
             <Setter Property="AutoGenerateColumns" Value="False"/>
@@ -406,6 +408,9 @@
             <!-- 将我们创建的 MenuItem 样式应用到其所有子项 -->
             <Setter Property="ItemContainerStyle" Value="{StaticResource ModernMenuItemStyle}"/>
         </Style>
+
+
+
     </UserControl.Resources>
 
     <Grid Margin="15,15"
@@ -434,7 +439,7 @@
                     CornerRadius="8"
                     Margin="0,0,30,0">
                 <Border.Background>
-                    <ImageBrush ImageSource="{Binding CoverImageUrl}"
+                    <ImageBrush ImageSource="/CoverImage/20.jpg"
                                 Stretch="UniformToFill"/>
                 </Border.Background>
             </Border>
@@ -464,7 +469,7 @@
                         <Ellipse Width="24"
                                  Height="24">
                             <Ellipse.Fill>
-                                <ImageBrush ImageSource="E:\\Computer\\VS\\NetEase\\CoverImage\\21.jpg"/>
+                                <ImageBrush ImageSource="/CoverImage/31.jpg"/>
                             </Ellipse.Fill>
                         </Ellipse>
                         <TextBlock Text="{Binding Author}"
@@ -552,7 +557,7 @@
                       IsReadOnly="True"
                       HeadersVisibility="Column"
                       Background="Transparent"
-                      d:ItemsSource="{d:SampleData ItemCount=6}"
+                      d:ItemsSource="{d:SampleData ItemCount=2}"
                       BorderThickness="0"
                       RowHeaderWidth="0"
                       HorizontalScrollBarVisibility="Disabled">
@@ -596,7 +601,8 @@
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu Style="{StaticResource ModernContextMenuStyle}"
-                                             DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                             DataContext="{Binding PlacementTarget.DataContext,
+                                             RelativeSource={RelativeSource Self}}">
 
                                     <MenuItem Header="播放" 
                                               Command="{Binding Data.PlaySongCommand, Source={StaticResource Proxy}}"
@@ -730,7 +736,7 @@
                                             Margin="5"
                                             CornerRadius="4">
                                         <Border.Background>
-                                            <ImageBrush ImageSource="{Binding CoverImage}"
+                                            <ImageBrush ImageSource="{Binding CoverImageUrl,FallbackValue={StaticResource DefaultAvatarImage}}"
                                                         Stretch="UniformToFill"/>
                                         </Border.Background>
                                     </Border>
@@ -739,7 +745,7 @@
                                                 Margin="10,0,0,0">
 
                                         <!-- 第一行：歌曲标题 -->
-                                        <TextBlock Text="{Binding Title}"
+                                        <TextBlock Text="{Binding Title,FallbackValue='Title'}"
                                                    Foreground="White"
                                                    TextTrimming="CharacterEllipsis"
                                                    FontWeight="Normal"/>
@@ -793,7 +799,7 @@
                                                                 Background="{Binding Background}"
                                                                 Padding="3,1"
                                                                 Margin="0,0,4,0">
-                                                            <TextBlock Text="{Binding Text}"
+                                                            <TextBlock Text="{Binding Text,FallbackValue='Title'}"
                                                                        Foreground="{Binding Foreground}"
                                                                        FontSize="9"/>
                                                         </Border>
@@ -857,7 +863,7 @@
 
                 </DataGrid.Columns>
             </DataGrid>
-            <Grid/>
+         
             <!-- 3b. 加载指示器 -->
             <!-- 它只在 IsLoading 为 True 时可见 -->
             <ProgressBar IsIndeterminate="True"

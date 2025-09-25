@@ -105,7 +105,7 @@ namespace NetEase.Services
         /// </summary>
         private void OnTimerTick(object sender, EventArgs e)
         {
-            Debug.WriteLine($"Timer ticked for progress update. OnTimerTick({sender}, EventArgs {e})");
+            //Debug.WriteLine($"Timer ticked for progress update. OnTimerTick({sender}, EventArgs {e})");
             // 检查媒体元素是否存在且已加载有效时长
             if (_mediaElement != null && _mediaElement.NaturalDuration.HasTimeSpan)
             {

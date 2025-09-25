@@ -152,11 +152,6 @@
                 <!-- TabControl会根据选中的项(SelectedTab)，自动将其内容应用这个模板 -->
                 <TabControl.ContentTemplate>
                     <DataTemplate>
-                        <!-- 
-                    我们告诉WPF，Tab的内容来自于选中项的 ContentViewModel 属性。
-                    WPF会获取到这个属性的值（比如一个ContactsViewModel实例），
-                    然后自动去上面的 Resources 中寻找匹配的 DataTemplate 来渲染它。
-                    -->
                     <ContentPresenter Content="{Binding ContentViewModel}" Margin="0,20,0,0"/>
                     </DataTemplate>
                 </TabControl.ContentTemplate>

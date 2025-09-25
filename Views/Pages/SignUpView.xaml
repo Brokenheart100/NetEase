@@ -7,13 +7,13 @@
              xmlns:local="clr-namespace:NetEase.Views.Pages"
              xmlns:viewmodels="clr-namespace:NetEase.ViewModels"
              xmlns:behaviors="clr-namespace:NetEase.Behaviors"
-             d:DataContext="{d:DesignInstance Type=viewmodels:AuthenticationViewModel}"
+             d:DataContext="{d:DesignInstance Type=viewmodels:SignUpViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800">
     <UserControl.Resources>
         <BitmapImage x:Key="DefaultAvatarImage"
-                     UriSource="E:/Computer/VS/NetEase/CoverImage/22.jpg"/>
+                     UriSource="/CoverImage/29.jpg"/>
         <Style x:Key="AddUserProfileButtonStyle"
                TargetType="Button">
             <Setter Property="Width"
@@ -274,7 +274,7 @@
               ShowGridLines="True">
             <Grid.Background>
                 <!-- 背景图片 -->
-                <ImageBrush ImageSource="E:\Computer\VS\NetEase\CoverImage\24.jpg"
+                <ImageBrush ImageSource="/CoverImage/29.jpg"
                             Stretch="UniformToFill"/>
             </Grid.Background>
             <!-- 半透明遮罩层，让文字更清晰 -->
@@ -400,7 +400,6 @@
                                                  Height="80">
                                             <Ellipse.Fill>
                                                 <ImageBrush ImageSource="{Binding AvatarUrl, 
-                    TargetNullValue={StaticResource DefaultAvatarImage}, 
                     FallbackValue={StaticResource DefaultAvatarImage}}"/>
                                             </Ellipse.Fill>
                                         </Ellipse>
@@ -564,7 +563,39 @@
                                FontSize="14"
                                Foreground="Gray"
                                Margin="0,5,0,20"/>
+                    <Button Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+            Command="{Binding ChooseAvatarCommand}"
+            HorizontalAlignment="Center"
+            Margin="0,0,0,20"
+            ToolTip="点击选择头像">
 
+                        <Grid Width="100" Height="100">
+                            <!-- 1. 圆形头像 -->
+                            <Ellipse>
+                                <Ellipse.Fill>
+                                    <!-- 绑定到 ViewModel 的 AvatarPreview 属性 -->
+                                    <ImageBrush ImageSource="{Binding AvatarPreview, FallbackValue={StaticResource DefaultAvatarImage}}"/>
+                                </Ellipse.Fill>
+                            </Ellipse>
+
+                            <!-- 2. 半透明的相机图标遮罩层，鼠标悬浮时显示 -->
+                            <!--<Border Background="#80000000" CornerRadius="50" Opacity="0">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=IsMouseOver}" Value="True">
+                                                <Setter Property="Opacity" Value="1"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="&#xE722;" FontFamily="Segoe MDL2 Assets"
+                           FontSize="32" Foreground="White"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>-->
+                        </Grid>
+
+                    </Button>
                     <!-- Name Input -->
                     <Border Style="{StaticResource SignUpInputBoxStyle}">
                         <StackPanel Orientation="Horizontal">
@@ -573,7 +604,7 @@
                                        Foreground="Gray"
                                        VerticalAlignment="Center"/>
                             <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
-                                     Text="{Binding Name}"
+                                     Text="{Binding Name, FallbackValue='test2'}"
                                      Margin="10,0,0,0"
                                      Width="250"
                                      Tag="Name"/>
@@ -595,7 +626,7 @@
                                            Foreground="#333"
                                            VerticalAlignment="Center"/>
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                         Text="{Binding MobileNumber}"
+                                         Text="{Binding MobileNumber, FallbackValue='123456'}"
                                          Margin="10,0,0,0"
                                          Width="250"
                                          Tag="9456784567"/>
@@ -611,7 +642,7 @@
                                        Foreground="Gray"
                                        VerticalAlignment="Center"/>
                             <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
-                                     Text="{Binding Email}"
+                                     Text="{Binding Email, FallbackValue='test2@qq.com'}"
                                      Margin="10,0,0,0"
                                      Width="250"
                                      Tag="E-mail"/>
@@ -624,7 +655,7 @@
                                        Foreground="Gray"
                                        VerticalAlignment="Center"/>
                             <TextBox Style="{StaticResource InputTextBoxWithPlaceholderStyle}"
-                                     Text="{Binding Password}"
+                                     Text="{Binding Password, FallbackValue='123456'}"
                                      Margin="10,0,0,0"
                                      Width="250"/>
                         </StackPanel>

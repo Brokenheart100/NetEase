@@ -157,7 +157,7 @@
             </Setter>
         </Style>
 
-        <BitmapImage x:Key="DefaultAvatarImage" UriSource="E:\Computer\VS\NetEase\CoverImage\20.jpg" />
+        <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/27.jpg" />
     </UserControl.Resources>
 
     <!-- 1. 自定义标题栏 (Grid.Row="0") -->
@@ -190,7 +190,7 @@
                     VerticalAlignment="Center"
                     Margin="10,0,20,0">
             <!-- 这里放置您的 Logo 图片 -->
-            <Image Source="E:\Computer\VS\NetEase\CoverImage\26.jpg"
+            <Image Source="/CoverImage/26.jpg"
                    Width="24"
                    Height="24"/>
             <TextBlock Text="网易云音乐"
@@ -219,7 +219,13 @@
               Margin="20,0">
             <TextBox Style="{StaticResource SearchBoxStyle}"
                      Width="250"
-                     Height="30"/>
+                     Height="30"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
+                </TextBox.InputBindings>
+            </TextBox>
             <Button Content="&#xE78B;"
                     Style="{StaticResource TitleBarIconButtonStyle}"
                     ToolTip="语音搜索"
@@ -279,7 +285,7 @@
                              Height="28">
                         <Ellipse.Fill>
                             <!-- 原路径为本地绝对路径，添加默认图片处理 -->
-                            <ImageBrush ImageSource="{Binding Avatar, 
+                            <ImageBrush ImageSource="{Binding AvatarUrl, 
                                 FallbackValue={StaticResource DefaultAvatarImage}}"/>
                         </Ellipse.Fill>
                     </Ellipse>

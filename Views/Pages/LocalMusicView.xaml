@@ -384,7 +384,7 @@
                   CornerRadius="8"
                   Margin="0,0,30,0">
                 <Border.Background>
-                    <ImageBrush ImageSource="{Binding CoverImageUrl}"
+                    <ImageBrush ImageSource="/CoverImage/13.jpg"
                               Stretch="UniformToFill"/>
                 </Border.Background>
             </Border>
@@ -414,7 +414,7 @@
                         <Ellipse Width="24"
                                Height="24">
                             <Ellipse.Fill>
-                                <ImageBrush ImageSource="E:\\Computer\\VS\\NetEase\\CoverImage\\21.jpg"/>
+                                <ImageBrush ImageSource="\CoverImage\21.jpg"/>
                             </Ellipse.Fill>
                         </Ellipse>
                         <TextBlock Text="{Binding Author}"
@@ -500,6 +500,7 @@
             <DataGrid ItemsSource="{Binding Songs}"
                     AutoGenerateColumns="False"
                     IsReadOnly="True"
+                    d:ItemsSource="{d:SampleData ItemCount=3}"
                     HeadersVisibility="Column"
                     Background="Transparent"
                     BorderThickness="0"
@@ -617,7 +618,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center">
                                     <TextBlock x:Name="IndexText"
-                                             Text="{Binding Index, StringFormat='{}{0:D2}'}"
+                                             Text="{Binding Index, StringFormat='{}{0:D2}',FallbackValue='01'}"
                                              VerticalAlignment="Center"
                                              Foreground="#999999"/>
                                 </Grid>
@@ -741,10 +742,31 @@
                                           CanUserSort="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="❤"
-                                         FontSize="16"
-                                         Foreground="Red"
-                                         VerticalAlignment="Center"/>
+                                <!-- 将整个单元格变成一个可点击的按钮 -->
+                                <Button VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        Command="{Binding DataContext.ToggleLikeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}">
+
+                                    <!-- 图标 -->
+                                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="20">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <!-- 默认显示空心 -->
+                                                <Setter Property="Text" Value="&#xE006;"/>
+                                                <!-- FavoriteStar -->
+                                                <Setter Property="Foreground" Value="Gray"/>
+                                                <Style.Triggers>
+                                                    <!-- 当 IsLiked 为 True 时，变为红色实心 -->
+                                                    <DataTrigger Binding="{Binding IsLiked}" Value="True">
+                                                        <Setter Property="Text" Value="&#xE00B;"/>
+                                                        <Setter Property="Foreground" Value="Red"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -788,4 +810,5 @@
             </ProgressBar>
         </Grid>
     </Grid>
+
 </UserControl>

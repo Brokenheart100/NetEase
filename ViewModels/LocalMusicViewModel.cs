@@ -21,7 +21,7 @@ namespace NetEase.ViewModels
     {
         private readonly PlayerService _playerService;
         private readonly PlaylistService _playlistService; // 假设未来会用它加载云端歌曲
-
+        private readonly SongService _songService;
         // --- 属性 ---
         [ObservableProperty]
         private bool _isLoading = true; // 启动时默认为加载状态
@@ -29,7 +29,7 @@ namespace NetEase.ViewModels
         [ObservableProperty]
         private int _songCount;
 
-        public ObservableCollection<Song> Songs { get; } = new();
+        public ObservableCollection<Song> Songs { get; } = [];
 
         // --- 页面头部信息 (可以保持不变) ---
         public string CoverImageUrl { get; set; }
@@ -39,60 +39,42 @@ namespace NetEase.ViewModels
 
 
         // 构造函数现在非常简洁，只负责依赖注入和命令初始化
-        public LocalMusicViewModel(PlayerService playerService, PlaylistService playlistService)
+        public LocalMusicViewModel(SongService songService,PlayerService playerService, PlaylistService playlistService)
         {
             _playerService = playerService;
             _playlistService = playlistService;
+            _songService = songService;
 
-
-            // 初始化静态头部信息
-            CoverImageUrl = "E:\\Computer\\VS\\NetEase\\CoverImage\\25.jpg";
-            PlaylistTitle = "我喜欢的音乐";
-            Author = "Brokenheart100";
-            CreateDate = "2017-02-18创建";
-            // 构造函数现在非常干净，只调用异步加载方法
-            //LoadInitialPlaylistAsync();
-            // 异步加载所有数据
             LoadDataAsync();
             //PlaySong(Songs[6]);
 
         }
-        /// <summary>
-        /// 加载用户的第一个播放列表（例如 "我喜欢的音乐"）
-        /// </summary>
-        public async Task LoadInitialPlaylistAsync()
+        [RelayCommand]
+        private async Task ToggleLike(Song song)
         {
-            Debug.WriteLine("Enter LoadInitialPlaylistAsync() ");
-            IsLoading = true;
-            Songs.Clear();
-            try
-            {
-                // 1. 获取当前用户的所有播放列表摘要
-                var myPlaylists = await _playlistService.GetMyPlaylistsAsync();
+            if (song == null) return;
 
-                // 2. 找到第一个播放列表（或者可以根据名字查找 "我喜欢的音乐"）
-                var firstPlaylist = myPlaylists?.FirstOrDefault();
+            // 1. 先在UI上进行乐观更新
+            bool originalLikedState = song.IsLiked;
+            song.IsLiked = !originalLikedState;
 
-                if (firstPlaylist != null)
-                {
-                    // 3. 如果找到了，就去加载这个播放列表的详细信息
-                    await LoadPlaylistAsync(firstPlaylist.Id);
-                }
-                else
-                {
-                    // 没有找到任何播放列表
-                    PlaylistTitle = "没有找到播放列表";
-                    // 可以在这里显示一个“创建播放列表”的提示
-                }
-            }
-            catch (Exception ex)
+            bool success;
+            if (song.IsLiked)
             {
-                Debug.WriteLine($"Error loading initial playlist: {ex.Message}");
-                PlaylistTitle = "加载失败";
+                // 如果是“喜欢”操作
+                success = await _playlistService.AddToFavoritesAsync(song.Id);
             }
-            finally
+            else
             {
-                IsLoading = false;
+                // 【核心修改】如果是“取消喜欢”操作
+                success = await _playlistService.RemoveFromFavoritesAsync(song.Id);
+            }
+
+            // 2. 如果API调用失败，回滚UI状态并提示用户
+            if (!success)
+            {
+                song.IsLiked = originalLikedState; // 恢复到操作前的状态
+                MessageBox.Show(song.IsLiked ? "取消喜欢失败。" : "添加到“我喜欢的音乐”失败。");
             }
         }
         public async Task LoadPlaylistAsync(int playlistId)
@@ -119,8 +101,8 @@ namespace NetEase.ViewModels
                         {
                             Index = index++,
                             Title = songDto.Title,
-                            Artist = songDto.Artist,
-                            Album = songDto.Album,
+                            Artist = songDto.ArtistName,
+                            Album = songDto.AlbumTitle,
                             Duration = songDto.Duration,
                             FilePath = songDto.FilePath,
 
@@ -141,14 +123,8 @@ namespace NetEase.ViewModels
             IsLoading = true;
             Songs.Clear();
 
-            // --- 逻辑整合 ---
-            // 在这里，您可以决定加载顺序和逻辑。
-            // 例如，未来可以先从 API 加载云端收藏的歌曲。
-            // var cloudSongs = await _playlistService.GetMyFavoriteSongsAsync();
-            //foreach (var song in cloudSongs) { Songs.Add(song); }
-
             // 目前，我们只加载本地歌曲
-            string defaultMusicPath = @"E:\Computer\VS\NetEase\music";
+            var defaultMusicPath = @"E:\Computer\VS\NetEaseProject\NetEase\music";
             if (Directory.Exists(defaultMusicPath))
             {
                 // 在后台线程扫描，避免 UI 卡顿
@@ -157,7 +133,7 @@ namespace NetEase.ViewModels
 
             SongCount = Songs.Count;
             IsLoading = false;
-            PlaySong(Songs[8]);
+            //PlaySong(Songs[8]);
         }
 
         [RelayCommand]
@@ -173,7 +149,7 @@ namespace NetEase.ViewModels
         [RelayCommand]
         private void PlaySong(Song? song)
         {
-            Debug.WriteLine($"Enter PlaySong({song})");
+            Debug.WriteLine($"Enter PlaySong {song?.Title},{song?.FilePath}");
             if (song != null)
             {
                 _playerService.StartPlayback(song, this.Songs);
@@ -197,14 +173,15 @@ namespace NetEase.ViewModels
                     {
                         exists = Songs.Any(s => s.FilePath == file);
                     });
-                    if (exists) continue;
+                    if (exists) 
+                        continue;
 
                     var tagFile = TagLib.File.Create(file);
                     var coverImage = ImageHelper.CreateImageFromPicture(tagFile.Tag.Pictures.FirstOrDefault());
 
                     var song = new Song
                     {
-                        // Index 将在添加到集合后设置
+                        Id = SongCount+1,
                         Title = string.IsNullOrEmpty(tagFile.Tag.Title) ? Path.GetFileNameWithoutExtension(file) : tagFile.Tag.Title,
                         Artist = tagFile.Tag.FirstPerformer ?? "未知艺术家",
                         Album = tagFile.Tag.Album ?? "未知专辑",
@@ -215,7 +192,6 @@ namespace NetEase.ViewModels
 
                     };
 
-                    // 关键：修改 ObservableCollection 必须在 UI 线程上进行
                     App.Current.Dispatcher.Invoke(() =>
                     {
                         // 这段代码块内的所有代码，都会在 UI 线程上安全地执行

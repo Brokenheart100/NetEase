@@ -8,6 +8,7 @@ using System.Net.Http;     // 用于HTTP请求
 using System.Net.Http.Json; // 提供HTTP客户端的JSON序列化/反序列化扩展方法
 using System.Text;
 using System.Threading.Tasks;
+using NetEase.Models;
 
 namespace NetEase.Services
 {
@@ -27,7 +28,33 @@ namespace NetEase.Services
         {
             _httpClient = httpClient;
         }
-
+        public async Task<bool> AddToFavoritesAsync(int songId)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsync($"api/playlists/favorites/{songId}", null);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to add song to favorites: {ex.Message}");
+                return false;
+            }
+        }
+        public async Task<bool> RemoveFromFavoritesAsync(int songId)
+        {
+            try
+            {
+                // 发送 DELETE 请求
+                var response = await _httpClient.DeleteAsync($"api/playlists/favorites/{songId}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to remove song from favorites: {ex.Message}");
+                return false;
+            }
+        }
         /// <summary>
         /// 异步获取当前登录用户的播放列表摘要信息
         /// </summary>
@@ -130,6 +157,22 @@ namespace NetEase.Services
             {
                 Debug.WriteLine($"Error adding song to playlist: {ex.Message}");
                 return (false, "Could not connect to the server.");
+            }
+        }
+
+
+        public async Task<bool> RemoveSongFromPlaylistAsync(int playlistId, int songId)
+        {
+            try
+            {
+                // 发送 DELETE 请求
+                var response = await _httpClient.DeleteAsync($"api/playlists/{playlistId}/songs/{songId}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to remove song from playlist: {ex.Message}");
+                return false;
             }
         }
     }

@@ -144,13 +144,19 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Ellipse Grid.Column="0"
-                         Width="48"
-                         Height="48">
-                    <Ellipse.Fill>
-                        <ImageBrush ImageSource="{Binding AvatarUrl, FallbackValue={StaticResource DefaultAvatarImage}}"/>
-                    </Ellipse.Fill>
-                </Ellipse>
+                <Button Grid.Column="0" 
+                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" 
+                Command="{Binding ChangeAvatarCommand}"
+                ToolTip="点击更换头像"
+                Cursor="Hand">
+
+                    <Ellipse Width="48" Height="48">
+                        <Ellipse.Fill>
+                            <ImageBrush ImageSource="{Binding AvatarUrl, FallbackValue={StaticResource DefaultAvatarImage}}"/>
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                </Button>
                 <StackPanel Grid.Column="1"
                             VerticalAlignment="Center"
                             Margin="15,0">

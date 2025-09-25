@@ -53,7 +53,45 @@ namespace NetEase
                 BaseAddress = new Uri("http://localhost:5240/")
 
             });
+            var apiGatewayBaseUrl = "http://localhost:5240";
+            //services.AddHttpClient<AuthService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
 
+            //services.AddHttpClient<PlaylistService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
+
+            //services.AddHttpClient<SearchService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
+
+            //catalog
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7270
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5044
+
+            //library
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7092
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5174
+
+            //auth
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7041
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5260
+
+            //apiGateWay
+            //  info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7269
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5240
             // --- 业务服务注册 ---
             // 注册应用的核心业务服务，按功能划分，生命周期根据需求设置
 
@@ -71,7 +109,7 @@ namespace NetEase
             services.AddSingleton<SignalRService>();
             services.AddSingleton<CredentialService>();
             services.AddTransient<LyricService>();
-
+            services.AddSingleton<SongService>();
             // --- 视图模型（ViewModel）注册 ---
             // 注册MVVM模式中的视图模型，负责数据处理和视图交互逻辑
 
@@ -84,12 +122,13 @@ namespace NetEase
             // 聊天服务（单例：管理聊天逻辑的核心服务）
             services.AddSingleton<ChatService>();
             // 认证视图模型（单例：登录/注册等认证相关逻辑）
-            services.AddSingleton<AuthenticationViewModel>();
+            services.AddSingleton<SignUpViewModel>();
             // 文件服务（单例：处理文件操作的全局服务）
             services.AddSingleton<FileService>();
             // 重复注册的SignalR服务（注意：实际开发中应避免重复注册，可能导致冲突）
             services.AddSingleton<SignalRService>();
             services.AddSingleton<UserProfileService>();
+            services.AddSingleton<SearchService>();
 
             // 我的收藏音乐视图模型（transient：每次打开页面创建新实例）
             services.AddTransient<MyFavoriteMusicViewModel>();
@@ -116,7 +155,10 @@ namespace NetEase
             // 用户资料视图模型（transient：用户资料页面的交互逻辑）
             services.AddTransient<UserProfileViewModel>();
             services.AddTransient<SongDetailViewModel>();
-
+            services.AddTransient<PlayListViewModel>();
+            services.AddTransient<SearchResultViewModel>();
+            services.AddTransient<CommentViewModel>();
+            services.AddTransient<CommentService>(); // 假设 CommentService 也需要注册
             // --- 视图（View）注册 ---
             // 注册WPF窗口，用于通过依赖注入创建视图实例
 
@@ -144,3 +186,9 @@ namespace NetEase
         }
     }
 }
+
+// {
+//     "songId": 1,
+//   "userId": 1,
+//   "content": "这是一条来自Swagger的测试评论！"
+// }

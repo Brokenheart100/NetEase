@@ -15,12 +15,11 @@ namespace NetEase.ViewModels
         private string _userName;
 
         [ObservableProperty]
-        private string _avatar;
+        private string _avatarUrl;
 
         [ObservableProperty]
         private bool _isUserProfileOpen;
 
-        // 【新增】用户个人资料浮窗的ViewModel
         public UserProfileViewModel UserProfileVM { get; }
         // 构造函数现在是空的，因为命令是自动生成的
         public Action RequestLogoutAction { get; set; }
@@ -29,15 +28,25 @@ namespace NetEase.ViewModels
             UserProfileVM = userProfileVM;
             UserProfileVM.RequestLogoutAction = () => RequestLogoutAction?.Invoke();
         }
+
+        public Action<string> SearchRequested;
+
+        // 2. 创建搜索命令
+        [RelayCommand]
+        private void Search()
+        {
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                // 触发事件，将搜索词传递出去
+                SearchRequested?.Invoke(SearchText);
+            }
+        }
         [RelayCommand]
         private void ToggleUserProfile()
         {
             IsUserProfileOpen = !IsUserProfileOpen;
         }
-        // --- 命令 (由源生成器自动创建) ---
-
-        // 方法名从 DragWindow 改为 DragWindowCommand (或者保持原名，但XAML绑定要写成 DragWindowCommand)
-        // 为了清晰，我们保持原名，让生成器自动添加 "Command" 后缀
+   
         [RelayCommand]
         private void DragWindow(Window window)
         {

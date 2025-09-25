@@ -28,7 +28,6 @@ namespace NetEase.ViewModels
         private readonly FriendsViewModel _friendsViewModel; // 好友视图模型，管理好友相关功能
         private readonly SignalRService _signalRService; // SignalR服务，处理实时通信
 
-        // --- 可观察属性（由CommunityToolkit.Mvvm自动生成通知） ---
 
         /// <summary>
         /// 当前显示的视图模型（绑定到UI的内容区域，控制显示哪个页面）
@@ -68,7 +67,7 @@ namespace NetEase.ViewModels
         /// <summary>
         /// 认证视图模型（管理登录/注册相关UI和逻辑）
         /// </summary>
-        public AuthenticationViewModel AuthVM { get; }
+        public SignUpViewModel AuthVM { get; }
 
         /// <summary>
         /// 用户收藏的播放列表集合（绑定到左侧边栏的播放列表区域）
@@ -96,11 +95,13 @@ namespace NetEase.ViewModels
         [ObservableProperty]
         private bool _isSongDetailVisible;
 
-        /// <summary>
-        /// 歌曲详情视图模型（管理歌曲详情面板的内容）
-        /// </summary>
-        //[ObservableProperty]
-        //public SongDetailViewModel _songDetailVM;
+        public SearchResultViewModel SearchResultVM { get; }
+
+        [ObservableProperty]
+        private object _currentPage;
+
+        [ObservableProperty]
+        private string _searchText;
 
         /// <summary>
         /// 构造函数，通过依赖注入初始化服务和子视图模型
@@ -114,7 +115,7 @@ namespace NetEase.ViewModels
         /// <param name="authVM">认证视图模型</param>
         /// <param name="playlistService">播放列表服务</param>
         /// <param name="friendsViewModel">好友视图模型</param>
-        public MainViewModel(SongDetailViewModel songDetailVM, IServiceProvider serviceProvider, AuthService authService, SignalRService signalRService, TitleBarViewModel titleBarVM, PlayerControlViewModel playerControlVM, AuthenticationViewModel authVM, PlaylistService playlistService, FriendsViewModel friendsViewModel)
+        public MainViewModel(SearchResultViewModel searchViewModel,SongDetailViewModel songDetailVM, IServiceProvider serviceProvider, AuthService authService, SignalRService signalRService, TitleBarViewModel titleBarVM, PlayerControlViewModel playerControlVM, SignUpViewModel authVM, PlaylistService playlistService, FriendsViewModel friendsViewModel)
         {
             _serviceProvider = serviceProvider;
             TitleBarVM = titleBarVM;
@@ -125,12 +126,14 @@ namespace NetEase.ViewModels
             _playlistService = playlistService;
             _friendsViewModel = friendsViewModel;
             _authService = authService;
+            SearchResultVM = searchViewModel;
 
             // 订阅播放器的"显示歌曲详情"请求事件
             PlayerControlVM.ShowSongDetailRequested += OnShowSongDetailRequested;
             // 绑定标题栏的登出请求到当前视图模型的登出命令
             TitleBarVM.RequestLogoutAction = () => LogoutCommand.Execute(null);
-
+            TitleBarVM.SearchRequested += OnSearchRequested;
+            AuthVM.LoginSuccess += OnLoginSuccess;
             // 初始化主要导航项（绑定到左侧边栏的主要导航区域）
             MainNavigationItems = new ObservableCollection<NavigationItem>
             {
@@ -145,17 +148,28 @@ namespace NetEase.ViewModels
             MyMusicNavigationItems = new ObservableCollection<NavigationItem>
             {
                 new NavigationItem { DisplayName = "我喜欢的音乐", Icon = "\uE00B", ViewModelType = typeof(MyFavoriteMusicViewModel) },
-                new NavigationItem { DisplayName = "最近播放", Icon = "\uE823" , ViewModelType = typeof(LocalMusicViewModel)},
+                new NavigationItem { DisplayName = "最近播放", Icon = "\uE823" , ViewModelType = typeof(PodcastViewModel)},
                 new NavigationItem { DisplayName = "本地音乐", Icon = "\uE1D6" , ViewModelType = typeof(LocalMusicViewModel)},
             };
 
             // 初始化"更多"导航项
             MoreNavigationItems = new ObservableCollection<NavigationItem>
             {
-                new NavigationItem { DisplayName = "我的收藏", Icon = "\uE1DE", ViewModelType = typeof(LocalMusicViewModel) },
-                new NavigationItem { DisplayName = "云盘", Icon = "\uE713", ViewModelType = typeof(LocalMusicViewModel)  },
-                new NavigationItem { DisplayName = "已购", Icon = "\uE779", ViewModelType = typeof(LocalMusicViewModel)  }
+                new NavigationItem { DisplayName = "我的收藏", Icon = "\uE1DE", ViewModelType = typeof(PodcastViewModel) },
+                new NavigationItem { DisplayName = "云盘", Icon = "\uE713", ViewModelType = typeof(PodcastViewModel)  },
+                new NavigationItem { DisplayName = "已购", Icon = "\uE779", ViewModelType = typeof(PodcastViewModel)  }
             };
+
+
+        }
+        private async void OnSearchRequested(string query)
+        {
+            // 1. 切换当前视图为 SearchViewModel 的实例
+            //    WPF的DataTemplate系统会自动找到对应的SearchView并显示
+            CurrentView = SearchResultVM;
+
+            // 2. 调用 SearchViewModel 的方法来执行搜索
+            await SearchResultVM.PerformSearchAsync(query);
         }
 
         /// <summary>
@@ -205,28 +219,25 @@ namespace NetEase.ViewModels
         /// </summary>
         /// <param name="sender">事件发送者</param>
         /// <param name="e">登录成功事件参数（包含用户信息）</param>
-        private async void OnLoginSuccess(object sender, LoginSuccessEventArgs e)
+        private async void OnLoginSuccess(object? sender, LoginSuccessEventArgs e)
         {
             Debug.WriteLine($"用户 {e.UserLoginInfo.User.Name} 登录成功，加载数据并导航...");
 
             // 更新标题栏的用户信息（用户名和头像）
             TitleBarVM.UserName = e.UserLoginInfo.User.Name;
-            TitleBarVM.Avatar = e.UserLoginInfo.User.AvatarUrl;
+            TitleBarVM.AvatarUrl = e.UserLoginInfo.User.AvatarUrl;
 
             // 异步加载用户特定数据（如播放列表）
             await LoadUserSpecificDataAsync();
             // 连接SignalR实时服务（使用登录后的令牌）
-            await _signalRService.ConnectAsync(_authService.Token);
+            //await _signalRService.ConnectAsync(_authService.Token);
 
             // 导航到"关注"页面（好友列表）
-            var friendsNavItem = MainNavigationItems.FirstOrDefault(item => item.ViewModelType == typeof(FriendsViewModel));
+            var friendsNavItem = MainNavigationItems.FirstOrDefault(item => item.ViewModelType == typeof(MyFavoriteMusicViewModel));
             if (friendsNavItem != null)
             {
                 Navigate(friendsNavItem);
             }
-
-            // 通知好友视图模型同步数据（因登录状态已就绪）
-            await _friendsViewModel.SyncDataAsync();
         }
 
         /// <summary>
@@ -246,7 +257,7 @@ namespace NetEase.ViewModels
                     {
                         Id = dto.Id,
                         Title = dto.Name,
-                        CoverImageUrl = dto.CoverImageUrl ?? GetRandomAvatarUrl() // 若无封面则使用随机头像
+                        CoverImageUrl = dto.CoverImageUrl // 若无封面则使用随机头像
                     });
                 }
             }
@@ -328,7 +339,7 @@ namespace NetEase.ViewModels
         /// </summary>
         /// <param name="item">要导航到的导航项</param>
         [RelayCommand]
-        private void Navigate(NavigationItem item)
+        private async Task Navigate(NavigationItem item)
         {
             if (item == null || item.ViewModelType == null) return;
 
@@ -337,7 +348,17 @@ namespace NetEase.ViewModels
             // 标记当前导航项为选中
             item.IsSelected = true;
             // 从服务容器获取目标视图模型并设置为当前视图
-            CurrentView = (BaseViewModel)App.ServiceProvider.GetRequiredService(item.ViewModelType);
+            var nextViewModel = (BaseViewModel)App.ServiceProvider.GetRequiredService(item.ViewModelType);
+            CurrentView = nextViewModel;
+
+            if (nextViewModel is MyFavoriteMusicViewModel myFavVM)
+            {
+                await myFavVM.InitializeAsync();
+            }
+            else if (nextViewModel is FriendsViewModel friendsVM)
+            {
+                await friendsVM.SyncDataAsync();
+            }
         }
 
         /// <summary>
@@ -355,10 +376,12 @@ namespace NetEase.ViewModels
             // 标记当前播放列表为选中
             playlist.IsSelected = true;
             // 获取我的收藏视图模型并加载指定播放列表数据
-            var favoriteVm = App.ServiceProvider.GetRequiredService<MyFavoriteMusicViewModel>();
-            await favoriteVm.LoadPlaylistAsync(playlist.Id);
-            // 设置为当前视图
-            CurrentView = favoriteVm;
+            // 1. 从DI容器获取一个【新】的 PlaylistViewModel 实例
+            var playlistVM = _serviceProvider.GetRequiredService<PlayListViewModel>();
+            // 2. 命令它加载指定的歌单ID
+            await playlistVM.LoadPlaylistAsync(playlist.Id);
+            // 3. 将 CurrentView 设置为这个已经准备好数据的 ViewModel
+            CurrentView = playlistVM;
         }
 
         #endregion
@@ -402,7 +425,7 @@ namespace NetEase.ViewModels
                     {
                         Id = dto.Id,
                         Title = dto.Name,
-                        CoverImageUrl = dto.CoverImageUrl ?? GetRandomAvatarUrl() // 无封面时使用随机图
+                        CoverImageUrl = dto.CoverImageUrl
                     });
                 }
             }

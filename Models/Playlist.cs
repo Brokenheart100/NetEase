@@ -1,4 +1,4 @@
-﻿        using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace NetEase.Models
         public string Subtitle { get; set; } // 副标题，用于换行
         public bool IsVip { get; set; } // 是否有VIP角标
         public ObservableCollection<Song> Songs { get; set; } // 新增：存储这个歌单里的所有歌曲
-        // --- 新增：添加 IsSelected 可通知属性 ---
+        public int TrackCount { get; set; }
         [ObservableProperty]
         private bool _isSelected;
     }

@@ -34,6 +34,7 @@
         <ListBox Grid.Row="1"
                  ItemsSource="{Binding Playlists}"
                  Background="Transparent"
+                 d:ItemsSource="{d:SampleData ItemCount=4}"
                  BorderThickness="0">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
@@ -82,7 +83,7 @@
                                     Margin="15,0,0,0">
                             <TextBlock Text="{Binding Title}"
                                        Foreground="White"/>
-                            <TextBlock Text="{Binding SongCount, StringFormat='{}{0}首音乐'}"
+                            <TextBlock Text="{Binding TrackCount, StringFormat='{}{0}首音乐', FallbackValue='0首音乐'}"
                                        Foreground="#888"
                                        FontSize="12"/>
                         </StackPanel>

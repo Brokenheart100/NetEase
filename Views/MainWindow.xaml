@@ -19,9 +19,17 @@
     <Window.Resources>
         <converters:InvertValueConverter x:Key="InvertValueConverter"/>
         <converters:NegativeMarginConverter x:Key="NegativeMarginConverter"/>
-      
-        <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
-            <pages:FeaturedView/>
+        <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/40.jpg" />
+
+        <DataTemplate DataType="{x:Type vm:SearchResultViewModel}">
+            <pages:SearchResultView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PlayListViewModel}">
+            <components:PlayListView/>
+        </DataTemplate>
+     
+            <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
+                <pages:FeaturedView/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type chatViewModels:FriendsViewModel}">
             <pages:FriendsView/>
@@ -512,10 +520,10 @@
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Icon}"
-                                                        FontFamily="Segoe MDL2 Assets"
-                                                        FontSize="20"
-                                                        VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Icon, FallbackValue='&#xE706;'}"
+                                                           FontFamily="Segoe MDL2 Assets"
+                                                           FontSize="20"
+                                                           VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding DisplayName}"
                                                         FontSize="15"
                                                         VerticalAlignment="Center"
@@ -585,17 +593,14 @@
                                                 <TextBlock Text="{Binding FavoritePlaylists.Count}" Margin="5,0,0,0"/>
                                             </DockPanel>
 
-                                            <!-- 
-                ================== 关键修改点 ==================
-                右侧的“+”按钮
-            -->
                                             <Button Grid.Column="1"
-                    Content="&#xE710;" 
+                                                Content="&#xE710;" 
                                                 FontFamily="Segoe MDL2 Assets"
-                    FontSize="12"
-                    Width="24" Height="24"
-                    ToolTip="创建新歌单"
-                    Command="{Binding CreatePlaylistCommand}">
+                                                FontSize="12"
+                                                Margin="70,0,0,0"
+                                                Width="24" Height="24"
+                                                ToolTip="创建新歌单"
+                                                Command="{Binding CreatePlaylistCommand}">
                                                 <Button.Style>
                                                     <Style TargetType="Button">
                                                         <!-- 一个简单的透明背景圆形按钮样式 -->
@@ -632,7 +637,6 @@
                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                         d:ItemsSource="{d:SampleData ItemCount=1}"
                                         ItemContainerStyle="{StaticResource NavListBoxItemStyle}">
-                                        <!-- 1. 当选中项改变时，触发统一的导航命令 -->
                                         <i:Interaction.Triggers>
                                             <i:EventTrigger EventName="SelectionChanged">
                                                 <i:InvokeCommandAction
@@ -654,7 +658,7 @@
                                                           ShowGridLines="True">
                                                         <Border CornerRadius="4">
                                                             <Border.Background>
-                                                                <ImageBrush ImageSource="{Binding CoverImageUrl}"
+                                                                <ImageBrush ImageSource="{Binding CoverImageUrl,FallbackValue={StaticResource DefaultAvatarImage}}"
                                                                             Stretch="UniformToFill"/>
                                                             </Border.Background>
                                                         </Border>
@@ -721,11 +725,6 @@
 
                 </Grid>
 
-                <!-- 3. 底部播放器控制条 (Grid.Row="2") -->
-                <!-- 直接使用我们创建的 PlayerControlView 控件 -->
-                <!-- 将 PlayerControlView 的 DataContext 绑定到 MainViewModel 的 PlayerControlVM 属性 -->
-                <!--<components:PlayerControlView Grid.Row="2"
-                                              DataContext="{Binding PlayerControlVM}"/>-->
 
                 <MediaElement x:Name="MediaPlayer"
                               LoadedBehavior="Manual"
@@ -851,19 +850,17 @@
 
 
             <!-- 将这个容器的 VerticalAlignment 从 Bottom 改为 Top -->
-            <Grid VerticalAlignment="Top"
+            <!--<Grid VerticalAlignment="Top"
                 x:Name="SongDetailPage">
 
                 <Grid.Triggers>
-                    <!-- MouseEnter 触发器保持不变 -->
                     <EventTrigger RoutedEvent="Grid.MouseEnter">
                         <BeginStoryboard>
                             <Storyboard>
-                                <!-- 动画目标值 To="0" 保持不变，表示滑入到最终位置 -->
                                 <DoubleAnimation Storyboard.TargetName="SongDetail"  
                                      Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
                                      To="0"
-                                     Duration="0:0:0.3">
+                                     Duration="0:0:1">
                                     <DoubleAnimation.EasingFunction>
                                         <CubicEase EasingMode="EaseOut"/>
                                     </DoubleAnimation.EasingFunction>
@@ -872,16 +869,13 @@
                         </BeginStoryboard>
                     </EventTrigger>
 
-                    <!-- MouseLeave 触发器 -->
                     <EventTrigger RoutedEvent="Grid.MouseLeave">
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetName="SongDetail"  
                                      Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
                                      Duration="0:0:0.5">
-                                    <!-- 【核心修正 #1】: 动画的目标值需要是负数 -->
                                     <DoubleAnimation.To>
-                                        <!-- 我们在这里使用一个转换器来将正的高度值变为负值 -->
                                         <Binding Path="Tag" ElementName="SongDetail" Converter="{StaticResource InvertValueConverter}"/>
                                     </DoubleAnimation.To>
                                     <DoubleAnimation.EasingFunction>
@@ -901,10 +895,10 @@
                     </pages:SongDetailView.RenderTransform>
                 </pages:SongDetailView>
 
-                <!-- 【核心修正 #3】: 将触发区域的对齐方式改为 Top -->
+                --><!-- 【核心修正 #3】: 将触发区域的对齐方式改为 Top --><!--
                 <Border Height="40" VerticalAlignment="Top" Background="Transparent"/>
 
-            </Grid>
+            </Grid>-->
 
             
         </Grid>
