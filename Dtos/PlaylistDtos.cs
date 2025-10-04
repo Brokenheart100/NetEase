@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NetEase.Dtos.NetEase.Dtos;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetEase.Dtos.NetEase.Dtos;
 
 namespace NetEase.Dtos
 {
@@ -14,7 +9,7 @@ namespace NetEase.Dtos
         [MaxLength(100)]
         public string Name { get; set; }
     }
- 
+
     // --- PlaylistDetailDto ---
     // 这个类用于表示从 API 获取到的播放列表的完整信息
     public class PlaylistDetailDto

@@ -1,8 +1,11 @@
 ﻿<Application x:Class="NetEase.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:NetEase">
+             xmlns:local="clr-namespace:NetEase" 
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:converters="clr-namespace:NetEase.Converters">
     <Application.Resources>
+        <converters:AsyncImageConverter x:Key="AsyncImageConverter"/>
         <!--  ScrollViewer 滚动条  -->
         <!-- 
     定义一个名为 "ScrollBarThumb" 的样式，目标类型是 Thumb 控件（滚动条滑块）

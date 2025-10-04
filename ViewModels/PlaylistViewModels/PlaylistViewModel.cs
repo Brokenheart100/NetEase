@@ -4,24 +4,20 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using NetEase.Helpers;
 using NetEase.Models;
 using NetEase.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
-namespace NetEase.ViewModels
+namespace NetEase.ViewModels.PlaylistViewModels
 {
-    public partial class PlayListViewModel : BaseViewModel
+    public partial class PlaylistViewModel : BaseViewModel
     {
         private readonly PlayerService _playerService;
         private readonly PlaylistService _playlistService; // 假设未来会用它加载云端歌曲
         private int _currentPlaylistId;
+        private string _playlistDescription;
         // --- 属性 ---
         [ObservableProperty]
         private bool _isLoading = true; // 启动时默认为加载状态
@@ -39,13 +35,27 @@ namespace NetEase.ViewModels
 
         public CommentViewModel CommentVM { get; }
         // 构造函数现在非常简洁，只负责依赖注入和命令初始化
-        public PlayListViewModel(PlayerService playerService, PlaylistService playlistService, CommentViewModel commentViewModel)
+        public event Action<Playlist> EditPlaylistRequested;
+        public PlaylistViewModel(PlayerService playerService, PlaylistService playlistService, CommentViewModel commentViewModel)
         {
             _playerService = playerService;
             _playlistService = playlistService;
             CommentVM = commentViewModel; // 赋值
         }
-
+        [RelayCommand]
+        private void GoToEditPage()
+        {
+            // 创建一个临时的Playlist对象，包含所有需要传递给编辑页面的数据
+            var playlistData = new Playlist
+            {
+                Id = _currentPlaylistId,
+                Title = this.PlaylistTitle,
+                CoverImageUrl = this.CoverImageUrl,
+                Description = _playlistDescription,
+            };
+            // 触发事件，请求主窗口导航
+            EditPlaylistRequested?.Invoke(playlistData);
+        }
         [RelayCommand]
         private async Task ToggleLike(Song song)
         {
@@ -88,6 +98,7 @@ namespace NetEase.ViewModels
                 {
                     // 1. 更新页面头部信息
                     PlaylistTitle = playlistDetail.Name;
+                    _playlistDescription = playlistDetail.Description;
                     Author = playlistDetail.UserName;
                     CreateDate = playlistDetail.CreateDate.ToShortDateString();
                     CoverImageUrl = playlistDetail.CoverImageUrl;
@@ -124,7 +135,7 @@ namespace NetEase.ViewModels
             Songs.Clear();
 
             // 目前，我们只加载本地歌曲
-            var defaultMusicPath = @"E:\Computer\VS\NetEaseProject\NetEase\music";
+            var defaultMusicPath = @"E:\Computer\C#\NetEaseProject\NetEase\music\";
             if (Directory.Exists(defaultMusicPath))
             {
                 // 在后台线程扫描，避免 UI 卡顿

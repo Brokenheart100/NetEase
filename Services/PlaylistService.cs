@@ -1,14 +1,8 @@
 ﻿// 引入数据传输对象(DTO)命名空间，用于接收API返回的数据
 using NetEase.Dtos;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;  // 用于调试输出
-using System.Linq;
 using System.Net.Http;     // 用于HTTP请求
 using System.Net.Http.Json; // 提供HTTP客户端的JSON序列化/反序列化扩展方法
-using System.Text;
-using System.Threading.Tasks;
-using NetEase.Models;
 
 namespace NetEase.Services
 {
@@ -105,14 +99,14 @@ namespace NetEase.Services
             }
         }
 
-        public async Task<PlaylistSummaryDto> CreatePlaylistAsync(string name)
+        public async Task<PlaylistSummaryDto> CreatePlaylistAsync(string name, bool isPrivate = false)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 return null;
             }
 
-            var createDto = new { Name = name }; // 后端 CreatePlaylistDto 只需要 Name
+            var createDto = new { Name = name, IsPrivate = isPrivate }; // 后端 CreatePlaylistDto 只需要 Name
 
             try
             {
@@ -177,5 +171,5 @@ namespace NetEase.Services
         }
     }
 
-    
+
 }

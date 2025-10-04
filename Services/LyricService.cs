@@ -1,12 +1,7 @@
-﻿    using System;
-using System.Collections.Generic;
+﻿using NetEase.ViewModels;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using NetEase.ViewModels;
 
 namespace NetEase.Services
 {

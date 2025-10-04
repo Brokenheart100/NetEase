@@ -4,14 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using NetEase.Models;
 using NetEase.Services;
 using NetEase.ViewModels.ChatViewModels;
-using NetEase.Views;
-using System;
+using NetEase.ViewModels.PlaylistViewModels;
+using NetEase.Views.PlaylistViews;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
-using static NetEase.Converters.RandomNumber;
 
 namespace NetEase.ViewModels
 {
@@ -28,7 +25,7 @@ namespace NetEase.ViewModels
         private readonly FriendsViewModel _friendsViewModel; // 好友视图模型，管理好友相关功能
         private readonly SignalRService _signalRService; // SignalR服务，处理实时通信
 
-
+        private readonly Stack<BaseViewModel> _navigationHistory = new Stack<BaseViewModel>();
         /// <summary>
         /// 当前显示的视图模型（绑定到UI的内容区域，控制显示哪个页面）
         /// </summary>
@@ -67,12 +64,12 @@ namespace NetEase.ViewModels
         /// <summary>
         /// 认证视图模型（管理登录/注册相关UI和逻辑）
         /// </summary>
-        public SignUpViewModel AuthVM { get; }
+        public SignUpViewModel SignUpVM { get; }
 
         /// <summary>
         /// 用户收藏的播放列表集合（绑定到左侧边栏的播放列表区域）
         /// </summary>
-        public ObservableCollection<Playlist> FavoritePlaylists { get; } = new();
+        public ObservableCollection<Playlist> FavoritePlaylists { get; } = [];
 
         /// <summary>
         /// 主要导航项集合（如推荐、精选等，绑定到左侧导航栏）
@@ -115,13 +112,13 @@ namespace NetEase.ViewModels
         /// <param name="authVM">认证视图模型</param>
         /// <param name="playlistService">播放列表服务</param>
         /// <param name="friendsViewModel">好友视图模型</param>
-        public MainViewModel(SearchResultViewModel searchViewModel,SongDetailViewModel songDetailVM, IServiceProvider serviceProvider, AuthService authService, SignalRService signalRService, TitleBarViewModel titleBarVM, PlayerControlViewModel playerControlVM, SignUpViewModel authVM, PlaylistService playlistService, FriendsViewModel friendsViewModel)
+        public MainViewModel(SearchResultViewModel searchViewModel, SongDetailViewModel songDetailVM, IServiceProvider serviceProvider, AuthService authService, SignalRService signalRService, TitleBarViewModel titleBarVM, PlayerControlViewModel playerControlVM, SignUpViewModel signUpVM, PlaylistService playlistService, FriendsViewModel friendsViewModel)
         {
             _serviceProvider = serviceProvider;
             TitleBarVM = titleBarVM;
             PlayerControlVM = playerControlVM;
             SongDetailVM = songDetailVM;
-            AuthVM = authVM;
+            SignUpVM = signUpVM;
             _signalRService = signalRService;
             _playlistService = playlistService;
             _friendsViewModel = friendsViewModel;
@@ -133,7 +130,7 @@ namespace NetEase.ViewModels
             // 绑定标题栏的登出请求到当前视图模型的登出命令
             TitleBarVM.RequestLogoutAction = () => LogoutCommand.Execute(null);
             TitleBarVM.SearchRequested += OnSearchRequested;
-            AuthVM.LoginSuccess += OnLoginSuccess;
+            SignUpVM.LoginSuccess += OnLoginSuccess;
             // 初始化主要导航项（绑定到左侧边栏的主要导航区域）
             MainNavigationItems = new ObservableCollection<NavigationItem>
             {
@@ -141,16 +138,16 @@ namespace NetEase.ViewModels
                 new NavigationItem { DisplayName = "精选", Icon = "\uE8F1" , ViewModelType = typeof(FeaturedViewModel)},
                 new NavigationItem { DisplayName = "播客", Icon = "\uE1D6", ViewModelType = typeof(PodcastViewModel) },
                 new NavigationItem { DisplayName = "漫游", Icon = "\uE8DD", ViewModelType = typeof(PodcastViewModel) },
-                new NavigationItem { DisplayName = "关注", Icon = "\uE77B", ViewModelType = typeof(FriendsViewModel) }
+                new NavigationItem { DisplayName = "关注", Icon = "\uE77B", ViewModelType = typeof(PodcastViewModel) }
             };
 
             // 初始化"我的音乐"导航项
-            MyMusicNavigationItems = new ObservableCollection<NavigationItem>
-            {
+            MyMusicNavigationItems =
+            [
                 new NavigationItem { DisplayName = "我喜欢的音乐", Icon = "\uE00B", ViewModelType = typeof(MyFavoriteMusicViewModel) },
                 new NavigationItem { DisplayName = "最近播放", Icon = "\uE823" , ViewModelType = typeof(PodcastViewModel)},
                 new NavigationItem { DisplayName = "本地音乐", Icon = "\uE1D6" , ViewModelType = typeof(LocalMusicViewModel)},
-            };
+            ];
 
             // 初始化"更多"导航项
             MoreNavigationItems = new ObservableCollection<NavigationItem>
@@ -226,13 +223,12 @@ namespace NetEase.ViewModels
             // 更新标题栏的用户信息（用户名和头像）
             TitleBarVM.UserName = e.UserLoginInfo.User.Name;
             TitleBarVM.AvatarUrl = e.UserLoginInfo.User.AvatarUrl;
-
+            Debug.WriteLine($"TitleBarVM.AvatarUrl:{TitleBarVM.AvatarUrl}");
             // 异步加载用户特定数据（如播放列表）
             await LoadUserSpecificDataAsync();
             // 连接SignalR实时服务（使用登录后的令牌）
             //await _signalRService.ConnectAsync(_authService.Token);
 
-            // 导航到"关注"页面（好友列表）
             var friendsNavItem = MainNavigationItems.FirstOrDefault(item => item.ViewModelType == typeof(MyFavoriteMusicViewModel));
             if (friendsNavItem != null)
             {
@@ -300,35 +296,54 @@ namespace NetEase.ViewModels
         [RelayCommand]
         private async Task CreatePlaylistAsync()
         {
-            // 创建输入对话框视图模型
-            var dialogVM = new InputDialogViewModel
-            {
-                Title = "创建新歌单",
-                Message = "请输入新歌单的名称："
-            };
+            var dialogVM = new CreateLPlaylistViewModel(); // 使用新的 ViewModel
 
-            // 创建并显示对话框
-            var dialogView = new InputDialogView
+            var dialogView = new CreatePlaylistView
             {
                 DataContext = dialogVM,
                 Owner = Application.Current.MainWindow
             };
 
-            var dialogResult = dialogView.ShowDialog();
-
-            // 若用户确认且输入有效，则创建播放列表
-            if (dialogResult == true && !string.IsNullOrWhiteSpace(dialogVM.InputText))
+            if (dialogView.ShowDialog() == true)
             {
-                var newPlaylistDto = await _playlistService.CreatePlaylistAsync(dialogVM.InputText);
-                if (newPlaylistDto != null)
+
+                try
                 {
-                    // 添加新播放列表到集合（UI会自动更新）
-                    FavoritePlaylists.Add(new Playlist
+                    // a. 显示一个加载指示器 (如果您的BaseViewModel支持)
+                    // IsBusy = true;
+
+                    // b. 调用 PlaylistService，将对话框中获取的数据传递给它
+                    var newPlaylistDto = await _playlistService.CreatePlaylistAsync(dialogVM.InputText, dialogVM.IsPrivate);
+
+                    // c. 检查API调用是否成功
+                    if (newPlaylistDto != null)
                     {
-                        Id = newPlaylistDto.Id,
-                        Title = newPlaylistDto.Name,
-                        CoverImageUrl = newPlaylistDto.CoverImageUrl
-                    });
+                        // d. 如果成功，将后端返回的新歌单信息添加到UI的集合中
+                        FavoritePlaylists.Add(new Playlist
+                        {
+                            Id = newPlaylistDto.Id,
+                            Title = newPlaylistDto.Name,
+                            CoverImageUrl = newPlaylistDto.CoverImageUrl // 后端可能会返回一个默认封面
+                                                                         // 未来可以添加一个 IsPrivate 属性来显示锁图标
+                        });
+
+                        // (可选) 给出成功提示
+                        MessageBox.Show("歌单创建成功！");
+                    }
+                    else
+                    {
+                        // API 调用失败
+                        MessageBox.Show("创建歌单失败，请检查网络或稍后重试。", "错误");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // 捕获意外异常
+                    MessageBox.Show($"发生未知错误: {ex.Message}", "严重错误");
+                }
+                finally
+                {
+                    // IsBusy = false;
                 }
             }
         }
@@ -377,13 +392,53 @@ namespace NetEase.ViewModels
             playlist.IsSelected = true;
             // 获取我的收藏视图模型并加载指定播放列表数据
             // 1. 从DI容器获取一个【新】的 PlaylistViewModel 实例
-            var playlistVM = _serviceProvider.GetRequiredService<PlayListViewModel>();
+            var playlistVM = _serviceProvider.GetRequiredService<PlaylistViewModel>();
+            playlistVM.EditPlaylistRequested += OnEditPlaylistRequested;
             // 2. 命令它加载指定的歌单ID
             await playlistVM.LoadPlaylistAsync(playlist.Id);
+            if (CurrentView != null)
+            {
+                _navigationHistory.Push(CurrentView);
+            }
             // 3. 将 CurrentView 设置为这个已经准备好数据的 ViewModel
             CurrentView = playlistVM;
         }
+        private void OnEditPlaylistRequested(Playlist playlistToEdit)
+        {
+            // a. 获取 EditPlaylistViewModel 的实例
+            var editVM = _serviceProvider.GetRequiredService<EditPlaylistViewModel>();
 
+            // b. 将歌单数据加载到 EditPlaylistViewModel 中
+            editVM.LoadPlaylist(playlistToEdit);
+
+            // c. 订阅编辑完成/取消的事件，以便能导航回来
+            editVM.NavigationRequestCompleted -= GoBack; // 先取消订阅，防止重复
+            editVM.NavigationRequestCompleted += GoBack;
+
+            // d. (可选) 将当前页面(PlayListView)压入历史记录栈
+            if (CurrentView != null)
+            {
+                _navigationHistory.Push(CurrentView);
+            }
+
+            // e. 执行页面切换
+            CurrentView = editVM;
+        }
+        private void GoBack()
+        {
+            if (_navigationHistory.Count > 0)
+            {
+                var previousView = _navigationHistory.Pop();
+
+                // 在切换回去之前，取消对当前页面(EditPlaylistView)事件的订阅，防止内存泄漏
+                if (CurrentView is EditPlaylistViewModel editVM)
+                {
+                    editVM.NavigationRequestCompleted -= GoBack;
+                }
+
+                CurrentView = previousView;
+            }
+        }
         #endregion
 
         /// <summary>

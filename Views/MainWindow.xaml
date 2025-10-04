@@ -11,6 +11,8 @@
         xmlns:pages="clr-namespace:NetEase.Views.Pages"
         xmlns:components="clr-namespace:NetEase.Views.Components"
         xmlns:chatViewModels="clr-namespace:NetEase.ViewModels.ChatViewModels"
+        xmlns:vmPlaylist="clr-namespace:NetEase.ViewModels.PlaylistViewModels"
+        xmlns:pagesPlaylist="clr-namespace:NetEase.Views.PlaylistViews"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="MainWindow"
         Height="820"
@@ -19,14 +21,20 @@
     <Window.Resources>
         <converters:InvertValueConverter x:Key="InvertValueConverter"/>
         <converters:NegativeMarginConverter x:Key="NegativeMarginConverter"/>
-        <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/40.jpg" />
+        <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/10.jpg" />
+        
+        <DataTemplate DataType="{x:Type vmPlaylist:EditPlaylistViewModel}">
+            <pagesPlaylist:EditPlaylistView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vmPlaylist:PlaylistViewModel}">
+            <pagesPlaylist:PlaylistView/>
+        </DataTemplate>
 
         <DataTemplate DataType="{x:Type vm:SearchResultViewModel}">
             <pages:SearchResultView/>
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:PlayListViewModel}">
-            <components:PlayListView/>
-        </DataTemplate>
+        
      
             <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
                 <pages:FeaturedView/>
@@ -385,7 +393,10 @@
             </Setter>
         </Style>
 
+
+       
     </Window.Resources>
+    
     <!-- 主容器，使用圆角边框包裹 -->
     <Border CornerRadius="8"
             Background="#212121"
@@ -394,7 +405,30 @@
             ClipToBounds="True">
         <Grid ShowGridLines="True">
 
+            <Canvas IsHitTestVisible="False" Opacity="0.8">
+                <!-- 应用一个非常大的模糊效果，让所有光晕都融为一体 -->
+                <Canvas.Effect>
+                    <BlurEffect Radius="150"/>
+                </Canvas.Effect>
+
+                <!-- 
+                  我们创建多个巨大的、半透明的绿色椭圆来模拟极光光晕。
+                  它们的位置和大小都经过精心设计，以模仿图片中的效果。
+                -->
+                <!-- 主要的极光带 -->
+                <Ellipse x:Name="Aurora1" Width="1200" Height="400" 
+                         Fill="#FF00FF80" Canvas.Left="-200" Canvas.Top="50"/>
+
+                <!-- 辅助的、更柔和的光晕 -->
+                <Ellipse x:Name="Aurora2" Width="1000" Height="300" 
+                         Fill="#FF30D5C8" Canvas.Left="400" Canvas.Top="300"/>
+
+                <!-- 微弱的背景光 -->
+                <Ellipse x:Name="Aurora3" Width="800" Height="250" 
+                         Fill="#FF00A060" Canvas.Left="100" Canvas.Top="500"/>
+            </Canvas>
             <Grid ShowGridLines="True"
+                  Background="Transparent"
                   x:Name="MainContentGrid">
                 <!-- 关键：为主内容 Grid 添加 Style -->
                 <Grid.Style>
@@ -762,7 +796,7 @@
                 </i:Interaction.Triggers>
 
                 <pages:SignUpView
-                    DataContext="{Binding AuthVM}"
+                    DataContext="{Binding SignUpVM}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     MouseLeftButtonDown="SignUpView_MouseLeftButtonDown"
@@ -905,4 +939,44 @@
         
 
     </Border>
+
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard>
+                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+
+                    <!-- 动画 Aurora1 -->
+                    <DoubleAnimation Storyboard.TargetName="Aurora1" Storyboard.TargetProperty="(Canvas.Left)" From="-200" To="400" Duration="0:0:25">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="Aurora1" Storyboard.TargetProperty="(Canvas.Top)" From="50" To="-50" Duration="0:0:35">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+
+                    <!-- 动画 Aurora2 -->
+                    <DoubleAnimation Storyboard.TargetName="Aurora2" Storyboard.TargetProperty="(Canvas.Left)" From="400" To="800" Duration="0:0:30">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="Aurora2" Storyboard.TargetProperty="(Canvas.Top)" From="300" To="500" Duration="0:0:40">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+
+                    <!-- 动画 Aurora3 -->
+                    <DoubleAnimation Storyboard.TargetName="Aurora3" Storyboard.TargetProperty="(Canvas.Left)" From="100" To="-100" Duration="0:0:45">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
 </Window>

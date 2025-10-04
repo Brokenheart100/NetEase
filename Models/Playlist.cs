@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace NetEase.Models
 {
@@ -17,6 +12,8 @@ namespace NetEase.Models
         public bool IsVip { get; set; } // 是否有VIP角标
         public ObservableCollection<Song> Songs { get; set; } // 新增：存储这个歌单里的所有歌曲
         public int TrackCount { get; set; }
+        public string? Description { get; internal set; }
+
         [ObservableProperty]
         private bool _isSelected;
     }

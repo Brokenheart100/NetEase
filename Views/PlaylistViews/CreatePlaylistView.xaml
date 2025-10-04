@@ -1,0 +1,168 @@
+﻿<Window x:Class="NetEase.Views.PlaylistViews.CreatePlaylistView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NetEase.Views.PlaylistViews"
+        xmlns:converters="clr-namespace:NetEase.Converters" 
+        xmlns:playlistviewmodels="clr-namespace:NetEase.ViewModels.PlaylistViewModels" 
+        d:DataContext="{d:DesignInstance Type=playlistviewmodels:CreateLPlaylistViewModel}"
+        mc:Ignorable="d"
+        SizeToContent="WidthAndHeight"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent"
+        WindowStartupLocation="CenterOwner"
+        Title="CreatePlaylistView" Height="450" Width="800">
+
+    <Window.Resources>
+        <converters:StringToIsNotNullOrEmptyConverter x:Key="StringToIsNotNullOrEmptyConverter"/>
+        <!-- 自定义 TextBox 样式，带占位符 -->
+        <Style x:Key="CustomTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CaretBrush" Value="#E0E0E0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="MaxLength" Value="{Binding MaxLength}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost" />
+                            <TextBlock Text="输入歌单标题" Foreground="#888" 
+                                       Margin="{TemplateBinding Padding}"
+                                       IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 自定义创建按钮样式 -->
+        <Style x:Key="CreateButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4A4A4A"/>
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="20">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <!-- 当按钮可用时，变为红色 -->
+                <Trigger Property="IsEnabled" Value="True">
+                    <Setter Property="Background" Value="#CC3333"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 关闭按钮样式 -->
+        <Style x:Key="CloseButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#888"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent">
+                            <TextBlock Text="&#xE8BB;" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Window.Resources>
+
+    <!-- 根容器，带圆角和深色背景 -->
+    <Border Background="#2C2C2F" CornerRadius="8" Padding="20" MinWidth="400">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- 标题行 -->
+                <RowDefinition Height="*"/>
+                <!-- 内容行 -->
+                <RowDefinition Height="Auto"/>
+                <!-- 按钮行 -->
+            </Grid.RowDefinitions>
+
+            <!-- 标题和关闭按钮 -->
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" 
+                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Button Style="{StaticResource CloseButtonStyle}" 
+                        Command="{Binding CancelCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"/>
+            </Grid>
+
+            <!-- 输入区域 -->
+            <StackPanel Grid.Row="1">
+                <Border Background="#3D3D40" CornerRadius="8" Height="120">
+                    <Grid>
+                        <TextBox Style="{StaticResource CustomTextBoxStyle}"
+                                 Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="{Binding RemainingCharsText}" 
+                                   Foreground="#888" FontSize="12"
+                                   HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                   Margin="0,0,15,10"/>
+                    </Grid>
+                </Border>
+                <CheckBox Content="设为隐私歌单" IsChecked="{Binding IsPrivate}"
+                          Foreground="#CCCCCC" Margin="0,15,0,0"/>
+            </StackPanel>
+
+            <!-- 创建按钮 -->
+            <Button Grid.Row="2" Content="创建" 
+                    HorizontalAlignment="Center" 
+                    Margin="0,10,0,0"
+                    FontSize="20"
+                    Width="100"
+                    Height="50"
+                    Command="{Binding OkCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource CreateButtonStyle}">
+                        <Setter Property="IsEnabled" Value="False"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding InputText, Converter={StaticResource StringToIsNotNullOrEmptyConverter}}" Value="True">
+                                <Setter Property="IsEnabled" Value="True"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+    </Border>
+</Window>

@@ -4,14 +4,9 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using NetEase.Helpers;
 using NetEase.Models;
 using NetEase.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
@@ -39,7 +34,7 @@ namespace NetEase.ViewModels
 
 
         // 构造函数现在非常简洁，只负责依赖注入和命令初始化
-        public LocalMusicViewModel(SongService songService,PlayerService playerService, PlaylistService playlistService)
+        public LocalMusicViewModel(SongService songService, PlayerService playerService, PlaylistService playlistService)
         {
             _playerService = playerService;
             _playlistService = playlistService;
@@ -173,7 +168,7 @@ namespace NetEase.ViewModels
                     {
                         exists = Songs.Any(s => s.FilePath == file);
                     });
-                    if (exists) 
+                    if (exists)
                         continue;
 
                     var tagFile = TagLib.File.Create(file);
@@ -181,7 +176,7 @@ namespace NetEase.ViewModels
 
                     var song = new Song
                     {
-                        Id = SongCount+1,
+                        Id = SongCount + 1,
                         Title = string.IsNullOrEmpty(tagFile.Tag.Title) ? Path.GetFileNameWithoutExtension(file) : tagFile.Tag.Title,
                         Artist = tagFile.Tag.FirstPerformer ?? "未知艺术家",
                         Album = tagFile.Tag.Album ?? "未知专辑",

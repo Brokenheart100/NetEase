@@ -1,8 +1,5 @@
 ﻿using NetEase.Models;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
@@ -84,12 +81,12 @@ namespace NetEase.Services
         /// 当前播放列表，存储当前可播放的歌曲集合
         /// </summary>
         private List<Song> _currentPlaylist;
-
+        private readonly CacheService _cacheService;
         /// <summary>
         /// 构造函数，初始化播放器服务
         /// 设为public以允许依赖注入容器创建实例
         /// </summary>
-        public PlayerService()
+        public PlayerService(CacheService cacheService)
         {
             // 初始化进度更新定时器
             _progressTimer = new DispatcherTimer();
@@ -97,6 +94,7 @@ namespace NetEase.Services
             _progressTimer.Interval = TimeSpan.FromMilliseconds(200);
             // 绑定定时器触发事件
             _progressTimer.Tick += OnTimerTick;
+            _cacheService = cacheService;
         }
 
         /// <summary>
@@ -132,11 +130,38 @@ namespace NetEase.Services
         /// </summary>
         /// <param name="song">要播放的歌曲</param>
         /// <param name="playlist">当前播放列表</param>
-        public void StartPlayback(Song song, IEnumerable<Song> playlist)
+        public async void StartPlayback(Song song, IEnumerable<Song> playlist)
         {
             // 校验参数有效性（歌曲或列表为空则不执行）
             if (song == null || playlist == null) return;
+            string playablePath;
 
+            // 3. 检查是本地文件还是网络文件
+            if (Uri.IsWellFormedUriString(song.FilePath, UriKind.Absolute) &&
+                (song.FilePath.StartsWith("http") || song.FilePath.StartsWith("https")))
+            {
+                // 是网络URL，走缓存逻辑
+                // 【重要】这里使用 await 等待缓存服务完成
+                playablePath = await _cacheService.GetFileAsync(song.FilePath, CacheType.Song);
+            }
+            else
+            {
+                // 是本地文件路径，直接使用
+                playablePath = song.FilePath;
+            }
+
+            if (playablePath != null)
+            {
+                // 4. 将最终的【本地路径】传递给播放器
+                //_mediaPlayerService.Play(new Uri(playablePath));
+                RequestPlay(song);
+
+            }
+            else
+            {
+                // 处理加载/下载失败的情况
+                // (可以显示一个错误提示)
+            }
             // 保存当前播放列表（转换为List便于索引操作）
             _currentPlaylist = playlist.ToList();
             // 发起播放请求

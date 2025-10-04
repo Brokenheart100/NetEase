@@ -1,20 +1,17 @@
 ﻿// 引入MVVM工具包核心类（ObservableObject实现属性通知，RelayCommand实现命令绑定）
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32; // 引入文件对话框
 // 引入登录/注册相关的数据传输对象（DTO）
 using NetEase.Dtos;
 using NetEase.Models;
-using Microsoft.Win32; // 引入文件对话框
-using System.IO;       // 引入 System.IO
 // 引入应用程序设置（用于保存"记住用户名"等配置）
 using NetEase.Properties;
 // 引入授权服务（处理实际的登录/注册业务逻辑）
 using NetEase.Services;
 // 系统基础类（事件、调试、任务、窗口等）
-using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Windows;
 
 // 命名空间：视图模型层（处理登录/注册相关的UI逻辑）
@@ -65,7 +62,7 @@ namespace NetEase.ViewModels
         [ObservableProperty]
         private AuthViewState _currentState = AuthViewState.ProfileSelection;
         public ObservableCollection<SavedUserProfile> SavedUsers { get; } = new();
-      
+
 
         // --- 表单数据属性（绑定到UI输入框，存储用户输入） ---
         /// <summary>
@@ -198,12 +195,9 @@ namespace NetEase.ViewModels
             // 登录过程中：设置处理状态（UI显示加载），清空之前的错误信息
             IsProcessing = true;
             ErrorMessage = string.Empty;
-            // traveler@example.com password123
-            // test@qq.com 123456
             // 调用授权服务的登录方法（此处暂时硬编码测试账号，实际应使用用户输入的Email和Password）
             //var (success, response, errorMessage) = await _authService.LoginAsync(Email, Password);
-            var (success, response, errorMessage) = await _authService.LoginAsync("test@qq.com", "123456");
-            //var (success, response, errorMessage) = await _authService.LoginAsync("traveler@example.com", "password123");
+            var (success, response, errorMessage) = await _authService.LoginAsync("test@test.com", "123456");
 
             if (success)
             {

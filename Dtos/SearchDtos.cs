@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using NetEase.Dtos.NetEase.Dtos;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using NetEase.Dtos.NetEase.Dtos;
 
 namespace NetEase.Dtos
 {
@@ -50,5 +45,5 @@ namespace NetEase.Dtos
 
     // SongDto 也应该在这里定义，或者在一个共享的 Dtos 文件中
     // 确保它的属性与后端返回的歌曲对象一致
-  
+
 }

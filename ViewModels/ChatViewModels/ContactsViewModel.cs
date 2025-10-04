@@ -1,16 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using NetEase.Converters;
 using NetEase.Models;
 using NetEase.Services;
-using NetEase.ViewModels.ChatViewModels;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static NetEase.Converters.RandomNumber;
 
 namespace NetEase.ViewModels.ChatViewModels
@@ -82,6 +75,6 @@ namespace NetEase.ViewModels.ChatViewModels
                 FriendGroups.Add(group);
             }
         }
-      
+
     }
 }

@@ -1,14 +1,8 @@
-﻿using NetEase.ViewModels.ChatViewModels;
-using System;
-using System.Collections.Generic;
+﻿using NetEase.Dtos;
+using NetEase.ViewModels.ChatViewModels;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using NetEase.Dtos;
 
 namespace NetEase.Services
 {
@@ -31,17 +25,17 @@ namespace NetEase.Services
             }
             catch (HttpRequestException ex)
             {
-             
-                    Debug.WriteLine($"HTTP请求失败: {ex.Message}");
-                    if (ex.InnerException != null)
-                    {
-                        Debug.WriteLine($"内部异常: {ex.InnerException.Message}");
-                    }
-                
-            return new List<ChatMessage>();
+
+                Debug.WriteLine($"HTTP请求失败: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"内部异常: {ex.InnerException.Message}");
+                }
+
+                return new List<ChatMessage>();
             }
         }
-            
+
         public async Task<ChatMessage> SendMessageAsync(int receiverId, string content, string mimeType = null)
         {
             //var messageDto = new { ReceiverId = receiverId, Content = content };
@@ -65,7 +59,7 @@ namespace NetEase.Services
                 return null;
             }
         }
-       
+
         public async Task<ChatMessageDto> SendMessageAsync(SendMessageDto messageDto)
         {
             var response = await _httpClient.PostAsJsonAsync("api/chat/send", messageDto);

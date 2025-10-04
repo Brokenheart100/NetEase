@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace NetEase.Views
+namespace NetEase.Views.PlaylistViews
 {
     /// <summary>
-    /// InputDialogView.xaml 的交互逻辑
+    /// PlaylistView.xaml 的交互逻辑
     /// </summary>
-    public partial class InputDialogView : Window
+    public partial class PlaylistView : UserControl
     {
-        public InputDialogView()
+        public PlaylistView()
         {
             InitializeComponent();
         }

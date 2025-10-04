@@ -46,7 +46,7 @@ namespace NetEase.ViewModels
         {
             IsUserProfileOpen = !IsUserProfileOpen;
         }
-   
+
         [RelayCommand]
         private void DragWindow(Window window)
         {

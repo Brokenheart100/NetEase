@@ -1,20 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
-using NetEase.Converters;
 using NetEase.Dtos;
 using NetEase.Models;
 using NetEase.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 // WPF UI相关类（窗口、图像渲染）
 using System.Windows;
 using System.Windows.Media;
@@ -142,7 +135,7 @@ namespace NetEase.ViewModels.ChatViewModels
             _signalRService.OnMessagesRead += OnMessagesRead;
 
         }
-     
+
         private void OnMessagesRead(int readerId, List<long> readMessageIds)
         {
             // 检查这个回执是否与当前打开的会话有关
@@ -368,7 +361,7 @@ namespace NetEase.ViewModels.ChatViewModels
                 //    Content = "[图片发送失败]"
                 //    // ImageUrl 保持不变，仍然是本地路径，以便显示预览
                 //};
-            
+
                 //Messages.Add(failedMessage);
                 return;
             }

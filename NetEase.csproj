@@ -9,70 +9,25 @@
     <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Resource Include="CoverImage\0.jpg" />
-    <Resource Include="CoverImage\1.jpg" />
-    <Resource Include="CoverImage\10.jpg" />
-    <Resource Include="CoverImage\11.jpg" />
-    <Resource Include="CoverImage\12.jpg" />
-    <Resource Include="CoverImage\13.jpg" />
-    <Resource Include="CoverImage\14.jpg" />
-    <Resource Include="CoverImage\15.jpg" />
-    <Resource Include="CoverImage\16.jpg" />
-    <Resource Include="CoverImage\17.jpg" />
-    <Resource Include="CoverImage\19.jpg" />
-    <Resource Include="CoverImage\2.jpg" />
-    <Resource Include="CoverImage\20.jpg" />
-    <Resource Include="CoverImage\21.jpg" />
-    <Resource Include="CoverImage\22.jpg" />
-    <Resource Include="CoverImage\23.jpg" />
-    <Resource Include="CoverImage\24.jpg" />
-    <Resource Include="CoverImage\25.jpg" />
-    <Resource Include="CoverImage\26.jpg" />
-    <Resource Include="CoverImage\27.jpg" />
-    <Resource Include="CoverImage\28.jpg" />
-    <Resource Include="CoverImage\29.jpg" />
-    <Resource Include="CoverImage\3.jpg" />
-    <Resource Include="CoverImage\30.jpg" />
-    <Resource Include="CoverImage\31.jpg" />
-    <Resource Include="CoverImage\32.jpg" />
-    <Resource Include="CoverImage\33.jpg" />
-    <Resource Include="CoverImage\34.jpg" />
-    <Resource Include="CoverImage\35.jpg" />
-    <Resource Include="CoverImage\36.jpg" />
-    <Resource Include="CoverImage\37.jpg" />
-    <Resource Include="CoverImage\38.jpg" />
-    <Resource Include="CoverImage\39.jpg" />
-    <Resource Include="CoverImage\4.jpg" />
-    <Resource Include="CoverImage\40.jpg" />
-    <Resource Include="CoverImage\41.jpg" />
-    <Resource Include="CoverImage\42.jpg" />
-    <Resource Include="CoverImage\43.jpg" />
-    <Resource Include="CoverImage\44.jpg" />
-    <Resource Include="CoverImage\45.jpg" />
-    <Resource Include="CoverImage\46.jpg" />
-    <Resource Include="CoverImage\47.jpg" />
-    <Resource Include="CoverImage\48.jpg" />
-    <Resource Include="CoverImage\49.jpg" />
-    <Resource Include="CoverImage\5.jpg" />
-    <Resource Include="CoverImage\50.jpg" />
-    <Resource Include="CoverImage\51.jpg" />
-    <Resource Include="CoverImage\52.jpg" />
-    <Resource Include="CoverImage\53.jpg" />
-    <Resource Include="CoverImage\6.jpg" />
-    <Resource Include="CoverImage\7.jpg" />
-    <Resource Include="CoverImage\8.jpg" />
-    <Resource Include="CoverImage\9.jpg" />
-  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>True</Optimize>
+  </PropertyGroup>
 
+
+	<ItemGroup>
+		<Resource Include="CoverImage\*.jpg" />
+	</ItemGroup>
+	
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Core" Version="1.1.5" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
+    <PackageReference Include="WPF-UI" Version="4.0.3" />
   </ItemGroup>
 
   <ItemGroup>

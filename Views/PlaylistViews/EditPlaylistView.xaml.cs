@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace NetEase.Views.Components
+namespace NetEase.Views.PlaylistViews
 {
     /// <summary>
-    /// SuggestionCardView.xaml 的交互逻辑
+    /// EditPlaylistView.xaml 的交互逻辑
     /// </summary>
-    public partial class SuggestionCardView : UserControl
+    public partial class EditPlaylistView : UserControl
     {
-        public SuggestionCardView()
+        public EditPlaylistView()
         {
             InitializeComponent();
         }

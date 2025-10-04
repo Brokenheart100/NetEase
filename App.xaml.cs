@@ -3,6 +3,7 @@ using NetEase.Services;
 using NetEase.ViewModels;
 using NetEase.ViewModels.ChatViewModels;
 using NetEase.ViewModels.MusicRowContextMenu;
+using NetEase.ViewModels.PlaylistViewModels;
 using NetEase.Views;
 using System.Net.Http;
 using System.Windows;
@@ -69,6 +70,12 @@ namespace NetEase
             //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
             //});
 
+            //file
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7056
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5017
+
             //catalog
             //info: Microsoft.Hosting.Lifetime[14]
             //Now listening on: https://localhost:7270
@@ -94,8 +101,8 @@ namespace NetEase
             //Now listening on: http://localhost:5240
             // --- 业务服务注册 ---
             // 注册应用的核心业务服务，按功能划分，生命周期根据需求设置
-
             // 认证服务（单例：全局共享一个认证状态实例）
+            services.AddHttpClient<CacheService>();
             services.AddSingleton<AuthService>();
             // 播放列表服务（ transient：每次请求创建新实例，适合轻量级、无状态操作）
             services.AddTransient<PlaylistService>();
@@ -110,6 +117,8 @@ namespace NetEase
             services.AddSingleton<CredentialService>();
             services.AddTransient<LyricService>();
             services.AddSingleton<SongService>();
+
+            //services.AddHttpClient<ImageCacheService>();
             // --- 视图模型（ViewModel）注册 ---
             // 注册MVVM模式中的视图模型，负责数据处理和视图交互逻辑
 
@@ -155,10 +164,13 @@ namespace NetEase
             // 用户资料视图模型（transient：用户资料页面的交互逻辑）
             services.AddTransient<UserProfileViewModel>();
             services.AddTransient<SongDetailViewModel>();
-            services.AddTransient<PlayListViewModel>();
+            services.AddTransient<PlaylistViewModel>();
             services.AddTransient<SearchResultViewModel>();
+            services.AddTransient<EditPlaylistViewModel>();
             services.AddTransient<CommentViewModel>();
             services.AddTransient<CommentService>(); // 假设 CommentService 也需要注册
+            services.AddTransient<CreateLPlaylistViewModel>();
+
             // --- 视图（View）注册 ---
             // 注册WPF窗口，用于通过依赖注入创建视图实例
 
