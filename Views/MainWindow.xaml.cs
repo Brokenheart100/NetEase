@@ -7,7 +7,6 @@ namespace NetEase.Views
 {
     public partial class MainWindow : Window
     {
-        // 构造函数接收 MainViewModel 和 MediaPlayerService
         public MainWindow(MainViewModel viewModel, MediaPlayerService mediaPlayerService)
         {
             InitializeComponent();
@@ -18,7 +17,9 @@ namespace NetEase.Views
             {
                 mediaPlayerService.Initialize(this.MediaPlayer);
             };
+       
         }
+       
         private void SignUpView_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // 将事件标记为“已处理”

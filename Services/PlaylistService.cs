@@ -1,8 +1,11 @@
 ﻿// 引入数据传输对象(DTO)命名空间，用于接收API返回的数据
 using NetEase.Dtos;
-using System.Diagnostics;  // 用于调试输出
+using NetEase.Shared.Clients.Dtos; // 提供HTTP客户端的JSON序列化/反序列化扩展方法
+using System.Diagnostics;
+using System.IO; // 用于调试输出
 using System.Net.Http;     // 用于HTTP请求
-using System.Net.Http.Json; // 提供HTTP客户端的JSON序列化/反序列化扩展方法
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace NetEase.Services
 {
@@ -22,6 +25,51 @@ namespace NetEase.Services
         {
             _httpClient = httpClient;
         }
+        public async Task<bool> UpdatePlaylistAsync(int playlistId, UpdatePlaylistDto dto)
+        {
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync($"api/playlists/{playlistId}", dto);
+                return response.IsSuccessStatusCode;
+            }
+            catch (HttpRequestException ex)
+            {
+                Debug.WriteLine($"Failed to update playlist: {ex.Message}");
+                return false;
+            }
+        }
+
+        // ======================= 新增：上传封面文件 =======================
+        // 这个方法实际上是调用 File.API，但为了内聚性，我们将其放在 PlaylistService 中
+        public async Task<string> UploadCoverAsync(string localFilePath)
+        {
+            if (!File.Exists(localFilePath)) return null;
+
+            // API 网关会将 /api/files/... 路由到 File.API
+            var requestUri = "api/files/upload/covers";
+
+            using var multipartFormContent = new MultipartFormDataContent();
+            var fileStreamContent = new StreamContent(File.OpenRead(localFilePath));
+            fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // 可动态设置
+
+            multipartFormContent.Add(fileStreamContent, name: "file", fileName: Path.GetFileName(localFilePath));
+
+            try
+            {
+                var response = await _httpClient.PostAsync(requestUri, multipartFormContent);
+                response.EnsureSuccessStatusCode();
+
+                var uploadResult = await response.Content.ReadFromJsonAsync<FileUploadResponseDto>();
+                // 返回【相对路径】，例如 "covers/guid.jpg"
+                return uploadResult?.RelativePath;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to upload cover: {ex.Message}");
+                return null;
+            }
+        }
+
         public async Task<bool> AddToFavoritesAsync(int songId)
         {
             try

@@ -1,167 +1,982 @@
-<Window x:Class="NetEase.Views.Components.PlayList.CreatePlayListView.xaml"
+<Window x:Class="NetEase.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:viewmodels="clr-namespace:NetEase.ViewModels" 
-        xmlns:converters="clr-namespace:NetEase.Converters" 
-        d:DataContext="{d:DesignInstance Type=viewmodels:CreateLPlayListViewModel}"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="{Binding Title}"
-        SizeToContent="WidthAndHeight"
-        WindowStyle="None" AllowsTransparency="True"
-        Background="Transparent"
-        WindowStartupLocation="CenterOwner">
+        x:Name="TheMainWindow"
+        xmlns:vm="clr-namespace:NetEase.ViewModels"
+        xmlns:converters="clr-namespace:NetEase.Converters"
+        xmlns:pages="clr-namespace:NetEase.Views.Pages"
+        xmlns:components="clr-namespace:NetEase.Views.Components"
+        xmlns:chatViewModels="clr-namespace:NetEase.ViewModels.ChatViewModels"
+        xmlns:vmPlaylist="clr-namespace:NetEase.ViewModels.PlaylistViewModels"
+        xmlns:pagesPlaylist="clr-namespace:NetEase.Views.PlaylistViews"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+        Title="MainWindow"
+        Height="820"
+        Width="1380">
 
     <Window.Resources>
-        <converters:StringToIsNotNullOrEmptyConverter x:Key="StringToIsNotNullOrEmptyConverter"/>
-        <!-- è‡ªå®šä¹‰ TextBox æ ·å¼ï¼Œå¸¦å ä½ç¬¦ -->
-        <Style x:Key="CustomTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#E0E0E0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="CaretBrush" Value="#E0E0E0"/>
-            <Setter Property="Padding" Value="15,10"/>
-            <Setter Property="VerticalContentAlignment" Value="Top"/>
-            <Setter Property="AcceptsReturn" Value="True"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="MaxLength" Value="{Binding MaxLength}"/>
+        <converters:InvertValueConverter x:Key="InvertValueConverter"/>
+        <converters:NegativeMarginConverter x:Key="NegativeMarginConverter"/>
+        <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/10.jpg" />
+        
+        <DataTemplate DataType="{x:Type vmPlaylist:EditPlaylistViewModel}">
+            <pagesPlaylist:EditPlaylistView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vmPlaylist:PlaylistViewModel}">
+            <pagesPlaylist:PlaylistView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:SearchResultViewModel}">
+            <pages:SearchResultView/>
+        </DataTemplate>
+        
+     
+            <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
+                <pages:FeaturedView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type chatViewModels:FriendsViewModel}">
+            <pages:FriendsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LocalMusicViewModel}">
+            <pages:LocalMusicView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PodcastViewModel}">
+            <pages:PodcastView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MyFavoriteMusicViewModel}">
+            <pages:MyFavoriteMusicView/>
+        </DataTemplate>
+
+        <!-- Ä¬ÈÏµ¼º½°´Å¥ÑùÊ½ -->
+        <Style x:Key="NavButtonStyle"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="FontSize"
+                    Value="16"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left"/>
+            <Setter Property="Padding"
+                    Value="15,12"/>
+            <Setter Property="Margin"
+                    Value="1,2"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Grid>
-                            <ScrollViewer x:Name="PART_ContentHost" />
-                            <TextBlock Text="è¾“å…¥æ­Œå•æ ‡é¢˜" Foreground="#888" 
-                                       Margin="{TemplateBinding Padding}"
-                                       IsHitTestVisible="False">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}" Value="">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </Grid>
+                    <ControlTemplate TargetType="Button">
+                        <ControlTemplate.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"
+                                        Value="15"/>
+                                <Style.Triggers>
+                                    <Trigger Property="FontFamily"
+                                             Value="Segoe MDL2 Assets">
+                                        <Setter Property="FontSize"
+                                                Value="20"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ControlTemplate.Resources>
+
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Stretch"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#333333"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <!-- è‡ªå®šä¹‰åˆ›å»ºæŒ‰é’®æ ·å¼ -->
-        <Style x:Key="CreateButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#4A4A4A"/>
-            <Setter Property="Foreground" Value="#AAAAAA"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="25,10"/>
-            <Setter Property="Cursor" Value="Hand"/>
+      
+        <!-- ·ÖÇø±êÌâÎÄ×ÖÑùÊ½ -->
+        <Style x:Key="SectionHeaderStyle"
+               TargetType="TextBlock">
+            <Setter Property="Foreground"
+                    Value="#888888"/>
+            <Setter Property="FontSize"
+                    Value="13"/>
+            <Setter Property="Margin"
+                    Value="20,25,20,10"/>
+        </Style>
+
+        <!-- ÐÂµÄ¡¢ÓÃÓÚµ¼º½ ListBoxItem µÄÑùÊ½ -->
+        <Style x:Key="NavListBoxItemStyle"
+                TargetType="ListBoxItem">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
+            <Setter Property="Margin"
+                    Value="0,2"/>
+            <Setter Property="Padding"
+                    Value="15,12"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="20">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
-                <!-- å½“æŒ‰é’®å¯ç”¨æ—¶ï¼Œå˜ä¸ºçº¢è‰² -->
-                <Trigger Property="IsEnabled" Value="True">
-                    <Setter Property="Background" Value="#CC3333"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
+                <DataTrigger Binding="{Binding IsSelected}"
+                        Value="True">
+                    <Setter Property="Background"
+                            Value="#EC4141"/>
+                    <Setter Property="Foreground"
+                            Value="White"/>
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsSelected}"
+                                Value="False"/>
+                        <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
+                                Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Background"
+                            Value="#333333"/>
+                </MultiDataTrigger>
             </Style.Triggers>
         </Style>
-
-        <!-- å…³é—­æŒ‰é’®æ ·å¼ -->
-        <Style x:Key="CloseButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#888"/>
-            <Setter Property="Width" Value="32"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-            <Setter Property="FontSize" Value="12"/>
+    
+        <!-- Îª ToggleButton ´´½¨Ò»¸ö×¨ÃÅµÄµ¼º½ÑùÊ½ -->
+        <Style x:Key="NavToggleButtonSyle"
+                TargetType="ToggleButton">
+            <!-- ÕâÀïµÄËùÓÐ Setter ¶¼ºÍ NavButtonStyle ÍêÈ«Ò»Ñù -->
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="FontSize"
+                    Value="16"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left"/>
+            <Setter Property="Padding"
+                    Value="15,12"/>
+            <Setter Property="Margin"
+                    Value="10,2"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="Transparent">
-                            <TextBlock Text="&#xE8BB;" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <!-- Ä£°åÄÚ²¿µÄ×ÊÔ´Ò²±£³Ö²»±ä -->
+                        <ControlTemplate.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize"
+                                        Value="15"/>
+                                <Style.Triggers>
+                                    <Trigger Property="FontFamily"
+                                            Value="Segoe MDL2 Assets">
+                                        <Setter Property="FontSize"
+                                                Value="20"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ControlTemplate.Resources>
+
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Stretch"/>
                         </Border>
+
+                        <ControlTemplate.Triggers>
+                            <!-- Trigger µÄ Property Ò²±£³Ö²»±ä -->
+                            <Trigger Property="IsMouseOver"
+                                    Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#333333"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-            </Style.Triggers>
+        </Style>
+        <!-- ================== ×Ô¶¨Òåµ¼º½ Expander ÑùÊ½ ================== -->
+        <Style x:Key="NavExpanderStyle"
+                TargetType="Expander">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#CCCCCC"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Padding"
+                    Value="15,12"/>
+            <Setter Property="Margin"
+                    Value="10,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <DockPanel>
+                            <!-- 1. Í·²¿ÇøÓò -->
+                            <ToggleButton DockPanel.Dock="Top"
+                                          IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Style="{StaticResource NavToggleButtonSyle}">
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Í·²¿ÄÚÈÝ (ÀýÈç "¸ü¶à") -->
+                                    <ContentPresenter Grid.Column="0"
+                                            ContentSource="Header"/>
+
+                                    <!-- Õ¹¿ª/ÕÛµþµÄ¼ýÍ· -->
+                                    <TextBlock x:Name="Arrow"
+                                            Grid.Column="1"
+                                               Text="&#xE70D;"
+                                               FontFamily="Segoe MDL2 Assets"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </ToggleButton>
+
+                            <!-- 2. ÄÚÈÝÇøÓò (´ø¶¯»­) -->
+                            <ContentPresenter x:Name="ContentSite"
+                                              DockPanel.Dock="Bottom"
+                                              Visibility="Collapsed"
+                                              Margin="20,0,0,0"/>
+                            <!-- ÄÚÈÝÏòÓÒËõ½ø -->
+                        </DockPanel>
+
+                        <ControlTemplate.Triggers>
+                            <!-- µ±Õ¹¿ªÊ± -->
+                            <Trigger Property="IsExpanded"
+                                    Value="True">
+                                <!-- ¼ýÍ·Ðý×ª -->
+                                <Setter TargetName="Arrow"
+                                        Property="Text"
+                                        Value="&#xE70E;"/>
+                                <!-- ChevronUp -->
+                                <!-- ÄÚÈÝÇøÓò±äÎª¿É¼û -->
+                                <Setter TargetName="ContentSite"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Header">
+                <Setter.Value>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="..."
+                                FontFamily="Segoe UI Symbol"
+                                VerticalAlignment="Center"
+                                FontSize="16"
+                                Margin="0,-4,0,0"/>
+                        <TextBlock Text="¸ü¶à"
+                                Margin="15,0,0,0"
+                                VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Setter.Value>
+            </Setter>
         </Style>
 
+        <!-- ScrollBar Thumb ÑùÊ½£¨Í¨ÓÃ£© -->
+        <Style x:Key="ScrollBarThumbStyle"
+               TargetType="{x:Type Thumb}">
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
+            <Setter Property="OverridesDefaultStyle"
+                    Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Rectangle x:Name="ThumbRect"
+                                   Fill="Blue"
+                                   RadiusX="2"
+                                   RadiusY="2"
+                                   Stroke="DarkBlue"
+                                   StrokeThickness="1"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="ThumbRect"
+                                        Property="Fill"
+                                        Value="LightBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging"
+                                     Value="True">
+                                <Setter TargetName="ThumbRect"
+                                        Property="Fill"
+                                        Value="DarkBlue"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ¹ìµÀÒ³°´Å¥ÑùÊ½£¨Í¸Ã÷£© -->
+        <Style x:Key="ScrollBarPageButtonStyle"
+               TargetType="{x:Type RepeatButton}">
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
+            <Setter Property="OverridesDefaultStyle"
+                    Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Ïß°´Å¥ÑùÊ½£¨¼ýÍ·£© -->
+        <Style x:Key="ScrollBarLineButtonStyle"
+               TargetType="{x:Type RepeatButton}">
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
+            <Setter Property="OverridesDefaultStyle"
+                    Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border x:Name="Border"
+                                Margin="1"
+                                CornerRadius="2"
+                                Background="LightGray"
+                                BorderBrush="Gray"
+                                BorderThickness="1">
+                            <Path x:Name="Arrow"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Fill="Black"
+                                  Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed"
+                                     Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="DarkGray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+       
     </Window.Resources>
+    
+    <!-- Ö÷ÈÝÆ÷£¬Ê¹ÓÃÔ²½Ç±ß¿ò°ü¹ü -->
+    <Border CornerRadius="8"
+            Background="#212121"
+            BorderBrush="#333"
+            BorderThickness="0"
+            ClipToBounds="True">
+        <Grid ShowGridLines="True">
 
-    <!-- æ ¹å®¹å™¨ï¼Œå¸¦åœ†è§’å’Œæ·±è‰²èƒŒæ™¯ -->
-    <Border Background="#2C2C2F" CornerRadius="8" Padding="20" MinWidth="400">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- æ ‡é¢˜è¡Œ -->
-                <RowDefinition Height="*"/>
-                <!-- å†…å®¹è¡Œ -->
-                <RowDefinition Height="Auto"/>
-                <!-- æŒ‰é’®è¡Œ -->
-            </Grid.RowDefinitions>
+            <Canvas IsHitTestVisible="False" Opacity="0.8">
+                <!-- Ó¦ÓÃÒ»¸ö·Ç³£´óµÄÄ£ºýÐ§¹û£¬ÈÃËùÓÐ¹âÔÎ¶¼ÈÚÎªÒ»Ìå -->
+                <Canvas.Effect>
+                    <BlurEffect Radius="150"/>
+                </Canvas.Effect>
 
-            <!-- æ ‡é¢˜å’Œå…³é—­æŒ‰é’® -->
-            <Grid Grid.Row="0" Margin="0,0,0,20">
-                <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" 
-                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <Button Style="{StaticResource CloseButtonStyle}" 
-                        Command="{Binding CancelCommand}"
-                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-                        HorizontalAlignment="Right" VerticalAlignment="Top"/>
-            </Grid>
+                <!-- 
+                  ÎÒÃÇ´´½¨¶à¸ö¾Þ´óµÄ¡¢°ëÍ¸Ã÷µÄÂÌÉ«ÍÖÔ²À´Ä£Äâ¼«¹â¹âÔÎ¡£
+                  ËüÃÇµÄÎ»ÖÃºÍ´óÐ¡¶¼¾­¹ý¾«ÐÄÉè¼Æ£¬ÒÔÄ£·ÂÍ¼Æ¬ÖÐµÄÐ§¹û¡£
+                -->
+                <!-- Ö÷ÒªµÄ¼«¹â´ø -->
+                <Ellipse x:Name="Aurora1" Width="1200" Height="400" 
+                         Fill="#FF00FF80" Canvas.Left="-200" Canvas.Top="50"/>
 
-            <!-- è¾“å…¥åŒºåŸŸ -->
-            <StackPanel Grid.Row="1">
-                <Border Background="#3D3D40" CornerRadius="8" Height="120">
-                    <Grid>
-                        <TextBox Style="{StaticResource CustomTextBoxStyle}"
-                                 Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBlock Text="{Binding RemainingCharsText}" 
-                                   Foreground="#888" FontSize="12"
-                                   HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                   Margin="0,0,15,10"/>
-                    </Grid>
-                </Border>
-                <CheckBox Content="è®¾ä¸ºéšç§æ­Œå•" IsChecked="{Binding IsPrivate}"
-                          Foreground="#CCCCCC" Margin="0,15,0,0"/>
-            </StackPanel>
+                <!-- ¸¨ÖúµÄ¡¢¸üÈáºÍµÄ¹âÔÎ -->
+                <Ellipse x:Name="Aurora2" Width="1000" Height="300" 
+                         Fill="#FF30D5C8" Canvas.Left="400" Canvas.Top="300"/>
 
-            <!-- åˆ›å»ºæŒ‰é’® -->
-            <Button Grid.Row="2" Content="åˆ›å»º" 
-                    HorizontalAlignment="Center" Margin="0,25,0,0"
-                    Command="{Binding OkCommand}"
-                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
-                <Button.Style>
-                    <!-- 
-          è¿™ä¸ª Style å·²ç»é€šè¿‡ BasedOn ç»§æ‰¿äº† CreateButtonStyle çš„æ‰€æœ‰æ ·å¼ï¼Œ
-          å¹¶ä¸”åœ¨å…¶åŸºç¡€ä¸Šå¢žåŠ äº†é€šè¿‡ DataTrigger æŽ§åˆ¶ IsEnabled çš„é€»è¾‘ã€‚
-          è¿™æ­£æ˜¯æˆ‘ä»¬æƒ³è¦çš„æ•ˆæžœã€‚
-        -->
-                    <Style TargetType="Button" BasedOn="{StaticResource CreateButtonStyle}">
-                        <Setter Property="IsEnabled" Value="False"/>
+                <!-- Î¢ÈõµÄ±³¾°¹â -->
+                <Ellipse x:Name="Aurora3" Width="800" Height="250" 
+                         Fill="#FF00A060" Canvas.Left="100" Canvas.Top="500"/>
+            </Canvas>
+            <Grid ShowGridLines="True"
+                  Background="Transparent"
+                  x:Name="MainContentGrid">
+                <!-- ¹Ø¼ü£ºÎªÖ÷ÄÚÈÝ Grid Ìí¼Ó Style -->
+                <Grid.Style>
+                    <Style TargetType="Grid">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding InputText, Converter={StaticResource StringToIsNotNullOrEmptyConverter}}" Value="True">
-                                <Setter Property="IsEnabled" Value="True"/>
+                            <!-- µ± IsOverlayVisible Îª True Ê± -->
+                            <DataTrigger Binding="{Binding IsOverlayVisible}"
+                                         Value="True">
+                                <!-- Îª×Ô¼ºÓ¦ÓÃÄ£ºýÐ§¹û -->
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <BlurEffect Radius="20"/>
+                                    </Setter.Value>
+                                </Setter>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </Button.Style>
-            </Button>
+                </Grid.Style>
+                <Grid.RowDefinitions>
+                    <!-- ¶¥²¿×Ô¶¨Òå±êÌâÀ¸ÇøÓò (¿ÉÑ¡£¬´Ë´¦¼ò»¯£¬¿ÉÌí¼ÓÍÏ¶¯ºÍ×îÐ¡»¯/¹Ø±Õ°´Å¥) -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Ö÷ÄÚÈÝÇøÓò -->
+                    <RowDefinition Height="*"/>
+                    <!-- µ×²¿²¥·ÅÆ÷¿ØÖÆÌõ -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- 1. ×Ô¶¨Òå±êÌâÀ¸ (¼ò»¯ÊµÏÖ) -->
+                <components:TitleBarView Grid.Row="0"
+                                         DataContext="{Binding TitleBarVM}"/>
+
+                <!-- 2. Ö÷ÄÚÈÝÇøÓò (Grid.Row="1") -->
+                <Grid Grid.Row="1"
+                      ShowGridLines="True">
+                    <Grid.ColumnDefinitions>
+                        <!-- ×ó²àµ¼º½À¸£¬¹Ì¶¨¿í¶È -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- ÓÒ²àÖ÷ÊÓÍ¼£¬Õ¼¾ÝÊ£Óà¿Õ¼ä -->
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ========================== -->
+                    <!-- ×ó²àµ¼º½À¸ (Grid.Column="0") -->
+                    <!-- ========================== -->
+
+                    <ScrollViewer Grid.Column="0"
+                                  Style="{StaticResource for_scrollviewer}"
+                                  x:Name="LeftNavScrollViewer" 
+                                  VerticalScrollBarVisibility="Auto">
+                        <Grid Background="#2D2D30"
+                              ShowGridLines="True">
+                            <!-- Ê¹ÓÃ StackPanel ÊµÏÖ´¹Ö±ÁÐ²¼¾Ö -->
+                            <StackPanel x:Name="NavStackPanel" 
+                                        VerticalAlignment="Top"
+                                        Margin="10,20,10,10">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Width" Value="200"/>
+                                        <!-- Ä¬ÈÏÕ¹¿ª¿í¶È -->
+                                        <Style.Triggers>
+                                            <!-- µ± IsLeftSidebarExpanded Îª false Ê±£¬¸Ä±ä¿í¶È -->
+                                            <DataTrigger Binding="{Binding DataContext.IsLeftSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                <Setter Property="Width" Value="60"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <!-- ÔÚ¶¥²¿Ìí¼ÓÒ»¸öÓÃÓÚÇÐ»»µÄ°´Å¥ -->
+                                <Button Command="{Binding ToggleLeftSidebarCommand}" HorizontalAlignment="Left" Style="{StaticResource NavButtonStyle}" Padding="10">
+                                    <TextBlock Text="&#xE700;" FontFamily="Segoe MDL2 Assets"/>
+                                    <!-- ºº±¤²Ëµ¥Í¼±ê -->
+                                </Button>
+                                <ListBox ItemsSource="{Binding MainNavigationItems}"
+                                         ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         d:ItemsSource="{d:SampleData ItemCount=5}"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Icon}"
+                                                        FontFamily="Segoe MDL2 Assets"
+                                                        FontSize="20"
+                                                        VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="15" VerticalAlignment="Center" Margin="15,0,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsLeftSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction
+                                                Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </ListBox>
+
+                                <Separator Margin="20,10"
+                                           Background="#444"/>
+                                <TextBlock Text="ÎÒµÄ"
+                                           Style="{StaticResource SectionHeaderStyle}"
+                                           Margin="10,20,20,10"/>
+
+                                <!-- ======================= µÚ¶þ¸öµ¼º½ÁÐ±í ======================= -->
+                                <ListBox ItemsSource="{Binding MyMusicNavigationItems}"
+                                         ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         d:ItemsSource="{d:SampleData ItemCount=4}"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Icon, FallbackValue='&#xE706;'}"
+                                                           FontFamily="Segoe MDL2 Assets"
+                                                           FontSize="20"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                        FontSize="15"
+                                                        VerticalAlignment="Center"
+                                                        Margin="15,0,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction
+                                                Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </ListBox>
+                                <!-- ================== ÐÞ¸ÄºóµÄ Expander ================== -->
+                                <Expander Style="{StaticResource NavExpanderStyle}">
+                                    <!-- Í·²¿ (Header) ±£³Ö²»±ä -->
+
+                                    <ListBox ItemsSource="{Binding MoreNavigationItems}"
+                                             ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+                                        <!-- ItemTemplate ¿ÉÒÔ¸´ÓÃÆäËûµ¼º½ ListBox µÄÄ£°å -->
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Icon}"
+                                                            FontFamily="Segoe MDL2 Assets"
+                                                            FontSize="20"
+                                                            VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                            FontSize="15"
+                                                            VerticalAlignment="Center"
+                                                            Margin="15,0,0,0"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+
+                                        <!-- ½»»¥Âß¼­Ò²ÍêÈ«¸´ÓÃ -->
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="SelectionChanged">
+                                                <i:InvokeCommandAction
+                                                    Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </ListBox>
+                                </Expander>
+
+                                <Separator Margin="20,10"
+                                           Background="#444"/>
+                                <Expander IsExpanded="True"
+                                          Foreground="#888888">
+                                    <Expander.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- ×ó²àµÄ±êÌâºÍÊýÁ¿ -->
+                                            <DockPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="ÊÕ²ØµÄ¸èµ¥"/>
+                                                <TextBlock Text="{Binding FavoritePlaylists.Count}" Margin="5,0,0,0"/>
+                                            </DockPanel>
+
+                                            <Button Grid.Column="1"
+                                                Content="&#xE710;" 
+                                                FontFamily="Segoe MDL2 Assets"
+                                                FontSize="12"
+                                                Margin="70,0,0,0"
+                                                Width="24" Height="24"
+                                                ToolTip="´´½¨ÐÂ¸èµ¥"
+                                                Command="{Binding CreatePlaylistCommand}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <!-- Ò»¸ö¼òµ¥µÄÍ¸Ã÷±³¾°Ô²ÐÎ°´Å¥ÑùÊ½ -->
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="Foreground" Value="#888"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Cursor" Value="Hand"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}" CornerRadius="12">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#3F3F3F"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+
+                                        </Grid>
+                                    </Expander.Header>
+
+                                    <ListBox
+                                        ItemsSource="{Binding FavoritePlaylists}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                        d:ItemsSource="{d:SampleData ItemCount=1}"
+                                        ItemContainerStyle="{StaticResource NavListBoxItemStyle}">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="SelectionChanged">
+                                                <i:InvokeCommandAction
+                                                    Command="{Binding DataContext.NavigatePlaylistCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid ShowGridLines="True">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <!-- ·âÃæÍ¼ºÍVIP½Ç±ê -->
+                                                    <Grid Grid.Column="0"
+                                                          Width="40"
+                                                          Height="40"
+                                                          ShowGridLines="True">
+                                                        <Border CornerRadius="4">
+                                                            <Border.Background>
+                                                                <ImageBrush ImageSource="{Binding CoverImageUrl,FallbackValue={StaticResource DefaultAvatarImage}}"
+                                                                            Stretch="UniformToFill"/>
+                                                            </Border.Background>
+                                                        </Border>
+                                                        <!-- VIP ½Ç±ê£¬Ê¹ÓÃ Trigger ¿ØÖÆ¿É¼ûÐÔ -->
+                                                        <Border Background="#D93B3B"
+                                                                CornerRadius="2"
+                                                                Padding="3,1"
+                                                                HorizontalAlignment="Left"
+                                                                VerticalAlignment="Top"
+                                                                Margin="-2,-2,0,0">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Visibility"
+                                                                            Value="Collapsed"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsVip}"
+                                                                                     Value="True">
+                                                                            <Setter Property="Visibility"
+                                                                                    Value="Visible"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock Text="VIP"
+                                                                       Foreground="White"
+                                                                       FontSize="9"
+                                                                       FontWeight="Bold"/>
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <!-- Ê¹ÓÃµ¥¸öTextBlock£¬²¢ÉèÖÃÏà¹ØÊôÐÔ -->
+                                                    <TextBlock Grid.Column="1"
+                                                               VerticalAlignment="Center"
+                                                               Margin="10,0,0,0"
+                                                               Foreground="White"
+                                                               Text="{Binding Title}"
+                                                               FontSize="10"
+                                                               TextWrapping="Wrap"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               LineHeight="14"
+                                                               MaxHeight="28">
+
+                                                        <TextBlock.ToolTip>
+                                                            <ToolTip Content="{Binding Title}"/>
+                                                        </TextBlock.ToolTip>
+
+                                                    </TextBlock>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Expander>
+
+
+                            </StackPanel>
+                        </Grid>
+
+                    </ScrollViewer>
+                    <!-- ÓÒ²àÖ÷ÊÓÍ¼£ºÄÚÈÝÓÉContentControl¸ù¾ÝCurrentView¶¯Ì¬ÏÔÊ¾ -->
+                    <ContentControl Grid.Column="1"
+                                    Content="{Binding CurrentView}"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"/>
+
+                </Grid>
+
+
+                <MediaElement x:Name="MediaPlayer"
+                              LoadedBehavior="Manual"
+                              UnloadedBehavior="Stop"
+                              Visibility="Collapsed"/>
+            </Grid>
+
+            <Grid x:Name="SignUpOverlayGrid"
+                  Background="#A0000000">
+
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <!-- 1. Ä¬ÈÏ×´Ì¬£º²»¿É¼û -->
+                        <Setter Property="Visibility"
+                                Value="Collapsed"/>
+                        <Style.Triggers>
+                            <!-- 2. µ± IsOverlayVisible Îª True Ê± -->
+                            <DataTrigger Binding="{Binding IsOverlayVisible}"
+                                         Value="True">
+                                <!-- 2a. ÈÃÕÚÕÖ²ã¿É¼û -->
+                                <Setter Property="Visibility"
+                                        Value="Visible"/>
+
+                            </DataTrigger>
+                            <!-- µ± IsOverlayVisible ±ä»Ø False Ê±£¬Setter µÄÐ§¹û»á×Ô¶¯³·Ïú -->
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseLeftButtonDown">
+                        <i:InvokeCommandAction
+                            Command="{Binding HideOverlayCommand}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+
+                <pages:SignUpView
+                    DataContext="{Binding SignUpVM}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MouseLeftButtonDown="SignUpView_MouseLeftButtonDown"
+                    Height="700"
+                    Width="1000"/>
+            </Grid>
+
+
+            <!-- ¶¨ÒåÒ»¸öÍø¸ñÈÝÆ÷£¬´¹Ö±¶ÔÆë·½Ê½Îªµ×²¿£¬ÃüÃûÎªPlayerContainerÒÔ±ãÔÚ´úÂëÖÐÒýÓÃ -->
+            <!-- ShowGridLines="True"ÓÃÓÚÏÔÊ¾Íø¸ñÏß£¬Í¨³£ÔÚµ÷ÊÔ½×¶ÎÊ¹ÓÃ£¬±ãÓÚ²¼¾Öµ÷Õû -->
+            <Grid VerticalAlignment="Bottom"
+                    x:Name="PlayerContainer"
+                    ShowGridLines="True">
+
+                <!-- Íø¸ñÈÝÆ÷µÄ´¥·¢Æ÷¼¯ºÏ£¬ÓÃÓÚ¶¨ÒåÏìÓ¦ÌØ¶¨ÊÂ¼þµÄ¶¯»­ÐÐÎª -->
+                <Grid.Triggers>
+                    <!-- Êó±ê½øÈëÍø¸ñÇøÓòÊ±´¥·¢µÄÊÂ¼þ´¥·¢Æ÷ -->
+                    <EventTrigger RoutedEvent="Grid.MouseEnter">
+                        <BeginStoryboard>
+                            <!-- ¶¯»­¹ÊÊÂ°å£¬°üº¬Ò»×éÒªÖ´ÐÐµÄ¶¯»­ -->
+                            <Storyboard>
+                                <!-- ¶¨ÒåÒ»¸öË«¾«¶ÈÊýÖµ¶¯»­£¬ÓÃÓÚ¿ØÖÆÔªËØµÄÆ½ÒÆÐ§¹û -->
+                                <DoubleAnimation 
+                                    Storyboard.TargetName="PlayerControl"  
+                                    Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                    To="0"
+                                    Duration="0:0:0.3">
+                                    <!-- ¶¯»­³ÖÐøÊ±¼ä£º0Ð¡Ê±0·Ö0.3Ãë -->
+
+                                    <!-- ¶¯»­µÄ»º¶¯º¯Êý£¬¿ØÖÆ¶¯»­ËÙ¶È±ä»¯ÇúÏß -->
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                        <!--  cubic»º¶¯Ä£Ê½£¬ÏÈ¿ìºóÂý£¬Ê¹¶¯»­¸ü×ÔÈ» -->
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+
+                    <!-- Êó±êÀë¿ªÍø¸ñÇøÓòÊ±´¥·¢µÄÊÂ¼þ´¥·¢Æ÷ -->
+                    <EventTrigger RoutedEvent="Grid.MouseLeave">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation 
+                                    Storyboard.TargetName="PlayerControl"  
+                                    Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                 
+                                    Duration="0:0:0.5">
+                                    <!-- ¶¯»­³ÖÐøÊ±¼ä£º0.5Ãë£¬±È»¬ÈëÉÔÂý£¬ÌáÉý½»»¥ÌåÑé -->
+
+                                    <!-- ¶¯»­½áÊøÊ±µÄÄ¿±êÖµ£¬°ó¶¨µ½PlayerControlµÄTagÊôÐÔ -->
+                                    <DoubleAnimation.To>
+                                        <Binding Path="Tag" ElementName="PlayerControl"/>
+                                    </DoubleAnimation.To>
+
+                                    <!-- »º¶¯º¯ÊýÉèÖÃÎªEaseIn£¬¼´ÏÈÂýºó¿ì£¬Ê¹Òþ²Ø¶¯»­¸ü×ÔÈ» -->
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseIn"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Grid.Triggers>
+
+                <!-- ×Ô¶¨Òå²¥·ÅÆ÷¿Ø¼þ£¬ÃüÃûÎªPlayerControlÒÔ±ã¶¯»­ÒýÓÃ -->
+                <components:PlayerControlView x:Name="PlayerControl"
+                                              DataContext="{Binding PlayerControlVM}"  
+                                              Tag="{Binding Path=ActualHeight, ElementName=PlayerControl}">
+                    <!-- TagÊôÐÔ´æ´¢¿Ø¼þ×ÔÉíµÄÊµ¼Ê¸ß¶È£¬ÓÃÓÚ¼ÆËãÒþ²ØÎ»ÖÃ -->
+
+                    <!-- ¶¨Òå¿Ø¼þµÄäÖÈ¾±ä»»£¬ÓÃÓÚÊµÏÖÆ½ÒÆ¶¯»­ -->
+                    <components:PlayerControlView.RenderTransform>
+                        <!-- ³õÊ¼×´Ì¬ÏÂ£¬YÖáÆ½ÒÆÖµ°ó¶¨µ½×ÔÉíTagÊôÐÔ£¨¼´×ÔÉí¸ß¶È£©£¬Ê¹¿Ø¼þÍêÈ«Òþ²ØÔÚÈÝÆ÷µ×²¿ -->
+                        <TranslateTransform Y="{Binding Path=Tag, ElementName=PlayerControl}"/>
+                    </components:PlayerControlView.RenderTransform>
+
+                </components:PlayerControlView>
+
+                <!-- µ×²¿Í¸Ã÷±ß¿ò£¬¸ß¶È20ÏñËØ -->
+                <!-- ×÷ÓÃ£ºÀ©Õ¹Êó±ê¼ì²âÇøÓò£¬¼´Ê¹Êó±êÒÆ¶¯µ½²¥·ÅÆ÷¿Ø¼þÏÂ·½µÄ¿Õ°×ÇøÓò£¬Ò²ÄÜ´¥·¢MouseEnterÊÂ¼þ£¬ÌáÉý½»»¥±ã½ÝÐÔ -->
+                <Border Height="20" VerticalAlignment="Bottom" Background="Transparent"/>
+
+            </Grid>
+
+
+            <!-- ½«Õâ¸öÈÝÆ÷µÄ VerticalAlignment ´Ó Bottom ¸ÄÎª Top -->
+            <!--<Grid VerticalAlignment="Top"
+                x:Name="SongDetailPage">
+
+                <Grid.Triggers>
+                    <EventTrigger RoutedEvent="Grid.MouseEnter">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="SongDetail"  
+                                     Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                     To="0"
+                                     Duration="0:0:1">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+
+                    <EventTrigger RoutedEvent="Grid.MouseLeave">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="SongDetail"  
+                                     Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                     Duration="0:0:0.5">
+                                    <DoubleAnimation.To>
+                                        <Binding Path="Tag" ElementName="SongDetail" Converter="{StaticResource InvertValueConverter}"/>
+                                    </DoubleAnimation.To>
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseIn"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Grid.Triggers>
+
+                <pages:SongDetailView x:Name="SongDetail"
+                          DataContext="{Binding SongDetailVM}"  
+                          Tag="{Binding Path=ActualHeight, ElementName=SongDetail}">
+                    <pages:SongDetailView.RenderTransform>
+                        <TranslateTransform Y="{Binding Path=Tag,ElementName=SongDetail, Converter={StaticResource InvertValueConverter}}"/>
+                    </pages:SongDetailView.RenderTransform>
+                </pages:SongDetailView>
+
+                --><!-- ¡¾ºËÐÄÐÞÕý #3¡¿: ½«´¥·¢ÇøÓòµÄ¶ÔÆë·½Ê½¸ÄÎª Top --><!--
+                <Border Height="40" VerticalAlignment="Top" Background="Transparent"/>
+
+            </Grid>-->
+
+            
         </Grid>
+        
+
     </Border>
+
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard>
+                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+
+                    <!-- ¶¯»­ Aurora1 -->
+                    <DoubleAnimation Storyboard.TargetName="Aurora1" Storyboard.TargetProperty="(Canvas.Left)" From="-200" To="400" Duration="0:0:25">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="Aurora1" Storyboard.TargetProperty="(Canvas.Top)" From="50" To="-50" Duration="0:0:35">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+
+                    <!-- ¶¯»­ Aurora2 -->
+                    <DoubleAnimation Storyboard.TargetName="Aurora2" Storyboard.TargetProperty="(Canvas.Left)" From="400" To="800" Duration="0:0:30">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="Aurora2" Storyboard.TargetProperty="(Canvas.Top)" From="300" To="500" Duration="0:0:40">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+
+                    <!-- ¶¯»­ Aurora3 -->
+                    <DoubleAnimation Storyboard.TargetName="Aurora3" Storyboard.TargetProperty="(Canvas.Left)" From="100" To="-100" Duration="0:0:45">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
 </Window>

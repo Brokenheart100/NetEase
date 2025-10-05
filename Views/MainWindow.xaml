@@ -19,10 +19,9 @@
         Width="1380">
 
     <Window.Resources>
-        <converters:InvertValueConverter x:Key="InvertValueConverter"/>
-        <converters:NegativeMarginConverter x:Key="NegativeMarginConverter"/>
+      
         <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/10.jpg" />
-        
+
         <DataTemplate DataType="{x:Type vmPlaylist:EditPlaylistViewModel}">
             <pagesPlaylist:EditPlaylistView/>
         </DataTemplate>
@@ -34,10 +33,10 @@
         <DataTemplate DataType="{x:Type vm:SearchResultViewModel}">
             <pages:SearchResultView/>
         </DataTemplate>
-        
-     
-            <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
-                <pages:FeaturedView/>
+
+
+        <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
+            <pages:FeaturedView/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type chatViewModels:FriendsViewModel}">
             <pages:FriendsView/>
@@ -107,7 +106,7 @@
             </Setter>
         </Style>
 
-      
+
         <!-- 分区标题文字样式 -->
         <Style x:Key="SectionHeaderStyle"
                TargetType="TextBlock">
@@ -164,7 +163,7 @@
                 </MultiDataTrigger>
             </Style.Triggers>
         </Style>
-    
+
         <!-- 为 ToggleButton 创建一个专门的导航样式 -->
         <Style x:Key="NavToggleButtonSyle"
                 TargetType="ToggleButton">
@@ -394,9 +393,9 @@
         </Style>
 
 
-       
+
     </Window.Resources>
-    
+
     <!-- 主容器，使用圆角边框包裹 -->
     <Border CornerRadius="8"
             Background="#212121"
@@ -929,14 +928,16 @@
                     </pages:SongDetailView.RenderTransform>
                 </pages:SongDetailView>
 
-                --><!-- 【核心修正 #3】: 将触发区域的对齐方式改为 Top --><!--
+                -->
+            <!-- 【核心修正 #3】: 将触发区域的对齐方式改为 Top -->
+            <!--
                 <Border Height="40" VerticalAlignment="Top" Background="Transparent"/>
 
             </Grid>-->
 
-            
+
         </Grid>
-        
+
 
     </Border>
 

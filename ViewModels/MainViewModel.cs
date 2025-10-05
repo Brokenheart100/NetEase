@@ -9,6 +9,8 @@ using NetEase.Views.PlaylistViews;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
+using Wpf.Ui.Abstractions;
+//using Wpf.Ui.Controls;
 
 namespace NetEase.ViewModels
 {
@@ -99,7 +101,19 @@ namespace NetEase.ViewModels
 
         [ObservableProperty]
         private string _searchText;
+        public ObservableCollection<object> NavigationItems { get; } = [];
+        /// <summary>
+        /// 绑定到 NavigationView 的主菜单项
+        /// </summary>
+        public ObservableCollection<object> MenuItems { get; } = new();
 
+        /// <summary>
+        /// 绑定到 NavigationView 的页脚菜单项
+        /// </summary>
+        public ObservableCollection<object> FooterMenuItems { get; } = new();
+
+        [ObservableProperty]
+        private object _selectedNavigationItem;
         /// <summary>
         /// 构造函数，通过依赖注入初始化服务和子视图模型
         /// 初始化导航项集合，并订阅关键事件
@@ -156,9 +170,27 @@ namespace NetEase.ViewModels
                 new NavigationItem { DisplayName = "云盘", Icon = "\uE713", ViewModelType = typeof(PodcastViewModel)  },
                 new NavigationItem { DisplayName = "已购", Icon = "\uE779", ViewModelType = typeof(PodcastViewModel)  }
             };
-
+            InitializeNavigation();
 
         }
+        private void InitializeNavigation()
+        {
+            NavigationItems.Add(new NavigationItem { DisplayName = "推荐", Icon = "\uE896", ViewModelType = typeof(FeaturedViewModel) });
+            NavigationItems.Add(new NavigationItem { DisplayName = "精选", Icon = "\uE8F1", ViewModelType = typeof(FeaturedViewModel) });
+            // ... 其他主导航项
+
+            NavigationItems.Add(new NavigationItem { ItemType = NavigationItemType.Separator }); // 添加分割线
+            NavigationItems.Add(new NavigationItem { DisplayName = "我的", ItemType = NavigationItemType.Header }); // 添加标题
+
+            NavigationItems.Add(new NavigationItem { DisplayName = "我喜欢的音乐", Icon = "\uE00B", ViewModelType = typeof(MyFavoriteMusicViewModel) });
+            NavigationItems.Add(new NavigationItem { DisplayName = "最近播放", Icon = "\uE823", ViewModelType = typeof(PodcastViewModel) });
+
+            var collectionsItem = new NavigationItem { DisplayName = "我的收藏", Icon = "\uE1DE" };
+            collectionsItem.Children.Add(new NavigationItem { DisplayName = "云盘", Icon = "\uE713", ViewModelType = typeof(PodcastViewModel) });
+            collectionsItem.Children.Add(new NavigationItem { DisplayName = "已购", Icon = "\uE779", ViewModelType = typeof(PodcastViewModel) });
+            MenuItems.Add(collectionsItem);
+        }
+    
         private async void OnSearchRequested(string query)
         {
             // 1. 切换当前视图为 SearchViewModel 的实例
@@ -242,22 +274,29 @@ namespace NetEase.ViewModels
         /// </summary>
         private async Task LoadUserSpecificDataAsync()
         {
-            // 获取用户的播放列表
             var playlistDtos = await _playlistService.GetMyPlaylistsAsync();
             if (playlistDtos != null)
             {
+                // 从配置中获取网关地址
+                var baseUrl = "http://localhost:5240";
+
                 FavoritePlaylists.Clear();
                 foreach (var dto in playlistDtos)
                 {
+                    string absoluteUrl = dto.CoverImageUrl;
+                    // 如果收到的URL不是一个完整的绝对URL，就手动拼接
+                    if (!string.IsNullOrEmpty(absoluteUrl) && !absoluteUrl.StartsWith("http"))
+                    {
+                        absoluteUrl = $"{baseUrl}{absoluteUrl}";
+                    }
+
                     FavoritePlaylists.Add(new Playlist
                     {
-                        Id = dto.Id,
-                        Title = dto.Name,
-                        CoverImageUrl = dto.CoverImageUrl // 若无封面则使用随机头像
+                        // ...
+                        CoverImageUrl = absoluteUrl
                     });
                 }
             }
-            // 可扩展：加载其他用户数据（如收藏、最近播放等）
         }
 
         #region 命令（由[RelayCommand]自动生成）

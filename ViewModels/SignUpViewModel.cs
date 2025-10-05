@@ -146,7 +146,7 @@ namespace NetEase.ViewModels
         {
             SavedUsers.Clear();
             var profiles = _profileService.LoadProfiles();
-            if (profiles.Any())
+            if (profiles.Count != 0)
             {
                 foreach (var profile in profiles)
                 {

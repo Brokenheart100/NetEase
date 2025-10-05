@@ -28,7 +28,7 @@ namespace NetEase.Services
                 {
                     Debug.WriteLine($"内部异常: {ex.InnerException.Message}");
                 }
-                return new List<Friend>();
+                return [];
             }
         }
     }

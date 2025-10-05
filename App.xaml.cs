@@ -134,7 +134,6 @@ namespace NetEase
             services.AddSingleton<SignUpViewModel>();
             // 文件服务（单例：处理文件操作的全局服务）
             services.AddSingleton<FileService>();
-            // 重复注册的SignalR服务（注意：实际开发中应避免重复注册，可能导致冲突）
             services.AddSingleton<SignalRService>();
             services.AddSingleton<UserProfileService>();
             services.AddSingleton<SearchService>();
@@ -170,6 +169,7 @@ namespace NetEase
             services.AddTransient<CommentViewModel>();
             services.AddTransient<CommentService>(); // 假设 CommentService 也需要注册
             services.AddTransient<CreateLPlaylistViewModel>();
+
 
             // --- 视图（View）注册 ---
             // 注册WPF窗口，用于通过依赖注入创建视图实例

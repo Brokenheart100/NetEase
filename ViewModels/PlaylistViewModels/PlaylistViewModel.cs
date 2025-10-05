@@ -27,7 +27,7 @@ namespace NetEase.ViewModels.PlaylistViewModels
 
         public ObservableCollection<Song> Songs { get; } = [];
 
-        // --- 页面头部信息 (可以保持不变) ---
+        
         public string CoverImageUrl { get; set; }
         public string PlaylistTitle { get; set; }
         public string Author { get; set; }
@@ -135,7 +135,7 @@ namespace NetEase.ViewModels.PlaylistViewModels
             Songs.Clear();
 
             // 目前，我们只加载本地歌曲
-            var defaultMusicPath = @"E:\Computer\C#\NetEaseProject\NetEase\music\";
+            var defaultMusicPath = @"E:\Computer\CSharp\AmericanMusicProject\AmericanMusic\NetEase\music\";
             if (Directory.Exists(defaultMusicPath))
             {
                 // 在后台线程扫描，避免 UI 卡顿
