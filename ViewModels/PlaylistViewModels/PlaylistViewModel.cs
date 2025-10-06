@@ -17,7 +17,7 @@ namespace NetEase.ViewModels.PlaylistViewModels
         private readonly PlayerService _playerService;
         private readonly PlaylistService _playlistService; // 假设未来会用它加载云端歌曲
         private int _currentPlaylistId;
-        private string _playlistDescription;
+        
         // --- 属性 ---
         [ObservableProperty]
         private bool _isLoading = true; // 启动时默认为加载状态
@@ -27,11 +27,23 @@ namespace NetEase.ViewModels.PlaylistViewModels
 
         public ObservableCollection<Song> Songs { get; } = [];
 
-        
-        public string CoverImageUrl { get; set; }
-        public string PlaylistTitle { get; set; }
-        public string Author { get; set; }
-        public string CreateDate { get; set; }
+        [ObservableProperty]
+        private string _coverImageUrl;
+
+        [ObservableProperty]
+        private string _playlistDescription;
+
+        [ObservableProperty]
+        private string _playlistTitle;
+
+        [ObservableProperty]
+        private string _author;
+
+        [ObservableProperty]
+        private string _createDate;
+
+        [ObservableProperty]
+        private string _authorAvatarUrl;
 
         public CommentViewModel CommentVM { get; }
         // 构造函数现在非常简洁，只负责依赖注入和命令初始化
@@ -49,8 +61,8 @@ namespace NetEase.ViewModels.PlaylistViewModels
             var playlistData = new Playlist
             {
                 Id = _currentPlaylistId,
-                Title = this.PlaylistTitle,
-                CoverImageUrl = this.CoverImageUrl,
+                Title = PlaylistTitle,
+                CoverImageUrl = CoverImageUrl,
                 Description = _playlistDescription,
             };
             // 触发事件，请求主窗口导航
@@ -98,10 +110,12 @@ namespace NetEase.ViewModels.PlaylistViewModels
                 {
                     // 1. 更新页面头部信息
                     PlaylistTitle = playlistDetail.Name;
-                    _playlistDescription = playlistDetail.Description;
+                    PlaylistDescription = playlistDetail.Description;
                     Author = playlistDetail.UserName;
                     CreateDate = playlistDetail.CreateDate.ToShortDateString();
                     CoverImageUrl = playlistDetail.CoverImageUrl;
+                    AuthorAvatarUrl = playlistDetail.AuthorAvatarUrl;
+                    Debug.WriteLine($"cover-{CoverImageUrl} authorUrl：{AuthorAvatarUrl}");
                     int index = 1;
                     foreach (var songDto in playlistDetail.Songs)
                     {
@@ -115,10 +129,9 @@ namespace NetEase.ViewModels.PlaylistViewModels
                             Duration = songDto.Duration,
                             CoverImageUrl = songDto.CoverImageUrl,
                             FilePath = songDto.FilePath,
-                            //IsLiked = songDto.
                         };
                         Songs.Add(song);
-                        Debug.WriteLine($"{song.Title}");
+                        Debug.WriteLine($"{song.Title} cover-{CoverImageUrl}");
                     }
                     SongCount = Songs.Count;
                 }

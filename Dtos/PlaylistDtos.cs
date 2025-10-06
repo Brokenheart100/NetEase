@@ -7,11 +7,10 @@ namespace NetEase.Dtos
     {
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public required string Name { get; set; }
+        public string AuthorAvatarUrl { get; set; }
     }
 
-    // --- PlaylistDetailDto ---
-    // 这个类用于表示从 API 获取到的播放列表的完整信息
     public class PlaylistDetailDto
     {
         public int Id { get; set; }
@@ -22,9 +21,9 @@ namespace NetEase.Dtos
         public DateTime CreateDate { get; set; }
         public List<SongDto> Songs { get; set; }
         public int TrackCount { get; set; }
+        public string AuthorAvatarUrl { get; set; }
     }
 
-    // --- PlaylistSummaryDto (用于列表显示) ---
     public class PlaylistSummaryDto
     {
         public int Id { get; set; }
@@ -35,5 +34,6 @@ namespace NetEase.Dtos
         public DateTime CreateDate { get; set; }
         public List<SongDto> Songs { get; set; }
         public int TrackCount { get; set; }
+        public string AuthorAvatarUrl { get; set; }
     }
 }

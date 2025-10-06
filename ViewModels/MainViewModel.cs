@@ -292,8 +292,10 @@ namespace NetEase.ViewModels
 
                     FavoritePlaylists.Add(new Playlist
                     {
-                        // ...
-                        CoverImageUrl = absoluteUrl
+                        Id = dto.Id,
+                        Title = dto.Name,
+                        CoverImageUrl = dto.CoverImageUrl,
+                        TrackCount = dto.TrackCount
                     });
                 }
             }

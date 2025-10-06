@@ -142,6 +142,7 @@ namespace NetEase.ViewModels
                 AvatarPreview = _selectedAvatarFilePath;
             }
         }
+
         private void LoadSavedProfiles()
         {
             SavedUsers.Clear();

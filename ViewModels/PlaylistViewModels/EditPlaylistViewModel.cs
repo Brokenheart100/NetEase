@@ -120,7 +120,8 @@ namespace NetEase.ViewModels.PlaylistViewModels
         partial void OnNameChanged(string value) => OnPropertyChanged(nameof(NameCharCount));
         partial void OnDescriptionChanged(string value) => OnPropertyChanged(nameof(DescriptionCharCount));
 
-        [RelayCommand]
+        private bool CanExecuteAsyncCommands() => !IsBusy;
+        [RelayCommand(CanExecute = nameof(CanExecuteAsyncCommands))]
         private async Task SaveAsync()
         {
             IsBusy = true;
