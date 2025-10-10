@@ -11,7 +11,7 @@
     public class LoginResponse
     {
         public string Message { get; set; }
-        public UserInfo User { get; set; }
+        public UserDto User { get; set; }
         public string Token { get; set; }
     }
 

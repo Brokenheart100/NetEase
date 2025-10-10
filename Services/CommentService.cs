@@ -26,7 +26,7 @@ namespace NetEase.Services
         /// <returns>评论模型列表</returns>
         public async Task<List<Comment>> GetCommentsAsync(string subjectId)
         {
-            if (string.IsNullOrEmpty(subjectId)) return new List<Comment>();
+            if (string.IsNullOrEmpty(subjectId)) return [];
 
             try
             {
@@ -51,7 +51,6 @@ namespace NetEase.Services
                             AvatarUrl = dto.User?.AvatarUrl,
                             LikeCount = dto.LikeCount,
                             CreatedAt = dto.CreatedAt
-                            // ... 映射 replies
                         });
                     }
                 }
@@ -60,7 +59,7 @@ namespace NetEase.Services
             catch (Exception ex)
             {
                 Debug.WriteLine($"[CommentService] Failed to get comments: {ex.Message}");
-                return new List<Comment>();
+                return [];
             }
         }
 

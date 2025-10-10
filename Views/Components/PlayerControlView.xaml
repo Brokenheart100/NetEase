@@ -376,7 +376,6 @@
                         <Button x:Name="VolumeButton"
                             Content="{Binding VolumeIcon}"
                             Style="{StaticResource IconButtonStyle}"
-                            Command="{Binding MuteCommand}"
                             ToolTip="音量"/>
 
                         <!-- 2. Popup 面板，它的显示/隐藏由下面的 Border 控制 -->

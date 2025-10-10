@@ -22,34 +22,46 @@
       
         <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/10.jpg" />
 
-        <DataTemplate DataType="{x:Type vmPlaylist:EditPlaylistViewModel}">
-            <pagesPlaylist:EditPlaylistView/>
-        </DataTemplate>
+        <Style TargetType="Grid" x:Key="NavContainerStyle">
+            <!-- 1. 默认状态 (收起) -->
+            <Setter Property="Width" Value="60"/>
+            <!-- 只够显示图标的宽度 -->
 
-        <DataTemplate DataType="{x:Type vmPlaylist:PlaylistViewModel}">
-            <pagesPlaylist:PlaylistView/>
-        </DataTemplate>
+            <Style.Triggers>
+                <!-- 触发器 1: 当 IsLeftSidebarExpanded 为 true 时 (“钉住”状态) -->
+                <!-- 无论鼠标是否悬浮，都强制展开 -->
+                <DataTrigger Binding="{Binding IsLeftSidebarExpanded}" Value="True">
+                    <Setter Property="Width" Value="200"/>
+                    <!-- 展开后的宽度 -->
+                </DataTrigger>
 
-        <DataTemplate DataType="{x:Type vm:SearchResultViewModel}">
-            <pages:SearchResultView/>
-        </DataTemplate>
+                <!-- 触发器 2: 当未被“钉住” 且 鼠标悬浮时 -->
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsLeftSidebarExpanded}" Value="False"/>
+                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                    </MultiDataTrigger.Conditions>
 
+                    <!-- 平滑展开的动画 -->
+                    <MultiDataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Width" To="200" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </MultiDataTrigger.EnterActions>
 
-        <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
-            <pages:FeaturedView/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type chatViewModels:FriendsViewModel}">
-            <pages:FriendsView/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:LocalMusicViewModel}">
-            <pages:LocalMusicView/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:PodcastViewModel}">
-            <pages:PodcastView/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:MyFavoriteMusicViewModel}">
-            <pages:MyFavoriteMusicView/>
-        </DataTemplate>
+                    <!-- 平滑收起的动画 -->
+                    <MultiDataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Width" To="60" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </MultiDataTrigger.ExitActions>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
 
         <!-- 默认导航按钮样式 -->
         <Style x:Key="NavButtonStyle"
@@ -128,7 +140,7 @@
             <Setter Property="Margin"
                     Value="0,2"/>
             <Setter Property="Padding"
-                    Value="15,12"/>
+                    Value="15"/>
             <Setter Property="HorizontalContentAlignment"
                     Value="Stretch"/>
             <Setter Property="Template">
@@ -392,8 +404,6 @@
             </Setter>
         </Style>
 
-
-
     </Window.Resources>
 
     <!-- 主容器，使用圆角边框包裹 -->
@@ -472,8 +482,8 @@
                     <!-- ========================== -->
                     <!-- 左侧导航栏 (Grid.Column="0") -->
                     <!-- ========================== -->
-
-                    <ScrollViewer Grid.Column="0"
+                    <Grid x:Name="LeftNavContainer" Grid.Column="0" Background="#2D2D30" Style="{StaticResource NavContainerStyle}">
+                        <ScrollViewer Grid.Column="0"
                                   Style="{StaticResource for_scrollviewer}"
                                   x:Name="LeftNavScrollViewer" 
                                   VerticalScrollBarVisibility="Auto">
@@ -498,7 +508,6 @@
                                 <!-- 在顶部添加一个用于切换的按钮 -->
                                 <Button Command="{Binding ToggleLeftSidebarCommand}" HorizontalAlignment="Left" Style="{StaticResource NavButtonStyle}" Padding="10">
                                     <TextBlock Text="&#xE700;" FontFamily="Segoe MDL2 Assets"/>
-                                    <!-- 汉堡菜单图标 -->
                                 </Button>
                                 <ListBox ItemsSource="{Binding MainNavigationItems}"
                                          ItemContainerStyle="{StaticResource NavListBoxItemStyle}"
@@ -552,7 +561,7 @@
                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
+                                                <StackPanel Orientation="Horizontal" ClipToBounds="True">
                                                 <TextBlock Text="{Binding Icon, FallbackValue='&#xE706;'}"
                                                            FontFamily="Segoe MDL2 Assets"
                                                            FontSize="20"
@@ -572,6 +581,8 @@
                                         </i:EventTrigger>
                                     </i:Interaction.Triggers>
                                 </ListBox>
+                                
+                                
                                 <!-- ================== 修改后的 Expander ================== -->
                                 <Expander Style="{StaticResource NavExpanderStyle}">
                                     <!-- 头部 (Header) 保持不变 -->
@@ -691,7 +702,7 @@
                                                           ShowGridLines="True">
                                                         <Border CornerRadius="4">
                                                             <Border.Background>
-                                                                <ImageBrush ImageSource="{Binding CoverImageUrl,FallbackValue={StaticResource DefaultAvatarImage}}"
+                                                                <ImageBrush ImageSource="{Binding CoverImageSource,FallbackValue={StaticResource DefaultAvatarImage}}"
                                                                             Stretch="UniformToFill"/>
                                                             </Border.Background>
                                                         </Border>
@@ -750,9 +761,11 @@
                         </Grid>
 
                     </ScrollViewer>
+                    </Grid>
                     <!-- 右侧主视图：内容由ContentControl根据CurrentView动态显示 -->
+                    
                     <ContentControl Grid.Column="1"
-                                    Content="{Binding CurrentView}"
+                                    Content="{Binding Navigation.CurrentView}"
                                     HorizontalContentAlignment="Stretch"
                                     VerticalContentAlignment="Stretch"/>
 

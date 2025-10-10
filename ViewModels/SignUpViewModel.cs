@@ -1,9 +1,11 @@
 ﻿// 引入MVVM工具包核心类（ObservableObject实现属性通知，RelayCommand实现命令绑定）
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Win32; // 引入文件对话框
 // 引入登录/注册相关的数据传输对象（DTO）
 using NetEase.Dtos;
+using NetEase.Messages;
 using NetEase.Models;
 // 引入应用程序设置（用于保存"记住用户名"等配置）
 using NetEase.Properties;
@@ -61,39 +63,45 @@ namespace NetEase.ViewModels
         public event EventHandler<LoginSuccessEventArgs> LoginSuccess;
         [ObservableProperty]
         private AuthViewState _currentState = AuthViewState.ProfileSelection;
-        public ObservableCollection<SavedUserProfile> SavedUsers { get; } = new();
+        public ObservableCollection<SavedUserProfile> SavedUsers { get; } = [];
 
 
         // --- 表单数据属性（绑定到UI输入框，存储用户输入） ---
         /// <summary>
         /// 邮箱地址（登录和注册的共用账号字段，绑定到邮箱输入框）
         /// </summary>
-        [ObservableProperty] private string _email;
+        [ObservableProperty] 
+        private string _email;
 
         /// <summary>
         /// 密码（绑定到密码输入框，登录和注册均需）
         /// </summary>
-        [ObservableProperty] private string _password;
+        [ObservableProperty] 
+        private string _password;
 
         /// <summary>
         /// 用户名（仅注册时需要，绑定到注册表单的姓名输入框）
         /// </summary>
-        [ObservableProperty] private string _name;
+        [ObservableProperty] 
+        private string _name;
 
         /// <summary>
         /// 手机号码（仅注册时需要，绑定到注册表单的手机号输入框）
         /// </summary>
-        [ObservableProperty] private string _mobileNumber;
+        [ObservableProperty] 
+        private string _mobileNumber;
 
         /// <summary>
         /// 错误信息（绑定到UI的错误提示区域，显示登录/注册失败原因）
         /// </summary>
-        [ObservableProperty] private string _errorMessage;
+        [ObservableProperty] 
+        private string _errorMessage;
 
         /// <summary>
         /// 是否正在处理（绑定到UI的加载指示器，登录/注册过程中显示加载状态）
         /// </summary>
-        [ObservableProperty] private bool _isProcessing;
+        [ObservableProperty] 
+        private bool _isProcessing;
         /// <summary>
         /// 用于在UI上实时预览用户选择的头像
         /// </summary>
@@ -203,7 +211,8 @@ namespace NetEase.ViewModels
             if (success)
             {
                 // 登录成功：触发LoginSuccess事件（通知主窗口切换界面）
-                LoginSuccess?.Invoke(this, new LoginSuccessEventArgs(response));
+                //LoginSuccess?.Invoke(this, new LoginSuccessEventArgs(response));
+                WeakReferenceMessenger.Default.Send(new LoginSuccessMessage(response));
                 _profileService.SaveProfile(response);
                 // 显示欢迎消息框
                 MessageBox.Show($"欢迎回来，{response.User.Name}！", "登录成功");
@@ -360,7 +369,8 @@ namespace NetEase.ViewModels
             if (success)
             {
                 // 登录成功后的逻辑与手动登录完全一样
-                LoginSuccess?.Invoke(this, new LoginSuccessEventArgs(response));
+                //LoginSuccess?.Invoke(this, new LoginSuccessEventArgs(response));
+                WeakReferenceMessenger.Default.Send(new LoginSuccessMessage(response));
                 _profileService.SaveProfile(response); // 刷新用户信息
 
                 // 确保“记住用户名”和“记住密码”的状态也保存

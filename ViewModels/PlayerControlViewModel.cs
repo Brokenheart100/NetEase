@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using NetEase.Messages;
 using NetEase.Models;
 using NetEase.Services;
 using System.Diagnostics;
@@ -11,7 +13,10 @@ namespace NetEase.ViewModels
     /// 播放器控制视图模型，继承自基础视图模型
     /// 负责处理播放器的各种控制逻辑（播放/暂停、音量调节、进度更新等）
     /// </summary>
-    public partial class PlayerControlViewModel : BaseViewModel
+    public partial class PlayerControlViewModel : BaseViewModel, 
+        IRecipient<PlaybackStatusChangedMessage>,
+        IRecipient<CurrentSongChangedMessage>,
+        IRecipient<ProgressUpdatedMessage>
     {
         // 播放器服务，用于处理实际的音频播放逻辑
         private readonly PlayerService _playerService;
@@ -27,7 +32,8 @@ namespace NetEase.ViewModels
         /// <summary>
         /// 当前正在播放的歌曲
         /// </summary>
-        [ObservableProperty] private Song _currentSong;
+        [ObservableProperty] 
+        private Song _currentSong;
 
         /// <summary>
         /// 播放音量（0.0-1.0范围）
@@ -40,22 +46,26 @@ namespace NetEase.ViewModels
         /// <summary>
         /// 播放/暂停按钮图标（使用Unicode字符表示）
         /// </summary>
-        [ObservableProperty] private string _playPauseIcon;
+        [ObservableProperty] 
+        private string _playPauseIcon;
 
         /// <summary>
         /// 当前播放进度（百分比，0-100）
         /// </summary>
-        [ObservableProperty] private double _currentProgress;
+        [ObservableProperty] 
+        private double _currentProgress;
 
         /// <summary>
         /// 当前播放时间（格式化字符串，如"02:30"）
         /// </summary>
-        [ObservableProperty] private string _currentTime;
+        [ObservableProperty] 
+        private string _currentTime;
 
         /// <summary>
         /// 歌曲总时长（格式化字符串，如"03:45"）
         /// </summary>
-        [ObservableProperty] private string _totalTime;
+        [ObservableProperty] 
+        private string _totalTime;
 
         /// <summary>
         /// 是否正在拖动进度条（用于避免拖动时频繁更新进度）
@@ -97,14 +107,15 @@ namespace NetEase.ViewModels
             _lastPlaybackVolume = 1.0;
 
             // 订阅播放器服务的事件，以便响应状态变化
-            _playerService.PlaybackStatusChanged += OnPlaybackStatusChanged;
-            _playerService.CurrentSongChanged += OnCurrentSongChanged;
-            _playerService.ProgressUpdated += OnProgressUpdated;
+            //_playerService.PlaybackStatusChanged += OnPlaybackStatusChanged;
+            //_playerService.CurrentSongChanged += OnCurrentSongChanged;
+            //_playerService.ProgressUpdated += OnProgressUpdated;
 
             // 初始化新歌曲的状态
             ResetForNewSong();
             // 初始化播放/暂停图标
             OnPlaybackStatusChanged();
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
 
         /// <summary>
@@ -165,7 +176,8 @@ namespace NetEase.ViewModels
             {
                 // 断点 B: 放在这里，确认条件是否满足
                 Debug.WriteLine($"CurrentSong is '{CurrentSong.Title}'. Firing event...");
-                ShowSongDetailRequested?.Invoke(this, CurrentSong);
+                //ShowSongDetailRequested?.Invoke(this, CurrentSong);
+                WeakReferenceMessenger.Default.Send(new ShowSongDetailMessage(CurrentSong));
             }
             else
             {
@@ -173,30 +185,40 @@ namespace NetEase.ViewModels
                 Debug.WriteLine("CurrentSong is null. Event not fired.");
             }
         }
-
-        // --- 事件处理器（响应播放器服务的事件） ---
-
-        /// <summary>
-        /// 处理播放进度更新事件
-        /// 更新当前进度、当前时间和总时长的显示
-        /// 拖动进度条时不更新（避免冲突）
-        /// </summary>
-        /// <param name="currentTime">当前播放时间</param>
-        /// <param name="totalTime">歌曲总时长</param>
-        private void OnProgressUpdated(TimeSpan currentTime, TimeSpan totalTime)
+        public void Receive(PlaybackStatusChangedMessage message)
         {
-            if (!IsDragging)
+            // 将 OnPlaybackStatusChanged 的逻辑搬到这里
+            switch (message.Value)
             {
-                // 避免除以零的错误（歌曲时长为0时不更新进度）
-                if (totalTime.TotalSeconds > 0)
-                {
-                    CurrentProgress = (currentTime.TotalSeconds / totalTime.TotalSeconds) * 100;
-                }
-                // 格式化时间显示（mm:ss格式）
-                CurrentTime = currentTime.ToString(@"mm\:ss");
-                TotalTime = totalTime.ToString(@"mm\:ss");
+                case PlaybackStatus.Playing: PlayPauseIcon = "\uE769"; break;
+                case PlaybackStatus.Paused:
+                case PlaybackStatus.Stopped: PlayPauseIcon = "\uE768"; break;
             }
         }
+
+        public void Receive(CurrentSongChangedMessage message)
+        {
+            // OnCurrentSongChanged 的逻辑已经由 [ObservableProperty] 自动处理
+            // 我们只需要更新 CurrentSong 属性即可
+            CurrentSong = message.Value;
+            ResetForNewSong();
+        }
+
+        public void Receive(ProgressUpdatedMessage message)
+        {
+            // 将 OnProgressUpdated 的逻辑搬到这里
+            if (!IsDragging)
+            {
+                var payload = message.Value;
+                if (payload.TotalTime.TotalSeconds > 0)
+                {
+                    CurrentProgress = (payload.CurrentTime.TotalSeconds / payload.TotalTime.TotalSeconds) * 100;
+                }
+                CurrentTime = payload.CurrentTime.ToString(@"mm\:ss");
+                TotalTime = payload.TotalTime.ToString(@"mm\:ss");
+            }
+        }
+     
 
         /// <summary>
         /// 当前歌曲变化时的处理方法（由ObservableProperty自动生成调用）

@@ -1,4 +1,4 @@
-ï»¿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using NetEase.Messages;
 using NetEase.Models;
 using System.Windows;
@@ -7,7 +7,7 @@ using System.Windows.Threading;
 
 namespace NetEase.Services
 {
-    // è¿™ä¸ªæœåŠ¡ä¸“é—¨ç”¨äºæ§åˆ¶ MainWindow ä¸­çš„ MediaElement
+    // Õâ¸ö·şÎñ×¨ÃÅÓÃÓÚ¿ØÖÆ MainWindow ÖĞµÄ MediaElement
     public class MediaPlayerService : 
         IRecipient<PlayRequestedMessage>,
         IRecipient<PlaybackStatusChangedMessage>,
@@ -16,7 +16,7 @@ namespace NetEase.Services
     {
         private MediaElement _mediaPlayer;
         private readonly DispatcherTimer _timer = new DispatcherTimer();
-        private readonly PlayerService _playerService; // å®ƒéœ€è¦ PlayerService æ¥å¹¿æ’­è¿›åº¦
+        private readonly PlayerService _playerService; // ËüĞèÒª PlayerService À´¹ã²¥½ø¶È
 
         public MediaPlayerService(PlayerService playerService)
         {
@@ -26,11 +26,17 @@ namespace NetEase.Services
             WeakReferenceMessenger.Default.RegisterAll(this);
         }
 
-        // MainWindow åœ¨åŠ è½½æ—¶ï¼Œä¼šè°ƒç”¨è¿™ä¸ªæ–¹æ³•æ¥â€œæ³¨å†Œâ€å®ƒçš„ MediaElement
+        // MainWindow ÔÚ¼ÓÔØÊ±£¬»áµ÷ÓÃÕâ¸ö·½·¨À´¡°×¢²á¡±ËüµÄ MediaElement
         public void Initialize(MediaElement mediaPlayer)
         {
             _mediaPlayer = mediaPlayer;
             _mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+
+            // ¶©ÔÄÀ´×Ô PlayerService µÄÃüÁî
+            //_playerService.PlayRequested += OnPlayRequested;
+            //_playerService.PlaybackStatusChanged += OnPlaybackStatusChanged;
+            //_playerService.SeekRequested += OnSeekRequested;
+            //_playerService.VolumeChanged += OnVolumeChanged;
         }
         public void Receive(PlayRequestedMessage message)
         {
@@ -72,22 +78,67 @@ namespace NetEase.Services
                 _mediaPlayer.Volume = message.Value;
             }
         }
+        private void OnPlayRequested(Song songToPlay)
+        {
+            if (_mediaPlayer == null || songToPlay == null || string.IsNullOrEmpty(songToPlay.FilePath))
+            {
+                _timer.Stop();
+                return;
+            }
+            _mediaPlayer.Source = new Uri(songToPlay.FilePath, UriKind.Absolute);
+        }
+
+        private void OnPlaybackStatusChanged()
+        {
+            if (_mediaPlayer == null) return;
+            switch (_playerService.CurrentStatus)
+            {
+                case PlaybackStatus.Playing:
+                    _mediaPlayer.Play();
+                    _timer.Start();
+                    break;
+                case PlaybackStatus.Paused:
+                    _mediaPlayer.Pause();
+                    _timer.Stop();
+                    break;
+                case PlaybackStatus.Stopped:
+                    _mediaPlayer.Stop();
+                    _timer.Stop();
+                    break;
+            }
+        }
 
         private void Timer_Tick(object sender, EventArgs e)
         {
             if (_mediaPlayer.Source == null || !_mediaPlayer.NaturalDuration.HasTimeSpan) return;
 
-            // é€šçŸ¥ PlayerService æ›´æ–°è¿›åº¦
+            // Í¨Öª PlayerService ¸üĞÂ½ø¶È
             _playerService.UpdateProgress(
                 _mediaPlayer.Position,
                 _mediaPlayer.NaturalDuration.TimeSpan);
         }
 
+        private void OnSeekRequested(double percentage)
+        {
+            if (_mediaPlayer.NaturalDuration.HasTimeSpan)
+            {
+                var newPosition = TimeSpan.FromSeconds(
+                    _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds * (percentage / 100.0));
+                _mediaPlayer.Position = newPosition;
+            }
+        }
 
         private void MediaPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
             _playerService.PlayNextSong();
         }
 
+        private void OnVolumeChanged(double newVolume)
+        {
+            if (_mediaPlayer != null)
+            {
+                _mediaPlayer.Volume = newVolume;
+            }
+        }
     }
 }

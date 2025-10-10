@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NetEase.Services;
+using NetEase.Services.NavigationService;
 using NetEase.ViewModels;
 using NetEase.ViewModels.ChatViewModels;
-using NetEase.ViewModels.MusicRowContextMenu;
 using NetEase.ViewModels.PlaylistViewModels;
 using NetEase.Views;
 using System.Net.Http;
@@ -48,6 +49,12 @@ namespace NetEase
             // --- HTTP 客户端配置 ---
             // 注册HttpClient单例实例，用于网络请求
             // 配置基础地址为后端API服务地址（此处为本地开发环境地址）
+            services.AddLogging(configure =>
+            {
+                // 添加调试输出提供程序
+                configure.AddDebug();
+            });
+
             //http://localhost:5215
             services.AddSingleton<HttpClient>(sp => new HttpClient
             {
@@ -99,6 +106,7 @@ namespace NetEase
             //Now listening on: https://localhost:7269
             //info: Microsoft.Hosting.Lifetime[14]
             //Now listening on: http://localhost:5240
+
             // --- 业务服务注册 ---
             // 注册应用的核心业务服务，按功能划分，生命周期根据需求设置
             // 认证服务（单例：全局共享一个认证状态实例）
@@ -117,6 +125,9 @@ namespace NetEase
             services.AddSingleton<CredentialService>();
             services.AddTransient<LyricService>();
             services.AddSingleton<SongService>();
+            services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<CurrentUserStateService>();
+            services.AddSingleton<ICacheService, FileCacheService>();
 
             //services.AddHttpClient<ImageCacheService>();
             // --- 视图模型（ViewModel）注册 ---
@@ -137,6 +148,7 @@ namespace NetEase
             services.AddSingleton<SignalRService>();
             services.AddSingleton<UserProfileService>();
             services.AddSingleton<SearchService>();
+            services.AddHttpClient<CacheService>();
 
             // 我的收藏音乐视图模型（transient：每次打开页面创建新实例）
             services.AddTransient<MyFavoriteMusicViewModel>();
@@ -171,8 +183,6 @@ namespace NetEase
             services.AddTransient<CreateLPlaylistViewModel>();
 
 
-            // --- 视图（View）注册 ---
-            // 注册WPF窗口，用于通过依赖注入创建视图实例
 
             // 主窗口（单例：应用程序唯一的主窗口）
             services.AddSingleton<MainWindow>();
@@ -184,11 +194,13 @@ namespace NetEase
         /// 在应用启动时从依赖注入容器中获取主窗口并显示
         /// </summary>
         /// <param name="e">启动事件参数（包含命令行参数等）</param>
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             // 调用基类启动逻辑
             base.OnStartup(e);
 
+            var cacheService = ServiceProvider.GetRequiredService<ICacheService>();
+            await cacheService.InitializeAsync();
             // 从依赖注入容器中获取主窗口实例
             // 容器会自动解析MainWindow的所有依赖（如构造函数中的MainViewModel）
             var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
@@ -198,9 +210,3 @@ namespace NetEase
         }
     }
 }
-
-// {
-//     "songId": 1,
-//   "userId": 1,
-//   "content": "这是一条来自Swagger的测试评论！"
-// }

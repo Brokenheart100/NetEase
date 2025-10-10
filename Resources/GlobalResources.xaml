@@ -1,6 +1,12 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:converters="clr-namespace:NetEase.Converters">
+                    xmlns:behaviors="clr-namespace:NetEase.Behaviors"
+                    xmlns:converters="clr-namespace:NetEase.Converters"
+                    xmlns:pages="clr-namespace:NetEase.Views.Pages"
+                    xmlns:vm="clr-namespace:NetEase.ViewModels"
+                    xmlns:chatViewModels="clr-namespace:NetEase.ViewModels.ChatViewModels"
+                    xmlns:playlistViews="clr-namespace:NetEase.Views.PlaylistViews"
+                    xmlns:vmPlaylist="clr-namespace:NetEase.ViewModels.PlaylistViewModels">
 
     <Style x:Key="NavListBoxItemStyle" TargetType="ListBoxItem" 
            BasedOn="{StaticResource {x:Type ListBoxItem}}">
@@ -16,6 +22,77 @@
     <converters:InvertValueConverter x:Key="InvertValueConverter"/>
     <converters:NegativeMarginConverter x:Key="NegativeMarginConverter"/>
     <converters:AsyncImageConverter x:Key="AsyncImageConverter"/>
+    <converters:StringToIsNotNullOrEmptyConverter x:Key="StringToIsNotNullOrEmptyConverter"/>
+
+    <DataTemplate DataType="{x:Type vmPlaylist:EditPlaylistViewModel}">
+        <playlistViews:EditPlaylistView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vmPlaylist:PlaylistViewModel}">
+        <playlistViews:PlaylistView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:SearchResultViewModel}">
+        <pages:SearchResultView/>
+    </DataTemplate>
+
+
+    <DataTemplate DataType="{x:Type vm:FeaturedViewModel}">
+        <pages:FeaturedView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type chatViewModels:FriendsViewModel}">
+        <pages:FriendsView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:LocalMusicViewModel}">
+        <pages:LocalMusicView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:PodcastViewModel}">
+        <pages:PodcastView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:MyFavoriteMusicViewModel}">
+        <pages:MyFavoriteMusicView/>
+    </DataTemplate>
+
+    <Style x:Key="IconButtonStyle"
+           TargetType="Button">
+        <Setter Property="Background"
+                Value="Transparent"/>
+        <Setter Property="Foreground"
+                Value="#CCCCCC"/>
+        <Setter Property="BorderThickness"
+                Value="0"/>
+        <Setter Property="Width"
+                Value="32"/>
+        <Setter Property="Height"
+                Value="32"/>
+        <Setter Property="FontSize"
+                Value="18"/>
+        <Setter Property="FontFamily"
+                Value="Segoe MDL2 Assets"/>
+        <Setter Property="Cursor"
+                Value="Hand"/>
+        <Setter Property="Margin"
+                Value="0,0,1,0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <!-- 我们需要一个模板来确保背景真正受我们控制 -->
+                    <Border Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+                <Setter Property="Foreground"
+                        Value="White"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
 
     <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
         <Setter Property="OverridesDefaultStyle" Value="true" />

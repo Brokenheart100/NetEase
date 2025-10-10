@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NetEase.Views.MusicRowContextMenu" 
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
-        xmlns:musicrowcontextmenu="clr-namespace:NetEase.ViewModels.MusicRowContextMenu" 
-        d:DataContext="{d:DesignInstance Type=musicrowcontextmenu:AddToPlaylistViewModel}"
+        xmlns:playlistViewModels="clr-namespace:NetEase.ViewModels.PlaylistViewModels"
+        d:DataContext="{d:DesignInstance Type=playlistViewModels:AddToPlaylistViewModel}"
         mc:Ignorable="d"
         Title="AddToPlaylistView"
         Height="450"
-        Width="800">
+        Width="400">
     <Grid Background="#2D2D30" ShowGridLines="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

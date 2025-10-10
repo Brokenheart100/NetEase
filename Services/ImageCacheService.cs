@@ -24,7 +24,30 @@ namespace NetEase.Services
                 Directory.CreateDirectory(_cacheDirectory);
             }
         }
+        private string GetBaseCachePath()
+        {
+#if DEBUG
+            // --- 在调试 (DEBUG) 模式下 ---
+            // 目标：找到解决方案根目录 (包含 .sln 文件的目录)
+            string currentDir = AppDomain.CurrentDomain.BaseDirectory;
+            // 循环向上查找，直到找到 .sln 文件
+            while (currentDir != null && !Directory.GetFiles(currentDir, "*.sln").Any())
+            {
+                currentDir = Directory.GetParent(currentDir)?.FullName;
+            }
 
+            // 如果找到了解决方案目录，就在它下面创建 .cache 文件夹
+            // 如果没找到，就使用当前工作目录
+            var rootPath = currentDir ?? Directory.GetCurrentDirectory();
+            return Path.Combine(rootPath, ".cache"); // 使用 .cache 文件夹，符合现代工具的习惯
+
+#else
+            // --- 在发布 (RELEASE) 模式下 ---
+            // 使用 AppData\Local，这是生产环境的最佳实践
+            string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            return Path.Combine(appDataPath, "NetEaseApp", "Cache");
+#endif
+        }
         /// <summary>
         /// 核心方法：根据URL获取本地缓存的图片路径。如果缓存不存在，则下载它。
         /// </summary>

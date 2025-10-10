@@ -5,13 +5,13 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using NetEase.Helpers;
 using NetEase.Models;
 using NetEase.Services;
-using NetEase.ViewModels.MusicRowContextMenu;
 using NetEase.Views.MusicRowContextMenu;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
+using NetEase.ViewModels.PlaylistViewModels;
 using static NetEase.Converters.RandomNumber;
 
 namespace NetEase.ViewModels
@@ -222,41 +222,7 @@ namespace NetEase.ViewModels
 
             }
         }
-        public async Task LoadInitialPlaylistAsync()
-        {
-            Debug.WriteLine("Enter LoadInitialPlaylistAsync() ");
-            IsLoading = true;
-            Songs.Clear();
-            try
-            {
-                // 1. 获取当前用户的所有播放列表摘要
-                var myPlaylists = await _playlistService.GetMyPlaylistsAsync();
-
-                // 2. 找到第一个播放列表（或者可以根据名字查找 "我喜欢的音乐"）
-                var firstPlaylist = myPlaylists?.FirstOrDefault();
-
-                if (firstPlaylist != null)
-                {
-                    // 3. 如果找到了，就去加载这个播放列表的详细信息
-                    await LoadPlaylistAsync(firstPlaylist.Id);
-                }
-                else
-                {
-                    // 没有找到任何播放列表
-                    PlaylistTitle = "没有找到播放列表";
-                    // 可以在这里显示一个“创建播放列表”的提示
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error loading initial playlist: {ex.Message}");
-                PlaylistTitle = "加载失败";
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
+      
         public async Task LoadPlaylistAsync(int playlistId)
         {
             Debug.WriteLine($"Enter LoadPlaylistAsync playlistId:{playlistId} ");
@@ -299,28 +265,7 @@ namespace NetEase.ViewModels
                 IsLoading = false;
             }
         }
-        private async Task LoadDataAsync()
-        {
-            IsLoading = true;
-            Songs.Clear();
-
-            // --- 逻辑整合 ---
-            // 在这里，您可以决定加载顺序和逻辑。
-            // 例如，未来可以先从 API 加载云端收藏的歌曲。
-            // var cloudSongs = await _playlistService.GetMyFavoriteSongsAsync();
-            //foreach (var song in cloudSongs) { Songs.Add(song); }
-
-            // 目前，我们只加载本地歌曲
-            string defaultMusicPath = @"E:\Computer\VS\NetEase\music";
-            if (Directory.Exists(defaultMusicPath))
-            {
-                // 在后台线程扫描，避免 UI 卡顿
-                await Task.Run(() => ScanAndLoadSongsFromPath(defaultMusicPath));
-            }
-
-            SongCount = Songs.Count;
-            IsLoading = false;
-        }
+      
         [RelayCommand]
         private void PlaySong(Song? song)
         {
@@ -328,88 +273,6 @@ namespace NetEase.ViewModels
             if (song != null)
             {
                 _playerService.StartPlayback(song, this.Songs);
-            }
-        }
-        [RelayCommand]
-        private void AddLocalFolder()
-        {
-            var dialog = new CommonOpenFileDialog { IsFolderPicker = true };
-            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                // 异步扫描新文件夹
-                Task.Run(() => ScanAndLoadSongsFromPath(dialog.FileName));
-            }
-        }
-        private void ScanAndLoadSongsFromPath(string folderPath)
-        {
-            var supportedExtensions = new[] { ".mp3", ".flac", ".wav", ".wma", ".m4a" };
-            try
-            {
-                var audioFiles = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.AllDirectories)
-                    .Where(file => supportedExtensions.Contains(Path.GetExtension(file).ToLower()));
-
-                foreach (var file in audioFiles)
-                {
-                    // 检查重复
-                    bool exists = false;
-                    App.Current.Dispatcher.Invoke(() =>
-                    {
-                        exists = Songs.Any(s => s.FilePath == file);
-                    });
-                    if (exists) continue;
-
-                    var tagFile = TagLib.File.Create(file);
-                    var coverImage = ImageHelper.CreateImageFromPicture(tagFile.Tag.Pictures.FirstOrDefault());
-
-                    var song = new Song
-                    {
-                        // Index 将在添加到集合后设置
-                        Title = string.IsNullOrEmpty(tagFile.Tag.Title) ? Path.GetFileNameWithoutExtension(file) : tagFile.Tag.Title,
-                        Artist = tagFile.Tag.FirstPerformer ?? "未知艺术家",
-                        Album = tagFile.Tag.Album ?? "未知专辑",
-                        Duration = tagFile.Properties.Duration.ToString(@"mm\:ss"),
-                        FilePath = file,
-                        CoverImage = coverImage,
-                        IsDownloaded = true,
-
-                    };
-
-                    // 关键：修改 ObservableCollection 必须在 UI 线程上进行
-                    App.Current.Dispatcher.Invoke(() =>
-                    {
-                        // 这段代码块内的所有代码，都会在 UI 线程上安全地执行
-                        if (!Songs.Any(s => s.FilePath == file))
-                        {
-                            // 在 UI 线程上创建 SongTag 和 Brushes
-                            song.Tags = new List<SongTag>
-                            {
-                                new SongTag
-                                {
-                                    Text = "超清母带",
-                                    Background = Brushes.Transparent,
-                                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D0A9F5")),
-                                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D0A9F5"))
-                                },
-                                new SongTag
-                                {
-                                    Text = "VIP",
-                                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF5C5C")),
-                                    Background = Brushes.Transparent,
-                                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF5C5C"))
-                                }
-                            };
-
-                            song.Index = Songs.Count + 1;
-                            Songs.Add(song);
-                            SongCount = Songs.Count;
-                        }
-
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"扫描文件夹 '{folderPath}' 时出错: {ex.Message}");
             }
         }
     }

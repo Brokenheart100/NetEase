@@ -17,7 +17,7 @@ using System.Windows;
 
 // 命名空间：属于音乐行上下文菜单相关的视图模型
 // 遵循MVVM模式，ViewModel层负责处理业务逻辑并为View提供数据
-namespace NetEase.ViewModels.MusicRowContextMenu
+namespace NetEase.ViewModels.PlaylistViewModels
 {
     /// <summary>
     /// 用于处理"添加到播放列表"功能的视图模型

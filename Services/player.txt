@@ -1,4 +1,4 @@
-ï»¿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using NetEase.Messages;
 using NetEase.Models;
 using System.Diagnostics;
@@ -8,309 +8,309 @@ using System.Windows.Threading;
 namespace NetEase.Services
 {
     /// <summary>
-    /// æ’­æ”¾çŠ¶æ€æšä¸¾ï¼Œå®šä¹‰æ’­æ”¾å™¨å¯èƒ½çš„ä¸‰ç§çŠ¶æ€
+    /// ²¥·Å×´Ì¬Ã¶¾Ù£¬¶¨Òå²¥·ÅÆ÷¿ÉÄÜµÄÈıÖÖ×´Ì¬
     /// </summary>
     public enum PlaybackStatus { Playing, Paused, Stopped }
 
     /// <summary>
-    /// æ’­æ”¾å™¨æœåŠ¡ç±»ï¼Œè´Ÿè´£ç®¡ç†éŸ³ä¹æ’­æ”¾é€»è¾‘ã€çŠ¶æ€è·Ÿè¸ªåŠäº‹ä»¶é€šçŸ¥
-    /// è®¾è®¡ä¸ºå¯è¢«ä¾èµ–æ³¨å…¥(DI)å®¹å™¨å®ä¾‹åŒ–çš„æ™®é€šç±»
+    /// ²¥·ÅÆ÷·şÎñÀà£¬¸ºÔğ¹ÜÀíÒôÀÖ²¥·ÅÂß¼­¡¢×´Ì¬¸ú×Ù¼°ÊÂ¼şÍ¨Öª
+    /// Éè¼ÆÎª¿É±»ÒÀÀµ×¢Èë(DI)ÈİÆ÷ÊµÀı»¯µÄÆÕÍ¨Àà
     /// </summary>
     public class PlayerService
     {
         /// <summary>
-        /// åª’ä½“å…ƒç´ å¯¹è±¡ï¼Œç”¨äºå®é™…å¤„ç†åª’ä½“æ–‡ä»¶çš„æ’­æ”¾ï¼ˆå¦‚éŸ³é¢‘æ–‡ä»¶ï¼‰
-        /// é€šå¸¸ç”±å¤–éƒ¨è§†å›¾å±‚æ³¨å…¥æˆ–å…³è”
+        /// Ã½ÌåÔªËØ¶ÔÏó£¬ÓÃÓÚÊµ¼Ê´¦ÀíÃ½ÌåÎÄ¼şµÄ²¥·Å£¨ÈçÒôÆµÎÄ¼ş£©
+        /// Í¨³£ÓÉÍâ²¿ÊÓÍ¼²ã×¢Èë»ò¹ØÁª
         /// </summary>
         private MediaElement _mediaElement;
 
         /// <summary>
-        /// è¿›åº¦æ›´æ–°å®šæ—¶å™¨ï¼Œç”¨äºå®šæœŸè§¦å‘æ’­æ”¾è¿›åº¦æ›´æ–°äº‹ä»¶
+        /// ½ø¶È¸üĞÂ¶¨Ê±Æ÷£¬ÓÃÓÚ¶¨ÆÚ´¥·¢²¥·Å½ø¶È¸üĞÂÊÂ¼ş
         /// </summary>
         private DispatcherTimer _progressTimer;
 
-        // --- äº‹ä»¶å®šä¹‰ ---
+        // --- ÊÂ¼ş¶¨Òå ---
 
         /// <summary>
-        /// æ’­æ”¾è¯·æ±‚äº‹ä»¶ï¼Œå½“éœ€è¦æ’­æ”¾æŒ‡å®šæ­Œæ›²æ—¶è§¦å‘
-        /// äº‹ä»¶å‚æ•°ä¸ºå¾…æ’­æ”¾çš„æ­Œæ›²å¯¹è±¡
+        /// ²¥·ÅÇëÇóÊÂ¼ş£¬µ±ĞèÒª²¥·ÅÖ¸¶¨¸èÇúÊ±´¥·¢
+        /// ÊÂ¼ş²ÎÊıÎª´ı²¥·ÅµÄ¸èÇú¶ÔÏó
         /// </summary>
         public event Action<Song> PlayRequested;
 
         /// <summary>
-        /// æ’­æ”¾çŠ¶æ€å˜æ›´äº‹ä»¶ï¼Œå½“æ’­æ”¾çŠ¶æ€ï¼ˆæ’­æ”¾/æš‚åœ/åœæ­¢ï¼‰å‘ç”Ÿå˜åŒ–æ—¶è§¦å‘
+        /// ²¥·Å×´Ì¬±ä¸üÊÂ¼ş£¬µ±²¥·Å×´Ì¬£¨²¥·Å/ÔİÍ£/Í£Ö¹£©·¢Éú±ä»¯Ê±´¥·¢
         /// </summary>
         public event Action PlaybackStatusChanged;
 
         /// <summary>
-        /// å½“å‰æ­Œæ›²å˜æ›´äº‹ä»¶ï¼Œå½“åˆ‡æ¢åˆ°æ–°æ­Œæ›²æ—¶è§¦å‘
-        /// äº‹ä»¶å‚æ•°ä¸ºæ–°çš„å½“å‰æ­Œæ›²å¯¹è±¡
+        /// µ±Ç°¸èÇú±ä¸üÊÂ¼ş£¬µ±ÇĞ»»µ½ĞÂ¸èÇúÊ±´¥·¢
+        /// ÊÂ¼ş²ÎÊıÎªĞÂµÄµ±Ç°¸èÇú¶ÔÏó
         /// </summary>
         public event Action<Song> CurrentSongChanged;
 
         /// <summary>
-        /// éŸ³é‡å˜æ›´äº‹ä»¶ï¼Œå½“éŸ³é‡è®¾ç½®å‘ç”Ÿå˜åŒ–æ—¶è§¦å‘
-        /// äº‹ä»¶å‚æ•°ä¸ºæ–°çš„éŸ³é‡å€¼ï¼ˆ0.0-1.0ä¹‹é—´ï¼‰
+        /// ÒôÁ¿±ä¸üÊÂ¼ş£¬µ±ÒôÁ¿ÉèÖÃ·¢Éú±ä»¯Ê±´¥·¢
+        /// ÊÂ¼ş²ÎÊıÎªĞÂµÄÒôÁ¿Öµ£¨0.0-1.0Ö®¼ä£©
         /// </summary>
         public event Action<double> VolumeChanged;
 
         /// <summary>
-        ///  seek è¯·æ±‚äº‹ä»¶ï¼Œå½“éœ€è¦è°ƒæ•´æ’­æ”¾è¿›åº¦æ—¶è§¦å‘
-        ///  äº‹ä»¶å‚æ•°ä¸ºè¿›åº¦ç™¾åˆ†æ¯”ï¼ˆ0.0-1.0ä¹‹é—´ï¼‰
+        ///  seek ÇëÇóÊÂ¼ş£¬µ±ĞèÒªµ÷Õû²¥·Å½ø¶ÈÊ±´¥·¢
+        ///  ÊÂ¼ş²ÎÊıÎª½ø¶È°Ù·Ö±È£¨0.0-1.0Ö®¼ä£©
         /// </summary>
         public event Action<double> SeekRequested;
 
         /// <summary>
-        /// è¿›åº¦æ›´æ–°äº‹ä»¶ï¼Œå®šæœŸè§¦å‘ä»¥é€šçŸ¥å½“å‰æ’­æ”¾è¿›åº¦
-        /// äº‹ä»¶å‚æ•°ä¸ºå½“å‰æ’­æ”¾æ—¶é—´å’Œæ€»æ—¶é•¿
+        /// ½ø¶È¸üĞÂÊÂ¼ş£¬¶¨ÆÚ´¥·¢ÒÔÍ¨Öªµ±Ç°²¥·Å½ø¶È
+        /// ÊÂ¼ş²ÎÊıÎªµ±Ç°²¥·ÅÊ±¼äºÍ×ÜÊ±³¤
         /// </summary>
         public event Action<TimeSpan, TimeSpan> ProgressUpdated;
-        // --- çŠ¶æ€å±æ€§ ---
+        // --- ×´Ì¬ÊôĞÔ ---
 
         /// <summary>
-        /// å½“å‰æ’­æ”¾çŠ¶æ€ï¼ˆæ’­æ”¾/æš‚åœ/åœæ­¢ï¼‰
-        /// ç§æœ‰setterç¡®ä¿çŠ¶æ€åªèƒ½é€šè¿‡å†…éƒ¨æ–¹æ³•ä¿®æ”¹
+        /// µ±Ç°²¥·Å×´Ì¬£¨²¥·Å/ÔİÍ£/Í£Ö¹£©
+        /// Ë½ÓĞsetterÈ·±£×´Ì¬Ö»ÄÜÍ¨¹ıÄÚ²¿·½·¨ĞŞ¸Ä
         /// </summary>
         public PlaybackStatus CurrentStatus { get; private set; } = PlaybackStatus.Stopped;
 
         /// <summary>
-        /// å½“å‰æ­£åœ¨æ’­æ”¾ï¼ˆæˆ–æš‚åœï¼‰çš„æ­Œæ›²
-        /// ç§æœ‰setterç¡®ä¿åªèƒ½é€šè¿‡å†…éƒ¨æ–¹æ³•ä¿®æ”¹
+        /// µ±Ç°ÕıÔÚ²¥·Å£¨»òÔİÍ££©µÄ¸èÇú
+        /// Ë½ÓĞsetterÈ·±£Ö»ÄÜÍ¨¹ıÄÚ²¿·½·¨ĞŞ¸Ä
         /// </summary>
         public Song CurrentSong { get; private set; }
 
         /// <summary>
-        /// å½“å‰æ’­æ”¾åˆ—è¡¨ï¼Œå­˜å‚¨å½“å‰å¯æ’­æ”¾çš„æ­Œæ›²é›†åˆ
+        /// µ±Ç°²¥·ÅÁĞ±í£¬´æ´¢µ±Ç°¿É²¥·ÅµÄ¸èÇú¼¯ºÏ
         /// </summary>
         private List<Song> _currentPlaylist;
         private readonly CacheService _cacheService;
         /// <summary>
-        /// æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–æ’­æ”¾å™¨æœåŠ¡
-        /// è®¾ä¸ºpublicä»¥å…è®¸ä¾èµ–æ³¨å…¥å®¹å™¨åˆ›å»ºå®ä¾‹
+        /// ¹¹Ôìº¯Êı£¬³õÊ¼»¯²¥·ÅÆ÷·şÎñ
+        /// ÉèÎªpublicÒÔÔÊĞíÒÀÀµ×¢ÈëÈİÆ÷´´½¨ÊµÀı
         /// </summary>
         public PlayerService(CacheService cacheService)
         {
-            // åˆå§‹åŒ–è¿›åº¦æ›´æ–°å®šæ—¶å™¨
+            // ³õÊ¼»¯½ø¶È¸üĞÂ¶¨Ê±Æ÷
             _progressTimer = new DispatcherTimer();
-            // è®¾ç½®å®šæ—¶å™¨é—´éš”ä¸º200æ¯«ç§’ï¼ˆæ¯200msæ›´æ–°ä¸€æ¬¡è¿›åº¦ï¼‰
+            // ÉèÖÃ¶¨Ê±Æ÷¼ä¸ôÎª200ºÁÃë£¨Ã¿200ms¸üĞÂÒ»´Î½ø¶È£©
             _progressTimer.Interval = TimeSpan.FromMilliseconds(200);
-            // ç»‘å®šå®šæ—¶å™¨è§¦å‘äº‹ä»¶
+            // °ó¶¨¶¨Ê±Æ÷´¥·¢ÊÂ¼ş
             _progressTimer.Tick += OnTimerTick;
             _cacheService = cacheService;
         }
 
         /// <summary>
-        /// å®šæ—¶å™¨è§¦å‘äº‹ä»¶å¤„ç†æ–¹æ³•
-        /// ç”¨äºå®šæœŸæ£€æŸ¥å¹¶æ›´æ–°æ’­æ”¾è¿›åº¦
+        /// ¶¨Ê±Æ÷´¥·¢ÊÂ¼ş´¦Àí·½·¨
+        /// ÓÃÓÚ¶¨ÆÚ¼ì²é²¢¸üĞÂ²¥·Å½ø¶È
         /// </summary>
         private void OnTimerTick(object sender, EventArgs e)
         {
             //Debug.WriteLine($"Timer ticked for progress update. OnTimerTick({sender}, EventArgs {e})");
-            // æ£€æŸ¥åª’ä½“å…ƒç´ æ˜¯å¦å­˜åœ¨ä¸”å·²åŠ è½½æœ‰æ•ˆæ—¶é•¿
+            // ¼ì²éÃ½ÌåÔªËØÊÇ·ñ´æÔÚÇÒÒÑ¼ÓÔØÓĞĞ§Ê±³¤
             if (_mediaElement != null && _mediaElement.NaturalDuration.HasTimeSpan)
             {
-                // è§¦å‘è¿›åº¦æ›´æ–°äº‹ä»¶ï¼Œä¼ é€’å½“å‰ä½ç½®å’Œæ€»æ—¶é•¿
+                // ´¥·¢½ø¶È¸üĞÂÊÂ¼ş£¬´«µİµ±Ç°Î»ÖÃºÍ×ÜÊ±³¤
                 ProgressUpdated?.Invoke(_mediaElement.Position, _mediaElement.NaturalDuration.TimeSpan);
             }
         }
 
         /// <summary>
-        /// åœæ­¢æ’­æ”¾æ“ä½œ
+        /// Í£Ö¹²¥·Å²Ù×÷
         /// </summary>
         public void StopPlayback()
         {
-            // åœæ­¢åª’ä½“å…ƒç´ æ’­æ”¾
+            // Í£Ö¹Ã½ÌåÔªËØ²¥·Å
             _mediaElement.Stop();
-            // æ›´æ–°å½“å‰çŠ¶æ€ä¸ºåœæ­¢
+            // ¸üĞÂµ±Ç°×´Ì¬ÎªÍ£Ö¹
             CurrentStatus = PlaybackStatus.Stopped;
-            // åœæ­¢è¿›åº¦å®šæ—¶å™¨ï¼ˆåœæ­¢æ’­æ”¾æ—¶ä¸å†æ›´æ–°è¿›åº¦ï¼‰
+            // Í£Ö¹½ø¶È¶¨Ê±Æ÷£¨Í£Ö¹²¥·ÅÊ±²»ÔÙ¸üĞÂ½ø¶È£©
             _progressTimer.Stop();
         }
 
         /// <summary>
-        /// å¼€å§‹æ’­æ”¾æŒ‡å®šæ­Œæ›²å’Œæ’­æ”¾åˆ—è¡¨
+        /// ¿ªÊ¼²¥·ÅÖ¸¶¨¸èÇúºÍ²¥·ÅÁĞ±í
         /// </summary>
-        /// <param name="song">è¦æ’­æ”¾çš„æ­Œæ›²</param>
-        /// <param name="playlist">å½“å‰æ’­æ”¾åˆ—è¡¨</param>
+        /// <param name="song">Òª²¥·ÅµÄ¸èÇú</param>
+        /// <param name="playlist">µ±Ç°²¥·ÅÁĞ±í</param>
         public async void StartPlayback(Song song, IEnumerable<Song> playlist)
         {
-            // æ ¡éªŒå‚æ•°æœ‰æ•ˆæ€§ï¼ˆæ­Œæ›²æˆ–åˆ—è¡¨ä¸ºç©ºåˆ™ä¸æ‰§è¡Œï¼‰
+            // Ğ£Ñé²ÎÊıÓĞĞ§ĞÔ£¨¸èÇú»òÁĞ±íÎª¿ÕÔò²»Ö´ĞĞ£©
             if (song == null || playlist == null) return;
             string playablePath;
 
-            // 3. æ£€æŸ¥æ˜¯æœ¬åœ°æ–‡ä»¶è¿˜æ˜¯ç½‘ç»œæ–‡ä»¶
+            // 3. ¼ì²éÊÇ±¾µØÎÄ¼ş»¹ÊÇÍøÂçÎÄ¼ş
             if (Uri.IsWellFormedUriString(song.FilePath, UriKind.Absolute) &&
                 (song.FilePath.StartsWith("http") || song.FilePath.StartsWith("https")))
             {
-                // æ˜¯ç½‘ç»œURLï¼Œèµ°ç¼“å­˜é€»è¾‘
-                // ã€é‡è¦ã€‘è¿™é‡Œä½¿ç”¨ await ç­‰å¾…ç¼“å­˜æœåŠ¡å®Œæˆ
+                // ÊÇÍøÂçURL£¬×ß»º´æÂß¼­
+                // ¡¾ÖØÒª¡¿ÕâÀïÊ¹ÓÃ await µÈ´ı»º´æ·şÎñÍê³É
                 playablePath = await _cacheService.GetFileAsync(song.FilePath, CacheType.Song);
             }
             else
             {
-                // æ˜¯æœ¬åœ°æ–‡ä»¶è·¯å¾„ï¼Œç›´æ¥ä½¿ç”¨
+                // ÊÇ±¾µØÎÄ¼şÂ·¾¶£¬Ö±½ÓÊ¹ÓÃ
                 playablePath = song.FilePath;
             }
 
             if (playablePath != null)
             {
-                // 4. å°†æœ€ç»ˆçš„ã€æœ¬åœ°è·¯å¾„ã€‘ä¼ é€’ç»™æ’­æ”¾å™¨
+                // 4. ½«×îÖÕµÄ¡¾±¾µØÂ·¾¶¡¿´«µİ¸ø²¥·ÅÆ÷
                 //_mediaPlayerService.Play(new Uri(playablePath));
                 RequestPlay(song);
 
             }
             else
             {
-                // å¤„ç†åŠ è½½/ä¸‹è½½å¤±è´¥çš„æƒ…å†µ
-                // (å¯ä»¥æ˜¾ç¤ºä¸€ä¸ªé”™è¯¯æç¤º)
+                // ´¦Àí¼ÓÔØ/ÏÂÔØÊ§°ÜµÄÇé¿ö
+                // (¿ÉÒÔÏÔÊ¾Ò»¸ö´íÎóÌáÊ¾)
             }
-            // ä¿å­˜å½“å‰æ’­æ”¾åˆ—è¡¨ï¼ˆè½¬æ¢ä¸ºListä¾¿äºç´¢å¼•æ“ä½œï¼‰
+            // ±£´æµ±Ç°²¥·ÅÁĞ±í£¨×ª»»ÎªList±ãÓÚË÷Òı²Ù×÷£©
             _currentPlaylist = playlist.ToList();
-            // å‘èµ·æ’­æ”¾è¯·æ±‚
+            // ·¢Æğ²¥·ÅÇëÇó
             RequestPlay(song);
-            // å¯åŠ¨è¿›åº¦å®šæ—¶å™¨ï¼ˆå¼€å§‹æ›´æ–°è¿›åº¦ï¼‰
+            // Æô¶¯½ø¶È¶¨Ê±Æ÷£¨¿ªÊ¼¸üĞÂ½ø¶È£©
             _progressTimer.Start();
-            // æ›´æ–°æ’­æ”¾çŠ¶æ€ä¸ºæ’­æ”¾ä¸­
+            // ¸üĞÂ²¥·Å×´Ì¬Îª²¥·ÅÖĞ
             CurrentStatus = PlaybackStatus.Playing;
             Debug.WriteLine($"StartPlayback {CurrentSong.Title}");
             CurrentSongChanged?.Invoke(CurrentSong);
         }
 
         /// <summary>
-        /// æ›´æ–°æ’­æ”¾è¿›åº¦ï¼ˆç”±å¤–éƒ¨åª’ä½“æœåŠ¡è°ƒç”¨ï¼‰
+        /// ¸üĞÂ²¥·Å½ø¶È£¨ÓÉÍâ²¿Ã½Ìå·şÎñµ÷ÓÃ£©
         /// </summary>
-        /// <param name="currentTime">å½“å‰æ’­æ”¾æ—¶é—´</param>
-        /// <param name="totalTime">æ€»æ—¶é•¿</param>
+        /// <param name="currentTime">µ±Ç°²¥·ÅÊ±¼ä</param>
+        /// <param name="totalTime">×ÜÊ±³¤</param>
         public void UpdateProgress(TimeSpan currentTime, TimeSpan totalTime)
         {
-            // è§¦å‘è¿›åº¦æ›´æ–°äº‹ä»¶
+            // ´¥·¢½ø¶È¸üĞÂÊÂ¼ş
             //ProgressUpdated?.Invoke(currentTime, totalTime);
             WeakReferenceMessenger.Default.Send(new ProgressUpdatedMessage(currentTime, totalTime));
         }
 
         /// <summary>
-        /// åˆ‡æ¢æ’­æ”¾/æš‚åœçŠ¶æ€
+        /// ÇĞ»»²¥·Å/ÔİÍ£×´Ì¬
         /// </summary>
         public void TogglePlayPause()
         {
-            // å¦‚æœå½“å‰æ²¡æœ‰æ’­æ”¾çš„æ­Œæ›²ï¼Œåˆ™ä¸æ‰§è¡Œæ“ä½œ
+            // Èç¹ûµ±Ç°Ã»ÓĞ²¥·ÅµÄ¸èÇú£¬Ôò²»Ö´ĞĞ²Ù×÷
             if (CurrentSong == null) return;
 
-            // æ ¹æ®å½“å‰çŠ¶æ€åˆ‡æ¢
+            // ¸ù¾İµ±Ç°×´Ì¬ÇĞ»»
             if (CurrentStatus == PlaybackStatus.Playing)
             {
-                // ä»æ’­æ”¾åˆ‡æ¢åˆ°æš‚åœ
+                // ´Ó²¥·ÅÇĞ»»µ½ÔİÍ£
                 CurrentStatus = PlaybackStatus.Paused;
-                CurrentSong.IsPlaying = false; // æ›´æ–°æ­Œæ›²çŠ¶æ€ä¸ºæœªæ’­æ”¾
-                _progressTimer.Stop(); // æš‚åœæ—¶åœæ­¢è¿›åº¦æ›´æ–°
+                CurrentSong.IsPlaying = false; // ¸üĞÂ¸èÇú×´Ì¬ÎªÎ´²¥·Å
+                _progressTimer.Stop(); // ÔİÍ£Ê±Í£Ö¹½ø¶È¸üĞÂ
             }
             else if (CurrentStatus == PlaybackStatus.Paused)
             {
-                // ä»æš‚åœåˆ‡æ¢åˆ°æ’­æ”¾
+                // ´ÓÔİÍ£ÇĞ»»µ½²¥·Å
                 CurrentStatus = PlaybackStatus.Playing;
-                CurrentSong.IsPlaying = true; // æ›´æ–°æ­Œæ›²çŠ¶æ€ä¸ºæ’­æ”¾ä¸­
-                _progressTimer.Start(); // æ¢å¤è¿›åº¦æ›´æ–°
+                CurrentSong.IsPlaying = true; // ¸üĞÂ¸èÇú×´Ì¬Îª²¥·ÅÖĞ
+                _progressTimer.Start(); // »Ö¸´½ø¶È¸üĞÂ
             }
 
-            // è§¦å‘æ’­æ”¾çŠ¶æ€å˜æ›´äº‹ä»¶ï¼Œé€šçŸ¥å¤–éƒ¨çŠ¶æ€å˜åŒ–
+            // ´¥·¢²¥·Å×´Ì¬±ä¸üÊÂ¼ş£¬Í¨ÖªÍâ²¿×´Ì¬±ä»¯
             //PlaybackStatusChanged?.Invoke();
             WeakReferenceMessenger.Default.Send(new PlaybackStatusChangedMessage(CurrentStatus));
         }
 
         /// <summary>
-        /// æ’­æ”¾ä¸‹ä¸€é¦–æ­Œæ›²ï¼ˆå¾ªç¯æ’­æ”¾åˆ—è¡¨ï¼‰
+        /// ²¥·ÅÏÂÒ»Ê×¸èÇú£¨Ñ­»·²¥·ÅÁĞ±í£©
         /// </summary>
         public void PlayNextSong()
         {
-            // æ£€æŸ¥æ˜¯å¦å¯ä»¥åˆ‡æ¢æ­Œæ›²ï¼ˆæ’­æ”¾åˆ—è¡¨æœ‰æ•ˆä¸”æœ‰å½“å‰æ­Œæ›²ï¼‰
+            // ¼ì²éÊÇ·ñ¿ÉÒÔÇĞ»»¸èÇú£¨²¥·ÅÁĞ±íÓĞĞ§ÇÒÓĞµ±Ç°¸èÇú£©
             if (!CanChangeTrack()) return;
 
-            // è·å–å½“å‰æ­Œæ›²åœ¨æ’­æ”¾åˆ—è¡¨ä¸­çš„ç´¢å¼•
+            // »ñÈ¡µ±Ç°¸èÇúÔÚ²¥·ÅÁĞ±íÖĞµÄË÷Òı
             int currentIndex = _currentPlaylist.IndexOf(CurrentSong);
-            // ç´¢å¼•æ— æ•ˆåˆ™é€€å‡º
+            // Ë÷ÒıÎŞĞ§ÔòÍË³ö
             if (currentIndex == -1) return;
 
-            // è®¡ç®—ä¸‹ä¸€é¦–ç´¢å¼•ï¼ˆå¾ªç¯é€»è¾‘ï¼šæœ€åä¸€é¦–çš„ä¸‹ä¸€é¦–æ˜¯ç¬¬ä¸€é¦–ï¼‰
+            // ¼ÆËãÏÂÒ»Ê×Ë÷Òı£¨Ñ­»·Âß¼­£º×îºóÒ»Ê×µÄÏÂÒ»Ê×ÊÇµÚÒ»Ê×£©
             int nextIndex = (currentIndex + 1) % _currentPlaylist.Count;
-            // æ’­æ”¾ä¸‹ä¸€é¦–æ­Œæ›²
+            // ²¥·ÅÏÂÒ»Ê×¸èÇú
             RequestPlay(_currentPlaylist[nextIndex]);
         }
 
         /// <summary>
-        /// æ’­æ”¾ä¸Šä¸€é¦–æ­Œæ›²ï¼ˆå¾ªç¯æ’­æ”¾åˆ—è¡¨ï¼‰
+        /// ²¥·ÅÉÏÒ»Ê×¸èÇú£¨Ñ­»·²¥·ÅÁĞ±í£©
         /// </summary>
         public void PlayPreviousSong()
         {
-            // æ£€æŸ¥æ˜¯å¦å¯ä»¥åˆ‡æ¢æ­Œæ›²
+            // ¼ì²éÊÇ·ñ¿ÉÒÔÇĞ»»¸èÇú
             if (!CanChangeTrack()) return;
 
-            // è·å–å½“å‰æ­Œæ›²ç´¢å¼•
+            // »ñÈ¡µ±Ç°¸èÇúË÷Òı
             int currentIndex = _currentPlaylist.IndexOf(CurrentSong);
             if (currentIndex == -1) return;
 
-            // è®¡ç®—ä¸Šä¸€é¦–ç´¢å¼•ï¼ˆå¾ªç¯é€»è¾‘ï¼šç¬¬ä¸€é¦–çš„ä¸Šä¸€é¦–æ˜¯æœ€åä¸€é¦–ï¼‰
+            // ¼ÆËãÉÏÒ»Ê×Ë÷Òı£¨Ñ­»·Âß¼­£ºµÚÒ»Ê×µÄÉÏÒ»Ê×ÊÇ×îºóÒ»Ê×£©
             int previousIndex = (currentIndex - 1 + _currentPlaylist.Count) % _currentPlaylist.Count;
-            // æ’­æ”¾ä¸Šä¸€é¦–æ­Œæ›²
+            // ²¥·ÅÉÏÒ»Ê×¸èÇú
             RequestPlay(_currentPlaylist[previousIndex]);
         }
 
         /// <summary>
-        /// è®¾ç½®éŸ³é‡
+        /// ÉèÖÃÒôÁ¿
         /// </summary>
-        /// <param name="newVolume">æ–°éŸ³é‡å€¼ï¼ˆä¼šè¢«é™åˆ¶åœ¨0.0-1.0ä¹‹é—´ï¼‰</param>
+        /// <param name="newVolume">ĞÂÒôÁ¿Öµ£¨»á±»ÏŞÖÆÔÚ0.0-1.0Ö®¼ä£©</param>
         public void SetVolume(double newVolume)
         {
-            // è§¦å‘éŸ³é‡å˜æ›´äº‹ä»¶ï¼Œä¼ é€’é™åˆ¶åçš„éŸ³é‡å€¼
+            // ´¥·¢ÒôÁ¿±ä¸üÊÂ¼ş£¬´«µİÏŞÖÆºóµÄÒôÁ¿Öµ
             //VolumeChanged?.Invoke(Math.Clamp(newVolume, 0.0, 1.0));
             WeakReferenceMessenger.Default.Send(new VolumeChangedMessage(Math.Clamp(newVolume, 0.0, 1.0)));
         }
 
         /// <summary>
-        /// è°ƒæ•´æ’­æ”¾è¿›åº¦
+        /// µ÷Õû²¥·Å½ø¶È
         /// </summary>
-        /// <param name="percentage">è¿›åº¦ç™¾åˆ†æ¯”ï¼ˆ0.0-1.0ä¹‹é—´ï¼‰</param>
+        /// <param name="percentage">½ø¶È°Ù·Ö±È£¨0.0-1.0Ö®¼ä£©</param>
         public void Seek(double percentage)
         {
-            // è§¦å‘seekè¯·æ±‚äº‹ä»¶
+            // ´¥·¢seekÇëÇóÊÂ¼ş
             //SeekRequested?.Invoke(percentage);
             WeakReferenceMessenger.Default.Send(new SeekRequestedMessage(percentage));
         }
 
         /// <summary>
-        /// æ£€æŸ¥æ˜¯å¦å¯ä»¥åˆ‡æ¢æ­Œæ›²ï¼ˆè¾…åŠ©æ–¹æ³•ï¼‰
+        /// ¼ì²éÊÇ·ñ¿ÉÒÔÇĞ»»¸èÇú£¨¸¨Öú·½·¨£©
         /// </summary>
-        /// <returns>æ˜¯å¦å¯ä»¥åˆ‡æ¢æ­Œæ›²</returns>
+        /// <returns>ÊÇ·ñ¿ÉÒÔÇĞ»»¸èÇú</returns>
         private bool CanChangeTrack()
         {
-            // æ’­æ”¾åˆ—è¡¨ä¸ä¸ºç©ºã€æœ‰æ­Œæ›²ä¸”å­˜åœ¨å½“å‰æ’­æ”¾çš„æ­Œæ›²æ—¶ï¼Œå…è®¸åˆ‡æ¢
+            // ²¥·ÅÁĞ±í²»Îª¿Õ¡¢ÓĞ¸èÇúÇÒ´æÔÚµ±Ç°²¥·ÅµÄ¸èÇúÊ±£¬ÔÊĞíÇĞ»»
             return _currentPlaylist != null && _currentPlaylist.Count > 0 && CurrentSong != null;
         }
 
         /// <summary>
-        /// å¤„ç†æ’­æ”¾è¯·æ±‚ï¼ˆæ ¸å¿ƒæ–¹æ³•ï¼‰
-        /// è´Ÿè´£æ›´æ–°å†…éƒ¨çŠ¶æ€å¹¶è§¦å‘ç›¸å…³äº‹ä»¶
+        /// ´¦Àí²¥·ÅÇëÇó£¨ºËĞÄ·½·¨£©
+        /// ¸ºÔğ¸üĞÂÄÚ²¿×´Ì¬²¢´¥·¢Ïà¹ØÊÂ¼ş
         /// </summary>
-        /// <param name="songToPlay">è¦æ’­æ”¾çš„æ­Œæ›²</param>
+        /// <param name="songToPlay">Òª²¥·ÅµÄ¸èÇú</param>
         private void RequestPlay(Song songToPlay)
         {
-            // æ ¡éªŒæ­Œæ›²æœ‰æ•ˆæ€§
+            // Ğ£Ñé¸èÇúÓĞĞ§ĞÔ
             if (songToPlay == null) return;
 
-            // å¤„ç†ä¸Šä¸€é¦–æ­Œæ›²çŠ¶æ€ï¼šå¦‚æœåˆ‡æ¢äº†æ­Œæ›²ï¼Œå°†ä¸Šä¸€é¦–æ ‡è®°ä¸ºæœªæ’­æ”¾
+            // ´¦ÀíÉÏÒ»Ê×¸èÇú×´Ì¬£ºÈç¹ûÇĞ»»ÁË¸èÇú£¬½«ÉÏÒ»Ê×±ê¼ÇÎªÎ´²¥·Å
             if (CurrentSong != null && CurrentSong != songToPlay)
             {
                 CurrentSong.IsPlaying = false;
             }
 
-            // æ›´æ–°å†…éƒ¨çŠ¶æ€
-            CurrentSong = songToPlay; // è®¾ç½®å½“å‰æ­Œæ›²ä¸ºç›®æ ‡æ­Œæ›²
-            CurrentStatus = PlaybackStatus.Playing; // æ›´æ–°çŠ¶æ€ä¸ºæ’­æ”¾ä¸­
-            CurrentSong.IsPlaying = true; // æ ‡è®°å½“å‰æ­Œæ›²ä¸ºæ’­æ”¾ä¸­
+            // ¸üĞÂÄÚ²¿×´Ì¬
+            CurrentSong = songToPlay; // ÉèÖÃµ±Ç°¸èÇúÎªÄ¿±ê¸èÇú
+            CurrentStatus = PlaybackStatus.Playing; // ¸üĞÂ×´Ì¬Îª²¥·ÅÖĞ
+            CurrentSong.IsPlaying = true; // ±ê¼Çµ±Ç°¸èÇúÎª²¥·ÅÖĞ
 
-            // è§¦å‘ç›¸å…³äº‹ä»¶ï¼ˆé€šçŸ¥å¤–éƒ¨çŠ¶æ€å˜æ›´ï¼‰
-            //CurrentSongChanged?.Invoke(CurrentSong); // é€šçŸ¥å½“å‰æ­Œæ›²å·²å˜æ›´
-            //PlaybackStatusChanged?.Invoke(); // é€šçŸ¥æ’­æ”¾çŠ¶æ€å·²å˜æ›´
-            //PlayRequested?.Invoke(CurrentSong); // é€šçŸ¥éœ€è¦æ’­æ”¾è¯¥æ­Œæ›²
+            // ´¥·¢Ïà¹ØÊÂ¼ş£¨Í¨ÖªÍâ²¿×´Ì¬±ä¸ü£©
+            //CurrentSongChanged?.Invoke(CurrentSong); // Í¨Öªµ±Ç°¸èÇúÒÑ±ä¸ü
+            //PlaybackStatusChanged?.Invoke(); // Í¨Öª²¥·Å×´Ì¬ÒÑ±ä¸ü
+            //PlayRequested?.Invoke(CurrentSong); // Í¨ÖªĞèÒª²¥·Å¸Ã¸èÇú
             WeakReferenceMessenger.Default.Send(new CurrentSongChangedMessage(CurrentSong));
             WeakReferenceMessenger.Default.Send(new PlaybackStatusChangedMessage(CurrentStatus));
             WeakReferenceMessenger.Default.Send(new PlayRequestedMessage(CurrentSong));

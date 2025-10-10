@@ -9,8 +9,9 @@ using NetEase.Views.PlaylistViews;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
-using Wpf.Ui.Abstractions;
-//using Wpf.Ui.Controls;
+using CommunityToolkit.Mvvm.Messaging;
+using NetEase.Messages;
+using NetEase.Services.NavigationService;
 
 namespace NetEase.ViewModels
 {
@@ -18,21 +19,25 @@ namespace NetEase.ViewModels
     /// 应用程序的主视图模型，负责全局状态管理、导航控制和各组件协调
     /// 是整个应用的核心协调者，连接各个子视图模型和服务
     /// </summary>
-    public partial class MainViewModel : BaseViewModel
+    public partial class MainViewModel : BaseViewModel,
+        IRecipient<NavigateToEditPlaylistMessage>,
+        IRecipient<GoBackNavigationMessage>,
+        IRecipient<LoginSuccessMessage>
     {
         // 服务注入字段
         private readonly IServiceProvider _serviceProvider; // 服务提供者，用于获取其他服务/视图模型
+        private readonly INavigationService _navigationService; // 1. 注入导航服务
         private readonly PlaylistService _playlistService; // 播放列表服务，用于管理播放列表数据
         private readonly AuthService _authService; // 认证服务，处理登录/登出逻辑
         private readonly FriendsViewModel _friendsViewModel; // 好友视图模型，管理好友相关功能
         private readonly SignalRService _signalRService; // SignalR服务，处理实时通信
 
         private readonly Stack<BaseViewModel> _navigationHistory = new Stack<BaseViewModel>();
+        public INavigationService Navigation => _navigationService;
         /// <summary>
         /// 当前显示的视图模型（绑定到UI的内容区域，控制显示哪个页面）
         /// </summary>
-        [ObservableProperty]
-        private BaseViewModel _currentView;
+        public BaseViewModel CurrentView => _navigationService.CurrentView;
 
         /// <summary>
         /// 覆盖层（如登录窗口）是否可见
@@ -76,17 +81,34 @@ namespace NetEase.ViewModels
         /// <summary>
         /// 主要导航项集合（如推荐、精选等，绑定到左侧导航栏）
         /// </summary>
-        public ObservableCollection<NavigationItem> MainNavigationItems { get; }
+        public ObservableCollection<NavigationItem> MainNavigationItems { get; } =
+        [
+            new NavigationItem { DisplayName = "推荐", Icon = "\uE896", ViewModelType = typeof(PodcastViewModel) },
+            new NavigationItem { DisplayName = "精选", Icon = "\uE8F1" , ViewModelType = typeof(PodcastViewModel)},
+            new NavigationItem { DisplayName = "播客", Icon = "\uE1D6", ViewModelType = typeof(PodcastViewModel) },
+            new NavigationItem { DisplayName = "漫游", Icon = "\uE8DD", ViewModelType = typeof(PodcastViewModel) },
+            new NavigationItem { DisplayName = "关注", Icon = "\uE77B", ViewModelType = typeof(PodcastViewModel) }
+        ];
 
         /// <summary>
         /// "我的音乐"分类下的导航项集合（如我喜欢的音乐、最近播放等）
         /// </summary>
-        public ObservableCollection<NavigationItem> MyMusicNavigationItems { get; }
+        public ObservableCollection<NavigationItem> MyMusicNavigationItems { get; } =
+        [
+            new NavigationItem { DisplayName = "我喜欢的音乐", Icon = "\uE00B", ViewModelType = typeof(PlaylistViewModel) ,NavigationParameter = 1 },
+            new NavigationItem { DisplayName = "最近播放", Icon = "\uE823" , ViewModelType = typeof(PodcastViewModel)},
+            new NavigationItem { DisplayName = "本地音乐", Icon = "\uE1D6" , ViewModelType = typeof(PodcastViewModel)},
+        ];
 
         /// <summary>
         /// "更多"分类下的导航项集合（如我的收藏、云盘等）
         /// </summary>
-        public ObservableCollection<NavigationItem> MoreNavigationItems { get; }
+        public ObservableCollection<NavigationItem> MoreNavigationItems { get; } = 
+        [
+            new NavigationItem { DisplayName = "我的收藏", Icon = "\uE1DE", ViewModelType = typeof(PodcastViewModel) },
+            new NavigationItem { DisplayName = "云盘", Icon = "\uE713", ViewModelType = typeof(PodcastViewModel)  },
+            new NavigationItem { DisplayName = "已购", Icon = "\uE779", ViewModelType = typeof(PodcastViewModel)  }
+        ];
 
         /// <summary>
         /// 歌曲详情面板是否可见
@@ -101,17 +123,12 @@ namespace NetEase.ViewModels
 
         [ObservableProperty]
         private string _searchText;
-        public ObservableCollection<object> NavigationItems { get; } = [];
-        /// <summary>
-        /// 绑定到 NavigationView 的主菜单项
-        /// </summary>
-        public ObservableCollection<object> MenuItems { get; } = new();
+    
 
         /// <summary>
         /// 绑定到 NavigationView 的页脚菜单项
         /// </summary>
-        public ObservableCollection<object> FooterMenuItems { get; } = new();
-
+        private readonly CurrentUserStateService _currentUserState;
         [ObservableProperty]
         private object _selectedNavigationItem;
         /// <summary>
@@ -126,8 +143,9 @@ namespace NetEase.ViewModels
         /// <param name="authVM">认证视图模型</param>
         /// <param name="playlistService">播放列表服务</param>
         /// <param name="friendsViewModel">好友视图模型</param>
-        public MainViewModel(SearchResultViewModel searchViewModel, SongDetailViewModel songDetailVM, IServiceProvider serviceProvider, AuthService authService, SignalRService signalRService, TitleBarViewModel titleBarVM, PlayerControlViewModel playerControlVM, SignUpViewModel signUpVM, PlaylistService playlistService, FriendsViewModel friendsViewModel)
+        public MainViewModel(CurrentUserStateService currentUserState,INavigationService navigationService, SearchResultViewModel searchViewModel, SongDetailViewModel songDetailVM, IServiceProvider serviceProvider, AuthService authService, SignalRService signalRService, TitleBarViewModel titleBarVM, PlayerControlViewModel playerControlVM, SignUpViewModel signUpVM, PlaylistService playlistService, FriendsViewModel friendsViewModel)
         {
+            _currentUserState = currentUserState;
             _serviceProvider = serviceProvider;
             TitleBarVM = titleBarVM;
             PlayerControlVM = playerControlVM;
@@ -138,6 +156,7 @@ namespace NetEase.ViewModels
             _friendsViewModel = friendsViewModel;
             _authService = authService;
             SearchResultVM = searchViewModel;
+            _navigationService = navigationService; // 4. 赋值
 
             // 订阅播放器的"显示歌曲详情"请求事件
             PlayerControlVM.ShowSongDetailRequested += OnShowSongDetailRequested;
@@ -145,59 +164,67 @@ namespace NetEase.ViewModels
             TitleBarVM.RequestLogoutAction = () => LogoutCommand.Execute(null);
             TitleBarVM.SearchRequested += OnSearchRequested;
             SignUpVM.LoginSuccess += OnLoginSuccess;
-            // 初始化主要导航项（绑定到左侧边栏的主要导航区域）
-            MainNavigationItems = new ObservableCollection<NavigationItem>
+        
+            
+            if (_navigationService is ObservableObject navServiceObj)
             {
-                new NavigationItem { DisplayName = "推荐", Icon = "\uE896", ViewModelType = typeof(LocalMusicViewModel) },
-                new NavigationItem { DisplayName = "精选", Icon = "\uE8F1" , ViewModelType = typeof(FeaturedViewModel)},
-                new NavigationItem { DisplayName = "播客", Icon = "\uE1D6", ViewModelType = typeof(PodcastViewModel) },
-                new NavigationItem { DisplayName = "漫游", Icon = "\uE8DD", ViewModelType = typeof(PodcastViewModel) },
-                new NavigationItem { DisplayName = "关注", Icon = "\uE77B", ViewModelType = typeof(PodcastViewModel) }
-            };
+                navServiceObj.PropertyChanged += (sender, args) =>
+                {
+                    if (args.PropertyName == nameof(INavigationService.CurrentView))
+                    {
+                        OnPropertyChanged(nameof(CurrentView));
+                    }
+                };
+            }
 
-            // 初始化"我的音乐"导航项
-            MyMusicNavigationItems =
-            [
-                new NavigationItem { DisplayName = "我喜欢的音乐", Icon = "\uE00B", ViewModelType = typeof(MyFavoriteMusicViewModel) },
-                new NavigationItem { DisplayName = "最近播放", Icon = "\uE823" , ViewModelType = typeof(PodcastViewModel)},
-                new NavigationItem { DisplayName = "本地音乐", Icon = "\uE1D6" , ViewModelType = typeof(LocalMusicViewModel)},
-            ];
-
-            // 初始化"更多"导航项
-            MoreNavigationItems = new ObservableCollection<NavigationItem>
-            {
-                new NavigationItem { DisplayName = "我的收藏", Icon = "\uE1DE", ViewModelType = typeof(PodcastViewModel) },
-                new NavigationItem { DisplayName = "云盘", Icon = "\uE713", ViewModelType = typeof(PodcastViewModel)  },
-                new NavigationItem { DisplayName = "已购", Icon = "\uE779", ViewModelType = typeof(PodcastViewModel)  }
-            };
-            InitializeNavigation();
+            WeakReferenceMessenger.Default.RegisterAll(this);
 
         }
-        private void InitializeNavigation()
+        public async void Receive(LoginSuccessMessage message)
         {
-            NavigationItems.Add(new NavigationItem { DisplayName = "推荐", Icon = "\uE896", ViewModelType = typeof(FeaturedViewModel) });
-            NavigationItems.Add(new NavigationItem { DisplayName = "精选", Icon = "\uE8F1", ViewModelType = typeof(FeaturedViewModel) });
-            // ... 其他主导航项
+            var loginInfo = message.Value; // 获取 LoginResponse 对象
 
-            NavigationItems.Add(new NavigationItem { ItemType = NavigationItemType.Separator }); // 添加分割线
-            NavigationItems.Add(new NavigationItem { DisplayName = "我的", ItemType = NavigationItemType.Header }); // 添加标题
+            // 将原来 OnLoginSuccess 方法中的所有逻辑都搬到这里
+            //_logger.LogInformation("接收到登录成功消息，用户: {UserName}", loginInfo.User.Name);
 
-            NavigationItems.Add(new NavigationItem { DisplayName = "我喜欢的音乐", Icon = "\uE00B", ViewModelType = typeof(MyFavoriteMusicViewModel) });
-            NavigationItems.Add(new NavigationItem { DisplayName = "最近播放", Icon = "\uE823", ViewModelType = typeof(PodcastViewModel) });
+            TitleBarVM.UserName = loginInfo.User.Name;
+            TitleBarVM.AvatarUrl = loginInfo.User.AvatarUrl;
 
-            var collectionsItem = new NavigationItem { DisplayName = "我的收藏", Icon = "\uE1DE" };
-            collectionsItem.Children.Add(new NavigationItem { DisplayName = "云盘", Icon = "\uE713", ViewModelType = typeof(PodcastViewModel) });
-            collectionsItem.Children.Add(new NavigationItem { DisplayName = "已购", Icon = "\uE779", ViewModelType = typeof(PodcastViewModel) });
-            MenuItems.Add(collectionsItem);
+            await LoadUserSpecificDataAsync();
+            _currentUserState.SetLoggedInUser(loginInfo.User, loginInfo.Token);
+
+            // 可以在这里默认导航到某个页面
+            // _navigationService.NavigateTo<...>();
+        }
+        public void Receive(NavigateToEditPlaylistMessage message)
+        {
+            var playlistToEdit = message.PlaylistToEdit;
+            var editVM = _serviceProvider.GetRequiredService<EditPlaylistViewModel>();
+            editVM.LoadPlaylist(playlistToEdit);
+
+            // 统一使用导航服务执行导航
+            _navigationService.NavigateToViewModel(editVM);
+        }
+
+        // 【重构】接收返回导航的消息
+        public void Receive(GoBackNavigationMessage message)
+        {
+            // 统一使用导航服务执行返回
+            _navigationService.GoBack();
+        }
+        public void Receive(PlaylistUpdatedMessage message)
+        {
+            var playlistToUpdate = FavoritePlaylists.FirstOrDefault(p => p.Id == message.PlaylistId);
+            if (playlistToUpdate != null)
+            {
+                playlistToUpdate.Title = message.NewName;
+                playlistToUpdate.CoverImageUrl = message.NewCoverImageUrl;
+            }
         }
     
         private async void OnSearchRequested(string query)
         {
-            // 1. 切换当前视图为 SearchViewModel 的实例
-            //    WPF的DataTemplate系统会自动找到对应的SearchView并显示
-            CurrentView = SearchResultVM;
-
-            // 2. 调用 SearchViewModel 的方法来执行搜索
+            _navigationService.NavigateToViewModel(SearchResultVM); // <-- 新方式
             await SearchResultVM.PerformSearchAsync(query);
         }
 
@@ -252,14 +279,13 @@ namespace NetEase.ViewModels
         {
             Debug.WriteLine($"用户 {e.UserLoginInfo.User.Name} 登录成功，加载数据并导航...");
 
-            // 更新标题栏的用户信息（用户名和头像）
             TitleBarVM.UserName = e.UserLoginInfo.User.Name;
             TitleBarVM.AvatarUrl = e.UserLoginInfo.User.AvatarUrl;
             Debug.WriteLine($"TitleBarVM.AvatarUrl:{TitleBarVM.AvatarUrl}");
-            // 异步加载用户特定数据（如播放列表）
+
             await LoadUserSpecificDataAsync();
-            // 连接SignalR实时服务（使用登录后的令牌）
-            //await _signalRService.ConnectAsync(_authService.Token);
+
+            _currentUserState.SetLoggedInUser(e.UserLoginInfo.User, e.UserLoginInfo.Token);
 
             var friendsNavItem = MainNavigationItems.FirstOrDefault(item => item.ViewModelType == typeof(MyFavoriteMusicViewModel));
             if (friendsNavItem != null)
@@ -269,7 +295,7 @@ namespace NetEase.ViewModels
         }
 
         /// <summary>
-        /// 加载用户特定的数据（如收藏的播放列表）
+        /// 加载用户特定的数据,收藏的播放列表
         /// 登录成功后调用
         /// </summary>
         private async Task LoadUserSpecificDataAsync()
@@ -368,7 +394,6 @@ namespace NetEase.ViewModels
                                                                          // 未来可以添加一个 IsPrivate 属性来显示锁图标
                         });
 
-                        // (可选) 给出成功提示
                         MessageBox.Show("歌单创建成功！");
                     }
                     else
@@ -403,18 +428,8 @@ namespace NetEase.ViewModels
             ClearAllSelections();
             // 标记当前导航项为选中
             item.IsSelected = true;
-            // 从服务容器获取目标视图模型并设置为当前视图
-            var nextViewModel = (BaseViewModel)App.ServiceProvider.GetRequiredService(item.ViewModelType);
-            CurrentView = nextViewModel;
+            _navigationService.NavigateTo(item.ViewModelType, item.NavigationParameter);
 
-            if (nextViewModel is MyFavoriteMusicViewModel myFavVM)
-            {
-                await myFavVM.InitializeAsync();
-            }
-            else if (nextViewModel is FriendsViewModel friendsVM)
-            {
-                await friendsVM.SyncDataAsync();
-            }
         }
 
         /// <summary>
@@ -427,58 +442,11 @@ namespace NetEase.ViewModels
         {
             if (playlist == null) return;
 
-            // 清除所有选中状态
             ClearAllSelections();
-            // 标记当前播放列表为选中
             playlist.IsSelected = true;
-            // 获取我的收藏视图模型并加载指定播放列表数据
-            // 1. 从DI容器获取一个【新】的 PlaylistViewModel 实例
-            var playlistVM = _serviceProvider.GetRequiredService<PlaylistViewModel>();
-            playlistVM.EditPlaylistRequested += OnEditPlaylistRequested;
-            // 2. 命令它加载指定的歌单ID
-            await playlistVM.LoadPlaylistAsync(playlist.Id);
-            if (CurrentView != null)
-            {
-                _navigationHistory.Push(CurrentView);
-            }
-            // 3. 将 CurrentView 设置为这个已经准备好数据的 ViewModel
-            CurrentView = playlistVM;
-        }
-        private void OnEditPlaylistRequested(Playlist playlistToEdit)
-        {
-            // a. 获取 EditPlaylistViewModel 的实例
-            var editVM = _serviceProvider.GetRequiredService<EditPlaylistViewModel>();
 
-            // b. 将歌单数据加载到 EditPlaylistViewModel 中
-            editVM.LoadPlaylist(playlistToEdit);
-
-            // c. 订阅编辑完成/取消的事件，以便能导航回来
-            editVM.NavigationRequestCompleted -= GoBack; // 先取消订阅，防止重复
-            editVM.NavigationRequestCompleted += GoBack;
-
-            // d. (可选) 将当前页面(PlayListView)压入历史记录栈
-            if (CurrentView != null)
-            {
-                _navigationHistory.Push(CurrentView);
-            }
-
-            // e. 执行页面切换
-            CurrentView = editVM;
-        }
-        private void GoBack()
-        {
-            if (_navigationHistory.Count > 0)
-            {
-                var previousView = _navigationHistory.Pop();
-
-                // 在切换回去之前，取消对当前页面(EditPlaylistView)事件的订阅，防止内存泄漏
-                if (CurrentView is EditPlaylistViewModel editVM)
-                {
-                    editVM.NavigationRequestCompleted -= GoBack;
-                }
-
-                CurrentView = previousView;
-            }
+            // 【核心修改】同样使用带参数的导航方法，直接传递 playlist.Id
+            _navigationService.NavigateTo(typeof(PlaylistViewModel), playlist.Id);
         }
         #endregion
 
@@ -497,7 +465,7 @@ namespace NetEase.ViewModels
             // 清理用户相关UI数据
             TitleBarVM.UserName = string.Empty;
             FavoritePlaylists.Clear();
-
+            _currentUserState.ClearState();
             // 显示登录覆盖层
             IsOverlayVisible = true;
         }
@@ -505,64 +473,20 @@ namespace NetEase.ViewModels
         #region 私有方法
 
         /// <summary>
-        /// 初始化应用数据（如加载用户播放列表）
-        /// 并导航到默认页面
-        /// </summary>
-        private async Task InitializeAsync()
-        {
-            // 加载用户播放列表
-            var playlistDtos = await _playlistService.GetMyPlaylistsAsync();
-            if (playlistDtos != null)
-            {
-                FavoritePlaylists.Clear();
-                foreach (var dto in playlistDtos)
-                {
-                    FavoritePlaylists.Add(new Playlist
-                    {
-                        Id = dto.Id,
-                        Title = dto.Name,
-                        CoverImageUrl = dto.CoverImageUrl
-                    });
-                }
-            }
-
-            // 导航到"我喜欢的音乐"页面（默认页面）
-            var favoriteNavItem = MyMusicNavigationItems.FirstOrDefault(item => item.ViewModelType == typeof(MyFavoriteMusicViewModel));
-            if (favoriteNavItem != null)
-            {
-                Navigate(favoriteNavItem);
-
-                // 加载"我喜欢的音乐"播放列表数据
-                var favPlaylist = FavoritePlaylists.FirstOrDefault(p => p.Title == "我喜欢的音乐");
-                if (CurrentView is MyFavoriteMusicViewModel vm && favPlaylist != null)
-                {
-                    await vm.LoadPlaylistAsync(favPlaylist.Id);
-                }
-            }
-            else
-            {
-                // 若默认页面不存在，导航到第一个主要导航项
-                Navigate(MainNavigationItems.FirstOrDefault());
-            }
-        }
-
-        /// <summary>
         /// 清除所有导航项和播放列表的选中状态
         /// 用于导航切换时重置选中样式
         /// </summary>
         private void ClearAllSelections()
         {
-            Debug.WriteLine("进入ClearAllSelections()");
-            // 清除所有导航项的选中状态
-            foreach (var navItem in MainNavigationItems.Concat(MyMusicNavigationItems).Concat(MoreNavigationItems))
-            {
-                navItem.IsSelected = false;
-            }
-            // 清除所有播放列表的选中状态
-            foreach (var playlist in FavoritePlaylists)
-            {
-                playlist.IsSelected = false;
-            }
+            MainNavigationItems
+                .Concat(MyMusicNavigationItems)
+                .Concat(MoreNavigationItems)
+                .ToList()
+                .ForEach(item => item.IsSelected = false);
+
+            FavoritePlaylists
+                .ToList()
+                .ForEach(playlist => playlist.IsSelected = false);
         }
 
         #endregion

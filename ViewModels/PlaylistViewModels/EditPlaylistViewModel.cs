@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Win32;
 using NetEase.Dtos;
@@ -121,12 +122,14 @@ namespace NetEase.ViewModels.PlaylistViewModels
         partial void OnDescriptionChanged(string value) => OnPropertyChanged(nameof(DescriptionCharCount));
 
         private bool CanExecuteAsyncCommands() => !IsBusy;
+
         [RelayCommand(CanExecute = nameof(CanExecuteAsyncCommands))]
         private async Task SaveAsync()
         {
             IsBusy = true;
             SaveCommand.NotifyCanExecuteChanged(); // 通知UI更新按钮状态
             ChangeCoverCommand.NotifyCanExecuteChanged();
+            //NotifyAsyncCommandCanExecuteChanged();
             try
             {
                 var updateDto = new UpdatePlaylistDto
@@ -141,13 +144,30 @@ namespace NetEase.ViewModels.PlaylistViewModels
                 Debug.WriteLine($"SaveAsync:{success}");
                 if (success)
                 {
+                    var message = new PlaylistUpdatedMessage
+                    {
+                        PlaylistId = _originalPlaylist.Id,
+                        NewName = this.Name,
+                        NewDescription = this.Description,
+                        NewCoverImageUrl = this.CoverImageUrl
+                    };
+                    // b. 发送数据更新广播
+                    WeakReferenceMessenger.Default.Send(message);
+
+                    MessageBox.Show("歌单信息已保存！");
+
+                    // c. 发送“返回”导航请求
+                    WeakReferenceMessenger.Default.Send(new GoBackNavigationMessage());
                     // 更新 MainViewModel 中缓存的歌单列表项
                     _originalPlaylist.Title = this.Name;
                     _originalPlaylist.Description = this.Description;
                     _originalPlaylist.CoverImageUrl = this.CoverImageUrl; // UI已是最新
 
-                    MessageBox.Show("歌单信息已保存！");
-                    NavigationRequestCompleted?.Invoke();
+                    //NavigationRequestCompleted?.Invoke();
+                    // 发布数据更新消息
+                    WeakReferenceMessenger.Default.Send(new PlaylistUpdatedMessage {});
+                    // 发布【返回】导航请求消息
+                    WeakReferenceMessenger.Default.Send(new GoBackNavigationMessage());
                 }
                 else
                 {
@@ -164,10 +184,11 @@ namespace NetEase.ViewModels.PlaylistViewModels
         }
 
         [RelayCommand]
-        private void Cancel()
+        private static void Cancel()
         {
             // 直接请求导航回上一个页面，不保存任何更改
-            NavigationRequestCompleted?.Invoke();
+            //NavigationRequestCompleted?.Invoke();
+            WeakReferenceMessenger.Default.Send(new GoBackNavigationMessage());
         }
 
 

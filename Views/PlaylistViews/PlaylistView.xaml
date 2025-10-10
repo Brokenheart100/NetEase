@@ -16,6 +16,53 @@
         <BitmapImage x:Key="DefaultAvatarImage"
                      UriSource="/CoverImage/39.jpg"/>
 
+
+        <Style x:Key="LikeButtonStyle" TargetType="Button" 
+               BasedOn="{StaticResource IconButtonStyle}">
+
+            <!-- 我们需要更大的图标 -->
+            <Setter Property="Foreground" Value="Gray"/>
+            <!-- 设置我们自己的默认前景色 -->
+
+            <!-- 【重要】重置固定尺寸，使其适应DataGrid单元格 -->
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="Height" Value="Auto"/>
+
+            <!-- 2. 添加 LikeButtonStyle 特有的新属性 -->
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Content" Value="&#xEB51;"/>
+            <!-- 设置默认的空心图标 -->
+            <Setter Property="ToolTip" Value="添加到我喜欢的音乐"/>
+
+            <!-- 3. 添加或覆盖触发器 -->
+            <Style.Triggers>
+                <!-- 我们的 DataTrigger 会被添加到基础样式的触发器集合中 -->
+                <DataTrigger Binding="{Binding IsLiked}" Value="True">
+                    <Setter Property="Foreground" Value="Red"/>
+                    <Setter Property="Content" Value="&#xEB52;"/>
+                    <Setter Property="ToolTip" Value="从我喜欢的音乐中移除"/>
+                </DataTrigger>
+
+                <!-- 覆盖基础样式的 IsMouseOver 行为，我们不希望改变背景色，而是改变前景色 -->
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <!-- 确保背景不变 -->
+                    <Setter Property="Foreground" Value="#FF8A8A"/>
+                    <!-- 悬浮时显示淡红色 -->
+                </Trigger>
+
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsLiked}" Value="True"/>
+                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="DarkRed"/>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="ModernDataGridStyle"
                TargetType="{x:Type DataGrid}">
             <!-- 基础属性设置 (从您原来的 DataGrid 标签上移到这里) -->
@@ -248,46 +295,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="IconButtonStyle"
-               TargetType="Button">
-            <Setter Property="Background"
-                    Value="Transparent"/>
-            <Setter Property="Foreground"
-                    Value="#CCCCCC"/>
-            <Setter Property="BorderThickness"
-                    Value="0"/>
-            <Setter Property="Width"
-                    Value="32"/>
-            <Setter Property="Height"
-                    Value="32"/>
-            <Setter Property="FontSize"
-                    Value="18"/>
-            <Setter Property="FontFamily"
-                    Value="Segoe MDL2 Assets"/>
-            <Setter Property="Cursor"
-                    Value="Hand"/>
-            <Setter Property="Margin"
-                    Value="0,0,1,0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <!-- 我们需要一个模板来确保背景真正受我们控制 -->
-                        <Border Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver"
-                         Value="True">
-                    <Setter Property="Foreground"
-                            Value="White"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
 
         <Style x:Key="CustomTabItemStyle"
                TargetType="{x:Type TabItem}">
@@ -458,8 +465,7 @@
                     CornerRadius="8"
                     Margin="0,0,30,0">
                 <Border.Background>
-                    <ImageBrush ImageSource="{Binding CoverImageUrl,FallbackValue={StaticResource DefaultAvatarImage}}"
-                                Stretch="UniformToFill"/>
+                    <ImageBrush ImageSource="{Binding CoverImageSource, FallbackValue={StaticResource DefaultAvatarImage}}"/>
                 </Border.Background>
             </Border>
 
@@ -488,6 +494,18 @@
                                  Command="{Binding GoToEditPageCommand}" 
                                  Margin="10"/>
                     </StackPanel>
+                    <TextBlock Text="{Binding PlaylistDescription, TargetNullValue='暂无简介'}"
+                               Foreground="White"
+                               FontSize="20"
+                               Margin="0,15,0,0"
+                               TextWrapping="Wrap"
+                               TextTrimming="CharacterEllipsis"
+                               MaxHeight="32">
+                        <!-- (可选) 添加一个 ToolTip，以便用户可以悬浮查看完整内容 -->
+                        <TextBlock.ToolTip>
+                            <ToolTip Content="{Binding PlaylistDescription}"/>
+                        </TextBlock.ToolTip>
+                    </TextBlock>
                     <StackPanel Orientation="Horizontal"
                             Margin="0,10,0,20"
                             VerticalAlignment="Center">
@@ -497,7 +515,7 @@
                                 <ImageBrush ImageSource="{Binding AuthorAvatarUrl,FallbackValue={StaticResource DefaultAvatarImage}}"/>
                             </Ellipse.Fill>
                         </Ellipse>
-                        <TextBlock Text="{Binding Author}"
+                        <TextBlock Text="{Binding Author,FallbackValue='2077-4-04'}"
                                Margin="10,0,0,0"
                                VerticalAlignment="Center"
                                Foreground="#A0A0A0"/>
@@ -519,11 +537,9 @@
                             Style="{StaticResource ActionButtonStyle}"/>
                     <Button Content="···"
                             Style="{StaticResource ActionButtonStyle}"
-                            Command="{Binding AddLocalFolderCommand}"
                             Width="40"/>
                     <Button Content="➕添加本地文件夹"
                             Style="{StaticResource ActionButtonStyle}"
-                            Command="{Binding AddLocalFolderCommand}"
                             Width="150"/>
                 </StackPanel>
             </Grid>
@@ -634,8 +650,7 @@
                                               Command="{Binding Data.PlaySongCommand, Source={StaticResource Proxy}}"
                                               CommandParameter="{Binding}">
                                         <MenuItem.Icon>
-                                            <TextBlock Text="&#xE768;"
-                                                       FontFamily="Segoe MDL2 Assets"/>
+                                            <TextBlock Text="&#xE768;"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
 
@@ -643,8 +658,7 @@
                                               Command="{Binding Data.DownloadSongCommand, Source={StaticResource Proxy}}"
                                               CommandParameter="{Binding}">
                                         <MenuItem.Icon>
-                                            <TextBlock Text="&#xE896;"
-                                                       FontFamily="Segoe MDL2 Assets"/>
+                                            <TextBlock Text="&#xE896;"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
 
@@ -653,7 +667,7 @@
                                               CommandParameter="{Binding}">
                                         <MenuItem.Icon>
                                             <TextBlock Text="&#xE748;"
-                                                       FontFamily="Segoe MDL2 Assets"/>
+                                                      />
                                         </MenuItem.Icon>
                                     </MenuItem>
 
@@ -661,8 +675,7 @@
                                               Command="{Binding Data.RemoveFromPlaylistCommand, Source={StaticResource Proxy}}"
                                               CommandParameter="{Binding}">
                                         <MenuItem.Icon>
-                                            <TextBlock Text="&#xE74D;"
-                                                       FontFamily="Segoe MDL2 Assets"/>
+                                            <TextBlock Text="&#xE74D;"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </ContextMenu>
@@ -780,7 +793,7 @@
                                             Margin="5"
                                             CornerRadius="4">
                                         <Border.Background>
-                                            <ImageBrush ImageSource="{Binding CoverImageUrl,FallbackValue={StaticResource DefaultAvatarImage}}"
+                                            <ImageBrush ImageSource="{Binding CoverImage,FallbackValue={StaticResource DefaultAvatarImage}}"
                                                         Stretch="UniformToFill"/>
                                         </Border.Background>
                                     </Border>
@@ -884,10 +897,10 @@
                                             CanUserSort="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="❤"
-                                           FontSize="16"
-                                           Foreground="Red"
-                                           VerticalAlignment="Center"/>
+                                <Button Style="{StaticResource LikeButtonStyle}"
+                                        Content="&#xEB51;"
+                                        Command="{Binding DataContext.ToggleLikeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

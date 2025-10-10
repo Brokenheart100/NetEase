@@ -11,8 +11,8 @@ namespace NetEase.Models
 
         [ObservableProperty]
         private bool _isSelected;
-        public ObservableCollection<NavigationItem> Children { get; set; } = [];
         public NavigationItemType ItemType { get; set; } = NavigationItemType.Default;
+        public object? NavigationParameter { get; set; }
     }
     public enum NavigationItemType
     {
