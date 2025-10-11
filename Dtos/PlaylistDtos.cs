@@ -1,5 +1,4 @@
-﻿using NetEase.Dtos.NetEase.Dtos;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace NetEase.Dtos
 {

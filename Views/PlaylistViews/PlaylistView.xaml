@@ -45,21 +45,13 @@
                     <Setter Property="ToolTip" Value="从我喜欢的音乐中移除"/>
                 </DataTrigger>
 
-                <!-- 覆盖基础样式的 IsMouseOver 行为，我们不希望改变背景色，而是改变前景色 -->
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <!-- 确保背景不变 -->
-                    <Setter Property="Foreground" Value="#FF8A8A"/>
-                    <!-- 悬浮时显示淡红色 -->
-                </Trigger>
-
-                <MultiDataTrigger>
+                <!--<MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding IsLiked}" Value="True"/>
                         <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
                     </MultiDataTrigger.Conditions>
                     <Setter Property="Foreground" Value="DarkRed"/>
-                </MultiDataTrigger>
+                </MultiDataTrigger>-->
             </Style.Triggers>
         </Style>
 
@@ -898,7 +890,6 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Style="{StaticResource LikeButtonStyle}"
-                                        Content="&#xEB51;"
                                         Command="{Binding DataContext.ToggleLikeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"/>
                             </DataTemplate>

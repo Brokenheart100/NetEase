@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NetEase.ServiceDefaults;
 using NetEase.Services;
 using NetEase.Services.NavigationService;
 using NetEase.ViewModels;
@@ -17,6 +20,7 @@ namespace NetEase
     /// </summary>
     public partial class App : Application
     {
+        public static IHost AppHost { get; private set; }
         /// <summary>
         /// 静态服务提供者，全局可访问的依赖注入容器
         /// 用于在应用程序的任何地方获取已注册的服务实例
@@ -29,98 +33,73 @@ namespace NetEase
         /// </summary>
         public App()
         {
-            // 创建服务集合（依赖注入的服务注册表）
-            var serviceCollection = new ServiceCollection();
-
-            // 配置服务（向服务集合中注册各类服务、视图模型、视图等）
-            ConfigureServices(serviceCollection);
-
-            // 构建服务提供者（完成依赖注入容器的初始化）
-            ServiceProvider = serviceCollection.BuildServiceProvider();
+            AppHost = Host.CreateDefaultBuilder()
+                .ConfigureServices((hostContext, services) =>
+                {
+                    ConfigureServices(services, hostContext.Configuration);
+                })
+                .Build();
         }
-
-        /// <summary>
-        /// 配置依赖注入服务
-        /// 向服务集合中注册应用所需的所有服务、视图模型和视图
-        /// </summary>
-        /// <param name="services">服务集合（用于注册服务的容器）</param>
-        private void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            // --- HTTP 客户端配置 ---
-            // 注册HttpClient单例实例，用于网络请求
-            // 配置基础地址为后端API服务地址（此处为本地开发环境地址）
-            services.AddLogging(configure =>
-            {
-                // 添加调试输出提供程序
-                configure.AddDebug();
-            });
+            // 3. 【核心】添加 Aspire 服务默认值
+            //    注意：这里我们是在 IServiceCollection 上调用，所以需要一个辅助方法
+            //    或者我们可以直接在 builder 上配置
+            //    为了简单，我们直接在这里配置HttpClient
 
-            //http://localhost:5215
+            // 您的 AddServiceDefaults() 扩展方法可能需要 IHostApplicationBuilder
+            // 所以我们换一种等价的配置方式，或者直接在 builder 上配置
+            // services.AddServiceDefaults(); // 这种方式可能不存在
+            var apiGatewayUrl = configuration["ApiGatewayUrl"];
+            if (string.IsNullOrEmpty(apiGatewayUrl))
+            {
+                // 提供一个默认值以防万一
+                apiGatewayUrl = "http://localhost:5240";
+            }
+            // a. 注册强类型配置
+            services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
             services.AddSingleton<HttpClient>(sp => new HttpClient
             {
-                BaseAddress = new Uri("http://localhost:5240/")
-
+                //BaseAddress = new Uri("http://localhost:5240/")
+                BaseAddress = new Uri(apiGatewayUrl)
             });
-            var apiGatewayBaseUrl = "http://localhost:5240";
-            //services.AddHttpClient<AuthService>(client =>
-            //{
-            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
-            //});
+            // b. 【核心修正】使用现代的 IHttpClientFactory 为每个服务配置 HttpClient
+            services.AddHttpClient<AuthService>(client =>
+            {
+                client.BaseAddress = new Uri(apiGatewayUrl);
+            });
+            services.AddHttpClient<PlaylistService>(client =>
+            {
+                client.BaseAddress = new Uri(apiGatewayUrl);
+            });
+            services.AddHttpClient<SearchService>(client =>
+            {
+                client.BaseAddress = new Uri(apiGatewayUrl);
+            });
 
-            //services.AddHttpClient<PlaylistService>(client =>
-            //{
-            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
-            //});
+            // c. FileCacheService 的 HttpClient 配置
+            services.AddHttpClient<ICacheService, FileCacheService>()
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                {
+                    var handler = new HttpClientHandler();
+#if DEBUG
+                    handler.ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+#endif
+                    return handler;
+                });
 
-            //services.AddHttpClient<SearchService>(client =>
-            //{
-            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
-            //});
-
-            //file
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: https://localhost:7056
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: http://localhost:5017
-
-            //catalog
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: https://localhost:7270
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: http://localhost:5044
-
-            //library
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: https://localhost:7092
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: http://localhost:5174
-
-            //auth
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: https://localhost:7041
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: http://localhost:5260
-
-            //apiGateWay
-            //  info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: https://localhost:7269
-            //info: Microsoft.Hosting.Lifetime[14]
-            //Now listening on: http://localhost:5240
-
-            // --- 业务服务注册 ---
-            // 注册应用的核心业务服务，按功能划分，生命周期根据需求设置
-            // 认证服务（单例：全局共享一个认证状态实例）
             services.AddHttpClient<CacheService>();
             services.AddSingleton<AuthService>();
-            // 播放列表服务（ transient：每次请求创建新实例，适合轻量级、无状态操作）
+            // �����б����� transient��ÿ�����󴴽���ʵ�����ʺ�����������״̬������
             services.AddTransient<PlaylistService>();
-            // 播放器服务（单例：全局唯一的播放器控制实例）
+            // ���������񣨵�����ȫ��Ψһ�Ĳ���������ʵ����
             services.AddSingleton<PlayerService>();
-            // 媒体播放服务（单例：处理媒体文件播放的核心服务）
+            // ý�岥�ŷ��񣨵���������ý���ļ����ŵĺ��ķ���
             services.AddSingleton<MediaPlayerService>();
-            // 好友服务（单例：管理好友关系的全局服务）
+            // ���ѷ��񣨵������������ѹ�ϵ��ȫ�ַ���
             services.AddSingleton<FriendService>();
-            // SignalR服务（单例：实时通信连接管理，全局唯一连接）
+            // SignalR���񣨵�����ʵʱͨ�����ӹ�����ȫ��Ψһ���ӣ�
             services.AddSingleton<SignalRService>();
             services.AddSingleton<CredentialService>();
             services.AddTransient<LyricService>();
@@ -130,83 +109,88 @@ namespace NetEase
             services.AddSingleton<ICacheService, FileCacheService>();
 
             //services.AddHttpClient<ImageCacheService>();
-            // --- 视图模型（ViewModel）注册 ---
-            // 注册MVVM模式中的视图模型，负责数据处理和视图交互逻辑
+            // --- ��ͼģ�ͣ�ViewModel��ע�� ---
+            // ע��MVVMģʽ�е���ͼģ�ͣ��������ݴ�������ͼ�����߼�
 
-            // 主窗口视图模型（单例：与应用生命周期一致的主数据上下文）
+            // ��������ͼģ�ͣ���������Ӧ����������һ�µ������������ģ�
             services.AddSingleton<MainViewModel>();
-            // 标题栏视图模型（单例：全局标题栏状态管理）
+            // ��������ͼģ�ͣ�������ȫ�ֱ�����״̬������
             services.AddSingleton<TitleBarViewModel>();
-            // 播放器控制视图模型（单例：全局播放器控制逻辑）
+            // ������������ͼģ�ͣ�������ȫ�ֲ����������߼���
             services.AddSingleton<PlayerControlViewModel>();
-            // 聊天服务（单例：管理聊天逻辑的核心服务）
+            // ������񣨵��������������߼��ĺ��ķ���
             services.AddSingleton<ChatService>();
-            // 认证视图模型（单例：登录/注册等认证相关逻辑）
+            // ��֤��ͼģ�ͣ���������¼/ע�����֤����߼���
             services.AddSingleton<SignUpViewModel>();
-            // 文件服务（单例：处理文件操作的全局服务）
+            // �ļ����񣨵����������ļ�������ȫ�ַ���
             services.AddSingleton<FileService>();
             services.AddSingleton<SignalRService>();
             services.AddSingleton<UserProfileService>();
             services.AddSingleton<SearchService>();
             services.AddHttpClient<CacheService>();
 
-            // 我的收藏音乐视图模型（transient：每次打开页面创建新实例）
+            // �ҵ��ղ�������ͼģ�ͣ�transient��ÿ�δ�ҳ�洴����ʵ����
             services.AddTransient<MyFavoriteMusicViewModel>();
-            // 本地音乐视图模型（transient：每次访问创建新实例，适合频繁刷新的场景）
+            // ����������ͼģ�ͣ�transient��ÿ�η��ʴ�����ʵ�����ʺ�Ƶ��ˢ�µĳ�����
             services.AddTransient<LocalMusicViewModel>();
-            // 播客视图模型（transient：按需创建，减轻内存占用）
+            // ������ͼģ�ͣ�transient�����贴���������ڴ�ռ�ã�
             services.AddTransient<PodcastViewModel>();
-            // 推荐内容视图模型（transient：内容频繁更新，每次加载最新数据）
+            // �Ƽ�������ͼģ�ͣ�transient������Ƶ�����£�ÿ�μ����������ݣ�
             services.AddTransient<FeaturedViewModel>();
-            // 聊天视图模型（transient：每个聊天窗口可能需要独立实例）
+            // ������ͼģ�ͣ�transient��ÿ�����촰�ڿ�����Ҫ����ʵ����
             services.AddTransient<ChatViewModel>();
-            // 好友视图模型（transient：好友列表页面的视图逻辑）
+            // ������ͼģ�ͣ�transient�������б�ҳ�����ͼ�߼���
             services.AddTransient<FriendsViewModel>();
-            // 重复注册的本地音乐视图模型（注意：重复注册可能是代码冗余，建议清理）
+            // �ظ�ע��ı���������ͼģ�ͣ�ע�⣺�ظ�ע������Ǵ������࣬����������
             services.AddTransient<LocalMusicViewModel>();
-            // 添加到播放列表视图模型（transient：弹窗类视图模型，用完即销毁）
+            // ���ӵ������б���ͼģ�ͣ�transient����������ͼģ�ͣ����꼴���٣�
             services.AddTransient<AddToPlaylistViewModel>();
-            // 联系人视图模型（transient：联系人页面的交互逻辑）
+            // ��ϵ����ͼģ�ͣ�transient����ϵ��ҳ��Ľ����߼���
             services.AddTransient<ContactsViewModel>();
-            // 重复注册的聊天视图模型（注意：需检查是否必要，避免资源浪费）
+            // �ظ�ע���������ͼģ�ͣ�ע�⣺�����Ƿ��Ҫ��������Դ�˷ѣ�
             services.AddTransient<ChatViewModel>();
-            // 会话视图模型（transient：管理聊天会话的临时数据）
+            // �Ự��ͼģ�ͣ�transient����������Ự����ʱ���ݣ�
             services.AddTransient<SessionsViewModel>();
-            // 用户资料视图模型（transient：用户资料页面的交互逻辑）
+            // �û�������ͼģ�ͣ�transient���û�����ҳ��Ľ����߼���
             services.AddTransient<UserProfileViewModel>();
             services.AddTransient<SongDetailViewModel>();
             services.AddTransient<PlaylistViewModel>();
             services.AddTransient<SearchResultViewModel>();
             services.AddTransient<EditPlaylistViewModel>();
             services.AddTransient<CommentViewModel>();
-            services.AddTransient<CommentService>(); // 假设 CommentService 也需要注册
+            services.AddTransient<CommentService>(); // ���� CommentService Ҳ��Ҫע��
             services.AddTransient<CreateLPlaylistViewModel>();
 
-
-
-            // 主窗口（单例：应用程序唯一的主窗口）
+            // �����ڣ�������Ӧ�ó���Ψһ�������ڣ�
             services.AddSingleton<MainWindow>();
-
         }
-
         /// <summary>
         /// 重写应用程序启动方法
         /// 在应用启动时从依赖注入容器中获取主窗口并显示
         /// </summary>
         /// <param name="e">启动事件参数（包含命令行参数等）</param>
+
         protected override async void OnStartup(StartupEventArgs e)
         {
-            // 调用基类启动逻辑
-            base.OnStartup(e);
+            await AppHost.StartAsync();
 
-            var cacheService = ServiceProvider.GetRequiredService<ICacheService>();
+            // 【修正】从 AppHost.Services 获取服务，这是唯一的服务提供者
+            var cacheService = AppHost.Services.GetRequiredService<ICacheService>();
             await cacheService.InitializeAsync();
-            // 从依赖注入容器中获取主窗口实例
-            // 容器会自动解析MainWindow的所有依赖（如构造函数中的MainViewModel）
-            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
 
-            // 显示主窗口
+            var mainWindow = AppHost.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
+
+            base.OnStartup(e);
+        }
+
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            if (AppHost != null)
+            {
+                await AppHost.StopAsync();
+            }
+            base.OnExit(e);
         }
     }
 }

@@ -158,7 +158,7 @@ namespace NetEase.ViewModels
             }
         }
         [RelayCommand]
-        private void ShowAddToPlaylistDialog(Song song)
+        private static void ShowAddToPlaylistDialog(Song song)
         {
             Debug.WriteLine("Enter ShowAddToPlaylistDialog(Song song)");
             if (song == null) return;
@@ -179,14 +179,14 @@ namespace NetEase.ViewModels
             dialogView.ShowDialog();
         }
         [RelayCommand]
-        private void DownloadSong(Song song)
+        private static void DownloadSong(Song song)
         {
             Debug.WriteLine("Enter DownloadSong(Song song)");
             if (song == null) return;
             Debug.WriteLine($"Downloading song: {song.Title}");
         }
         [RelayCommand]
-        private void ShareSong(Song song)
+        private static void ShareSong(Song song)
         {
             if (song == null) return;
             Debug.WriteLine($"Sharing song: {song.Title}");

@@ -32,7 +32,7 @@ namespace NetEase.ViewModels
         private readonly FriendsViewModel _friendsViewModel; // 好友视图模型，管理好友相关功能
         private readonly SignalRService _signalRService; // SignalR服务，处理实时通信
 
-        private readonly Stack<BaseViewModel> _navigationHistory = new Stack<BaseViewModel>();
+        private readonly Stack<BaseViewModel> _navigationHistory = new();
         public INavigationService Navigation => _navigationService;
         /// <summary>
         /// 当前显示的视图模型（绑定到UI的内容区域，控制显示哪个页面）
@@ -45,12 +45,17 @@ namespace NetEase.ViewModels
         [ObservableProperty]
         private bool _isOverlayVisible;
 
-        /// <summary>
-        /// 左侧边栏是否展开
-        /// </summary>
-        [ObservableProperty]
-        private bool _isLeftSidebarExpanded = true;
 
+        [ObservableProperty]
+        private bool _isLeftSidebarPinned = false; // <-- 1. 命名为 Pinned 更清晰，默认值为 false
+
+        // 这个命令将绑定到“钉住”按钮上
+        [RelayCommand]
+        private void ToggleLeftSidebarPin() // <-- 2. 命令名也更新一下
+        {
+            Debug.WriteLine($"Enter ToggleLeftSidebarPin {IsLeftSidebarPinned}");
+            IsLeftSidebarPinned = !IsLeftSidebarPinned;
+        }
         /// <summary>
         /// 当前选中的播放列表
         /// </summary>
@@ -97,7 +102,7 @@ namespace NetEase.ViewModels
         [
             new NavigationItem { DisplayName = "我喜欢的音乐", Icon = "\uE00B", ViewModelType = typeof(PlaylistViewModel) ,NavigationParameter = 1 },
             new NavigationItem { DisplayName = "最近播放", Icon = "\uE823" , ViewModelType = typeof(PodcastViewModel)},
-            new NavigationItem { DisplayName = "本地音乐", Icon = "\uE1D6" , ViewModelType = typeof(PodcastViewModel)},
+            new NavigationItem { DisplayName = "本地音乐", Icon = "\uE1D6" , ViewModelType = typeof(PlaylistViewModel),NavigationParameter = -1},
         ];
 
         /// <summary>
@@ -287,11 +292,6 @@ namespace NetEase.ViewModels
 
             _currentUserState.SetLoggedInUser(e.UserLoginInfo.User, e.UserLoginInfo.Token);
 
-            var friendsNavItem = MainNavigationItems.FirstOrDefault(item => item.ViewModelType == typeof(MyFavoriteMusicViewModel));
-            if (friendsNavItem != null)
-            {
-                Navigate(friendsNavItem);
-            }
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace NetEase.ViewModels
                 FavoritePlaylists.Clear();
                 foreach (var dto in playlistDtos)
                 {
-                    string absoluteUrl = dto.CoverImageUrl;
+                    var absoluteUrl = dto.CoverImageUrl;
                     // 如果收到的URL不是一个完整的绝对URL，就手动拼接
                     if (!string.IsNullOrEmpty(absoluteUrl) && !absoluteUrl.StartsWith("http"))
                     {
@@ -329,14 +329,6 @@ namespace NetEase.ViewModels
 
         #region 命令（由[RelayCommand]自动生成）
 
-        /// <summary>
-        /// 切换左侧边栏的展开/折叠状态
-        /// </summary>
-        [RelayCommand]
-        private void ToggleLeftSidebar()
-        {
-            IsLeftSidebarExpanded = !IsLeftSidebarExpanded;
-        }
 
         /// <summary>
         /// 显示注册界面（显示覆盖层）
@@ -446,7 +438,7 @@ namespace NetEase.ViewModels
             playlist.IsSelected = true;
 
             // 【核心修改】同样使用带参数的导航方法，直接传递 playlist.Id
-            _navigationService.NavigateTo(typeof(PlaylistViewModel), playlist.Id);
+            _navigationService.NavigateTo<PlaylistViewModel>(playlist.Id);
         }
         #endregion
 

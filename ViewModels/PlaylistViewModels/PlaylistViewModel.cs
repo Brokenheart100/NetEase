@@ -68,8 +68,14 @@ namespace NetEase.ViewModels.PlaylistViewModels
         }
         public async void OnNavigatedTo(object? parameter)
         {
+            if (parameter is int specialId && specialId == -1)
+            {
+                // 【新增】调用加载所有歌曲的逻辑
+                _logger.LogInformation("接收到特殊导航参数 -1，开始加载所有歌曲用于测试...");
+                await LoadAllSongsForTestAsync();
+            }
             // a. 检查传递过来的参数是否是我们期望的 int 类型 (播放列表ID)
-            if (parameter is int playlistId && playlistId > 0)
+            else if (parameter is int playlistId && playlistId > 0)
             {
                 // b. 如果是，就直接调用我们已有的、功能强大的 LoadPlaylistAsync 方法
                 //    这完美地复用了您现有的逻辑！
@@ -84,6 +90,54 @@ namespace NetEase.ViewModels.PlaylistViewModels
                 IsLoading = false;
                 Songs.Clear();
                 PlaylistTitle = "未指定播放列表";
+            }
+        }
+
+        private async Task LoadAllSongsForTestAsync()
+        {
+            IsLoading = true;
+            Songs.Clear();
+            try
+            {
+                // 1. 更新UI显示，表明这是一个特殊的测试列表
+                PlaylistTitle = "所有歌曲 (测试)";
+                PlaylistDescription = $"数据库中的全部 {SongCount} 首歌曲";
+                Author = "开发者";
+                CreateDate = DateTime.Now.ToShortDateString();
+                CoverImageSource = null; // 或者使用一个特定的测试封面
+                AuthorAvatarUrl = null;
+
+                // 2. 调用服务获取所有歌曲
+                var allSongsDto = await _playlistService.GetAllSongsAsync();
+
+                if (allSongsDto != null)
+                {
+                    int index = 1;
+                    foreach (var songDto in allSongsDto)
+                    {
+                        var song = new Song
+                        {
+                            Id = songDto.Id,
+                            Index = index++,
+                            Title = songDto.Title,
+                            Artist = songDto.ArtistName,
+                            Album = songDto.AlbumTitle,
+                            Duration = songDto.Duration,
+                            CoverImageUrl = songDto.CoverImageUrl,
+                            FilePath = songDto.FilePath,
+                            IsLiked = songDto.IsLiked
+                        };
+                        _ = song.StartImageLoadingAsync(_cacheService);
+                        Songs.Add(song);
+                    }
+                    SongCount = Songs.Count;
+                    // 再次更新描述，显示正确的数量
+                    PlaylistDescription = $"数据库中的全部 {SongCount} 首歌曲";
+                }
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
         [RelayCommand]
@@ -120,37 +174,56 @@ namespace NetEase.ViewModels.PlaylistViewModels
         {
             if (song == null) return;
 
-            // 1. 先在UI上进行乐观更新
+            // 1. 记录原始状态
             bool originalLikedState = song.IsLiked;
+
+            // 2. 乐观UI更新：立即改变UI状态以提供即时反馈
             song.IsLiked = !originalLikedState;
 
             bool success;
-            if (song.IsLiked)
+            try
             {
-                _logger.LogInformation("用户正在添加歌曲 {SongId} 到“我喜欢的音乐”...", song.Id);
-                // 如果是“喜欢”操作
-                success = await _playlistService.AddToFavoritesAsync(song.Id);
+                // 3. 【核心修正】根据【操作之后的新状态】来决定调用哪个API
+                if (song.IsLiked)
+                {
+                    // 如果新状态是 "true" (已喜欢)，说明我们执行的是“添加”操作
+                    _logger.LogInformation("用户正在添加歌曲 {SongId} 到“我喜欢的音乐”...", song.Id);
+                    success = await _playlistService.AddToFavoritesAsync(song.Id);
+                }
+                else
+                {
+                    // 如果新状态是 "false" (未喜欢)，说明我们执行的是“移除”操作
+                    _logger.LogInformation("用户正在从“我喜欢的音乐”中移除歌曲 {SongId}...", song.Id);
+                    success = await _playlistService.RemoveFromFavoritesAsync(song.Id);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning("ToggleLike API调用失败，正在回滚UI状态，歌曲ID: {SongId}", song.Id);
-                // 【核心修改】如果是“取消喜欢”操作
-                success = await _playlistService.RemoveFromFavoritesAsync(song.Id);
+                _logger.LogError(ex, "ToggleLike 操作 API 调用失败，歌曲ID: {SongId}", song.Id);
+                success = false;
             }
 
-            // 2. 如果API调用失败，回滚UI状态并提示用户
+            // 4. 如果API调用失败，则回滚UI状态并提示用户
             if (!success)
             {
-                _logger.LogWarning("ToggleLike API调用失败，正在回滚UI状态，歌曲ID: {SongId} {}", song.Id,song.Title);
-                song.IsLiked = originalLikedState; // 恢复到操作前的状态
+                _logger.LogWarning("ToggleLike API调用失败，正在回滚UI状态，歌曲ID: {SongId}", song.Id);
 
-                // 使用更友好的通知方式，而不是MessageBox
-                // _notificationService.ShowError("操作失败，请稍后重试。");
-                MessageBox.Show(song.IsLiked ? "添加到“我喜欢的音乐”失败。" : "取消喜欢失败。");
+                // a. 将UI状态恢复到操作之前的状态
+                song.IsLiked = originalLikedState;
+
+                // b. 根据【原始状态】来决定显示哪个错误信息，这样更符合用户的意图
+                if (originalLikedState) // 如果原来是 true (用户想取消)
+                {
+                    MessageBox.Show("取消喜欢失败。");
+                }
+                else // 如果原来是 false (用户想添加)
+                {
+                    MessageBox.Show("添加到“我喜欢的音乐”失败。");
+                }
             }
             else
             {
-                _logger.LogInformation("ToggleLike 操作成功，歌曲ID: {SongId} {}", song.Id, song.Title);
+                _logger.LogInformation("ToggleLike 操作成功，歌曲ID: {SongId}", song.Id);
             }
         }
         async partial void OnCoverImageUrlChanged(string? value)

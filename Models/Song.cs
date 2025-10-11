@@ -12,23 +12,21 @@ namespace NetEase.Models
     {
         public int Id { get; set; }
         public int Index { get; set; }
-        public string Title { get; set; } = "Default";
+        public string Title { get; set; }
         public string Subtitle { get; set; }
         public List<SongTag> Tags { get; set; }
-        public string Artist { get; set; } = "DefaultSinger";
+        public string Artist { get; set; }
         public string Album { get; set; }
-        public bool IsLiked { get; set; } = false;
         public string Duration { get; set; }
         public string FilePath { get; set; }
-        public string AlbumTitle { get; set; }
-        public string ArtistName { get; set; }
         //图片
         [ObservableProperty]
         private bool _isPlaying;
         [ObservableProperty]
         private bool _isDownloaded;
+        //public bool IsLiked { get; set; }
         [ObservableProperty]
-        private bool _isLike;
+        private bool _isLiked;
 
         [ObservableProperty]
         private string _coverImageUrl; // 这是【网络】URL
@@ -37,21 +35,6 @@ namespace NetEase.Models
         [JsonIgnore] // 确保这个属性不会被序列化
         private ImageSource _coverImage; // 这是【UI】绑定的图片源
 
-        // 当 CoverImageUrl 变化时，触发异步加载
-        //async partial void OnCoverImageUrlChanged(string value)
-        //{
-        //    var cacheService = App.ServiceProvider.GetRequiredService<CacheService>();
-        //    string localPath = await cacheService.GetFileAsync(value, CacheType.Image);
-        //    if (localPath == null) return;
-        //    var bitmap = new BitmapImage();
-        //    bitmap.BeginInit();
-        //    bitmap.UriSource = new Uri(localPath);
-        //    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        //    bitmap.EndInit();
-        //    CoverImage = bitmap; // 更新UI绑定的属性
-        //}
-        // 3. 【核心】利用自动生成的钩子方法，在 CoverImageUrl 变化时加载图片
-        //    这个方法需要一个能访问 CacheService 的地方，我们将在ViewModel中调用一个包装器
         private async Task LoadCoverImageAsync(ICacheService cacheService)
         {
             // a. 检查URL是否有效
@@ -83,8 +66,6 @@ namespace NetEase.Models
             }
         }
 
-        // 4. (推荐) 创建一个公共的包装器方法
-        //    这样 ViewModel 的调用代码会更清晰
         public Task StartImageLoadingAsync(ICacheService cacheService)
         {
             return LoadCoverImageAsync(cacheService);
@@ -92,7 +73,7 @@ namespace NetEase.Models
     }
     public class SongTag
     {
-        public string Text { get; set; } = "default";
+        public string Text { get; set; }
         public Brush Background { get; set; }
         public Brush Foreground { get; set; }
         public Brush BorderBrush { get; set; }

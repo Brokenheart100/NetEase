@@ -1,5 +1,4 @@
-﻿using NetEase.Dtos.NetEase.Dtos;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace NetEase.Dtos
 {

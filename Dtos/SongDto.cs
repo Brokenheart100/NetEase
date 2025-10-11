@@ -1,8 +1,4 @@
-﻿namespace NetEase.Dtos
-{
-    // File: NetEase\Dtos\SongDto.cs
-
-    using System.Text.Json.Serialization; // 1. 引入这个命名空间
+﻿using System.Text.Json.Serialization; // 1. 引入这个命名空间
 
     namespace NetEase.Dtos
     {
@@ -29,6 +25,9 @@
 
             [JsonPropertyName("filePath")]
             public string FilePath { get; set; }
-        }
+            [JsonPropertyName("isliked")]
+            public bool IsLiked { get; set; } = false;
+
     }
 }
+

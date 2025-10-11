@@ -257,7 +257,7 @@ namespace NetEase.ViewModels
         /// 通知播放器服务更新实际播放音量
         /// </summary>
         /// <param name="value">新的音量值</param>
-        partial void OnPlaybackVolumeChanged(double value) => _playerService.SetVolume(value);
+        partial void OnPlaybackVolumeChanged(double value) => PlayerService.SetVolume(value);
 
         /// <summary>
         /// 当前进度变化时的处理方法
@@ -269,7 +269,7 @@ namespace NetEase.ViewModels
         {
             if (IsDragging)
             {
-                _playerService.Seek(value);
+                PlayerService.Seek(value);
             }
         }
 

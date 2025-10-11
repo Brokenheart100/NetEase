@@ -1,12 +1,358 @@
-<ItemsControl ItemsSource="{Binding Suggestions}" Margin="0,20,0,0">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <UniformGrid Columns="4"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <views:SuggestionCardView Height="120" Width="120" Margin="5"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using NetEase.ServiceDefaults;
+using NetEase.Services;
+using NetEase.builder.Services.NavigationService;
+using NetEase.ViewModels;
+using NetEase.ViewModels.ChatViewModels;
+using NetEase.ViewModels.PlaylistViewModels;
+using NetEase.Views;
+using System.Net.Http;
+using System.Windows;
+using NetEase.Services.NavigationService;
+using static Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System;
+
+namespace NetEase
+{
+    /// <summary>
+    /// Ӧ�ó�����ڵ�Ľ����߼���
+    /// �̳���WPF��Application�࣬����Ӧ�ó�����������ڹ�����ȫ������
+    /// </summary>
+    public partial class App : System.Windows.Application
+    {
+        public static IHost AppHost { get; private set; }
+        /// <summary>
+        /// ��̬�����ṩ�ߣ�ȫ�ֿɷ��ʵ�����ע������
+        /// ������Ӧ�ó�����κεط���ȡ��ע��ķ���ʵ��
+        /// </summary>
+        public static IServiceProvider ServiceProvider { get; private set; }
+
+        /// <summary>
+        /// Ӧ�ó����캯��
+        /// ��ʼ������ע�����������÷���
+        /// </summary>
+        public App()
+        {
+            // �������񼯺ϣ�����ע��ķ���ע�����
+            //var serviceCollection = new ServiceCollection();
+
+            //// ���÷�������񼯺���ע����������ͼģ�͡���ͼ�ȣ�
+            //ConfigureServices(serviceCollection);
+
+            //// ���������ṩ�ߣ��������ע�������ĳ�ʼ����
+            //ServiceProvider = serviceCollection.BuildServiceProvider();
+
+            var builder = Host.CreateApplicationBuilder();
+
+            // --- 3. �����ġ����� Aspire ����Ĭ��ֵ ---
+            //    �⽫�Զ�������־���ɹ۲��ԣ���Ϊ HttpClient ���÷����ֺ͵��Բ��ԡ�
+            builder.AddServiceDefaults();
+        
+            builder.Services.AddSingleton<HttpClient>(sp => new HttpClient
+            {
+                //BaseAddress = new Uri("http://localhost:5240/")
+                BaseAddress = new Uri("http://api-gateway")
+            });
+            var apiGatewayBaseUrl = "http://localhost:5240";
+            //builder.Services.AddHttpClient<AuthService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
+
+            //builder.Services.AddHttpClient<PlaylistService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
+
+            //builder.Services.AddHttpClient<SearchService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
+
+            //file
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7056
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5017
+
+            //catalog
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7270
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5044
+
+            //library
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7092
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5174
+
+            //auth
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7041
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5260
+
+            //apiGateWay
+            //  info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7269
+            //info: Microsoft.Hosting.Lifetime[14]  
+            //Now listening on: http://localhost:5240
+
+            // --- ҵ�����ע�� ---
+            // ע��Ӧ�õĺ���ҵ����񣬰����ܻ��֣��������ڸ�����������
+            // ��֤���񣨵�����ȫ�ֹ���һ����֤״̬ʵ����
+            builder.Services.AddHttpClient<CacheService>();
+            builder.Services.AddSingleton<AuthService>();
+            // �����б����� transient��ÿ�����󴴽���ʵ�����ʺ�����������״̬������
+            builder.Services.AddTransient<PlaylistService>();
+            // ���������񣨵�����ȫ��Ψһ�Ĳ���������ʵ����
+            builder.Services.AddSingleton<PlayerService>();
+            // ý�岥�ŷ��񣨵���������ý���ļ����ŵĺ��ķ���
+            builder.Services.AddSingleton<MediaPlayerService>();
+            // ���ѷ��񣨵������������ѹ�ϵ��ȫ�ַ���
+            builder.Services.AddSingleton<FriendService>();
+            // SignalR���񣨵�����ʵʱͨ�����ӹ�����ȫ��Ψһ���ӣ�
+            builder.Services.AddSingleton<SignalRService>();
+            builder.Services.AddSingleton<CredentialService>();
+            builder.Services.AddTransient<LyricService>();
+            builder.Services.AddSingleton<SongService>();
+            builder.Services.AddSingleton<INavigationService, NavigationService>();
+            builder.Services.AddSingleton<CurrentUserStateService>();
+            builder.Services.AddSingleton<ICacheService, FileCacheService>();
+
+            //builder.Services.AddHttpClient<ImageCacheService>();
+            // --- ��ͼģ�ͣ�ViewModel��ע�� ---
+            // ע��MVVMģʽ�е���ͼģ�ͣ��������ݴ�������ͼ�����߼�
+
+            // ��������ͼģ�ͣ���������Ӧ����������һ�µ������������ģ�
+            builder.Services.AddSingleton<MainViewModel>();
+            // ��������ͼģ�ͣ�������ȫ�ֱ�����״̬������
+            builder.Services.AddSingleton<TitleBarViewModel>();
+            // ������������ͼģ�ͣ�������ȫ�ֲ����������߼���
+            builder.Services.AddSingleton<PlayerControlViewModel>();
+            // ������񣨵��������������߼��ĺ��ķ���
+            builder.Services.AddSingleton<ChatService>();
+            // ��֤��ͼģ�ͣ���������¼/ע�����֤����߼���
+            builder.Services.AddSingleton<SignUpViewModel>();
+            // �ļ����񣨵����������ļ�������ȫ�ַ���
+            builder.Services.AddSingleton<FileService>();
+            builder.Services.AddSingleton<SignalRService>();
+            builder.Services.AddSingleton<UserProfileService>();
+            builder.Services.AddSingleton<SearchService>();
+            builder.Services.AddHttpClient<CacheService>();
+
+            // �ҵ��ղ�������ͼģ�ͣ�transient��ÿ�δ�ҳ�洴����ʵ����
+            builder.Services.AddTransient<MyFavoriteMusicViewModel>();
+            // ����������ͼģ�ͣ�transient��ÿ�η��ʴ�����ʵ�����ʺ�Ƶ��ˢ�µĳ�����
+            builder.Services.AddTransient<LocalMusicViewModel>();
+            // ������ͼģ�ͣ�transient�����贴���������ڴ�ռ�ã�
+            builder.Services.AddTransient<PodcastViewModel>();
+            // �Ƽ�������ͼģ�ͣ�transient������Ƶ�����£�ÿ�μ����������ݣ�
+            builder.Services.AddTransient<FeaturedViewModel>();
+            // ������ͼģ�ͣ�transient��ÿ�����촰�ڿ�����Ҫ����ʵ����
+            builder.Services.AddTransient<ChatViewModel>();
+            // ������ͼģ�ͣ�transient�������б�ҳ�����ͼ�߼���
+            builder.Services.AddTransient<FriendsViewModel>();
+            // �ظ�ע��ı���������ͼģ�ͣ�ע�⣺�ظ�ע������Ǵ������࣬����������
+            builder.Services.AddTransient<LocalMusicViewModel>();
+            // ���ӵ������б���ͼģ�ͣ�transient����������ͼģ�ͣ����꼴���٣�
+            builder.Services.AddTransient<AddToPlaylistViewModel>();
+            // ��ϵ����ͼģ�ͣ�transient����ϵ��ҳ��Ľ����߼���
+            builder.Services.AddTransient<ContactsViewModel>();
+            // �ظ�ע���������ͼģ�ͣ�ע�⣺�����Ƿ��Ҫ��������Դ�˷ѣ�
+            builder.Services.AddTransient<ChatViewModel>();
+            // �Ự��ͼģ�ͣ�transient����������Ự����ʱ���ݣ�
+            builder.Services.AddTransient<SessionsViewModel>();
+            // �û�������ͼģ�ͣ�transient���û�����ҳ��Ľ����߼���
+            builder.Services.AddTransient<UserProfileViewModel>();
+            builder.Services.AddTransient<SongDetailViewModel>();
+            builder.Services.AddTransient<PlaylistViewModel>();
+            builder.Services.AddTransient<SearchResultViewModel>();
+            builder.Services.AddTransient<EditPlaylistViewModel>();
+            builder.Services.AddTransient<CommentViewModel>();
+            builder.Services.AddTransient<CommentService>(); // ���� CommentService Ҳ��Ҫע��
+            builder.Services.AddTransient<CreateLPlaylistViewModel>();
+
+            // �����ڣ�������Ӧ�ó���Ψһ�������ڣ�
+            builder.Services.AddSingleton<MainWindow>();
+            // 5. ��������
+            AppHost = builder.Build();
+        }
+
+        /// <summary>
+        /// ��������ע�����
+        /// ����񼯺���ע��Ӧ����������з�����ͼģ�ͺ���ͼ
+        /// </summary>
+        /// <param name="services">���񼯺ϣ�����ע������������</param>
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            // --- HTTP �ͻ������� ---
+            // ע��HttpClient����ʵ����������������
+            // ���û�����ַΪ���API�����ַ���˴�Ϊ���ؿ���������ַ��
+            services.AddLogging(configure =>
+            {
+                // ���ӵ�������ṩ����
+                configure.AddDebug();
+            });
+
+            //http://localhost:5215
+            services.AddSingleton<HttpClient>(sp => new HttpClient
+            {
+                //BaseAddress = new Uri("http://localhost:5240/")
+                BaseAddress = new Uri("http://api-gateway")
+            });
+            var apiGatewayBaseUrl = "http://localhost:5240";
+            //builder.Services.AddHttpClient<AuthService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
+
+            //builder.Services.AddHttpClient<PlaylistService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
+
+            //builder.Services.AddHttpClient<SearchService>(client =>
+            //{
+            //    client.BaseAddress = new Uri(apiGatewayBaseUrl);
+            //});
+
+            //file
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7056
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5017
+
+            //catalog
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7270
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5044
+
+            //library
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7092
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5174
+
+            //auth
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7041
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5260
+
+            //apiGateWay
+            //  info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: https://localhost:7269
+            //info: Microsoft.Hosting.Lifetime[14]
+            //Now listening on: http://localhost:5240
+
+            // --- ҵ�����ע�� ---
+            // ע��Ӧ�õĺ���ҵ����񣬰����ܻ��֣��������ڸ�����������
+            // ��֤���񣨵�����ȫ�ֹ���һ����֤״̬ʵ����
+            services.AddHttpClient<CacheService>();
+            services.AddSingleton<AuthService>();
+            // �����б����� transient��ÿ�����󴴽���ʵ�����ʺ�����������״̬������
+            services.AddTransient<PlaylistService>();
+            // ���������񣨵�����ȫ��Ψһ�Ĳ���������ʵ����
+            services.AddSingleton<PlayerService>();
+            // ý�岥�ŷ��񣨵���������ý���ļ����ŵĺ��ķ���
+            services.AddSingleton<MediaPlayerService>();
+            // ���ѷ��񣨵������������ѹ�ϵ��ȫ�ַ���
+            services.AddSingleton<FriendService>();
+            // SignalR���񣨵�����ʵʱͨ�����ӹ�����ȫ��Ψһ���ӣ�
+            services.AddSingleton<SignalRService>();
+            services.AddSingleton<CredentialService>();
+            services.AddTransient<LyricService>();
+            services.AddSingleton<SongService>();
+            services.AddSingleton<INavigationService, NavigationService>();
+            builder.Services.AddSingleton<CurrentUserStateService>();
+            builder.Services.AddSingleton<ICacheService, FileCacheService>();
+
+            //builder.Services.AddHttpClient<ImageCacheService>();
+            // --- ��ͼģ�ͣ�ViewModel��ע�� ---
+            // ע��MVVMģʽ�е���ͼģ�ͣ��������ݴ�������ͼ�����߼�
+
+            // ��������ͼģ�ͣ���������Ӧ����������һ�µ������������ģ�
+            builder.Services.AddSingleton<MainViewModel>();
+            // ��������ͼģ�ͣ�������ȫ�ֱ�����״̬������
+            builder.Services.AddSingleton<TitleBarViewModel>();
+            // ������������ͼģ�ͣ�������ȫ�ֲ����������߼���
+            builder.Services.AddSingleton<PlayerControlViewModel>();
+            // ������񣨵��������������߼��ĺ��ķ���
+            builder.Services.AddSingleton<ChatService>();
+            // ��֤��ͼģ�ͣ���������¼/ע�����֤����߼���
+            builder.Services.AddSingleton<SignUpViewModel>();
+            // �ļ����񣨵����������ļ�������ȫ�ַ���
+            builder.Services.AddSingleton<FileService>();
+            builder.Services.AddSingleton<SignalRService>();
+            builder.Services.AddSingleton<UserProfileService>();
+            builder.Services.AddSingleton<SearchService>();
+            builder.Services.AddHttpClient<CacheService>();
+
+            // �ҵ��ղ�������ͼģ�ͣ�transient��ÿ�δ�ҳ�洴����ʵ����
+            builder.Services.AddTransient<MyFavoriteMusicViewModel>();
+            // ����������ͼģ�ͣ�transient��ÿ�η��ʴ�����ʵ�����ʺ�Ƶ��ˢ�µĳ�����
+            builder.Services.AddTransient<LocalMusicViewModel>();
+            // ������ͼģ�ͣ�transient�����贴���������ڴ�ռ�ã�
+            builder.Services.AddTransient<PodcastViewModel>();
+            // �Ƽ�������ͼģ�ͣ�transient������Ƶ�����£�ÿ�μ����������ݣ�
+            builder.Services.AddTransient<FeaturedViewModel>();
+            // ������ͼģ�ͣ�transient��ÿ�����촰�ڿ�����Ҫ����ʵ����
+            builder.Services.AddTransient<ChatViewModel>();
+            // ������ͼģ�ͣ�transient�������б�ҳ�����ͼ�߼���
+            builder.Services.AddTransient<FriendsViewModel>();
+            // �ظ�ע��ı���������ͼģ�ͣ�ע�⣺�ظ�ע������Ǵ������࣬����������
+            builder.Services.AddTransient<LocalMusicViewModel>();
+            // ���ӵ������б���ͼģ�ͣ�transient����������ͼģ�ͣ����꼴���٣�
+            builder.Services.AddTransient<AddToPlaylistViewModel>();
+            // ��ϵ����ͼģ�ͣ�transient����ϵ��ҳ��Ľ����߼���
+            builder.Services.AddTransient<ContactsViewModel>();
+            // �ظ�ע���������ͼģ�ͣ�ע�⣺�����Ƿ��Ҫ��������Դ�˷ѣ�
+            builder.Services.AddTransient<ChatViewModel>();
+            // �Ự��ͼģ�ͣ�transient����������Ự����ʱ���ݣ�
+            builder.Services.AddTransient<SessionsViewModel>();
+            // �û�������ͼģ�ͣ�transient���û�����ҳ��Ľ����߼���
+            builder.Services.AddTransient<UserProfileViewModel>();
+            builder.Services.AddTransient<SongDetailViewModel>();
+            builder.Services.AddTransient<PlaylistViewModel>();
+            builder.Services.AddTransient<SearchResultViewModel>();
+            builder.Services.AddTransient<EditPlaylistViewModel>();
+            builder.Services.AddTransient<CommentViewModel>();
+            builder.Services.AddTransient<CommentService>(); // ���� CommentService Ҳ��Ҫע��
+            builder.Services.AddTransient<CreateLPlaylistViewModel>();
+
+            // �����ڣ�������Ӧ�ó���Ψһ�������ڣ�
+            builder.Services.AddSingleton<MainWindow>();
+
+        }
+
+        /// <summary>
+        /// ��дӦ�ó�����������
+        /// ��Ӧ������ʱ������ע�������л�ȡ�����ڲ���ʾ
+        /// </summary>
+        /// <param name="e">�����¼����������������в����ȣ�</param>
+        protected override async void OnStartup(StartupEventArgs e)
+        {
+            // ���û��������߼�
+            base.OnStartup(e);
+
+            var cacheService = ServiceProvider.GetRequiredService<ICacheService>();
+            await cacheService.InitializeAsync();
+            // ������ע�������л�ȡ������ʵ��
+            // �������Զ�����MainWindow�������������繹�캯���е�MainViewModel��
+            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+
+            // ��ʾ������
+            mainWindow.Show();
+        }
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            // ���ŵعر��������ͷ���Դ
+            await AppHost.StopAsync();
+            base.OnExit(e);
+        }
+    }
+}

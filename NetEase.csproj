@@ -41,6 +41,7 @@
   </ItemGroup>
 	
   <ItemGroup>
+    <ProjectReference Include="..\NetEase.ServiceDefaults\NetEase.ServiceDefaults.csproj" />
     <ProjectReference Include="..\NetEase.Shared.Clients\NetEase.Shared.Clients.csproj" />
   </ItemGroup>
 

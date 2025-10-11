@@ -1,223 +1,283 @@
-﻿// 引入数据传输对象(DTO)命名空间，用于接收API返回的数据
+﻿using Microsoft.Extensions.Logging;
 using NetEase.Dtos;
-using NetEase.Shared.Clients.Dtos; // 提供HTTP客户端的JSON序列化/反序列化扩展方法
+using NetEase.Shared.Clients.Dtos;
+using System; // <-- 引入，用于 Exception
+using System.Collections.Generic; // <-- 引入
 using System.Diagnostics;
-using System.IO; // 用于调试输出
-using System.Net.Http;     // 用于HTTP请求
+using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Threading.Tasks;
 
 namespace NetEase.Services
 {
-    /// <summary>
-    /// 播放列表服务类，负责与后端API交互，处理播放列表相关的网络请求
-    /// </summary>
     public class PlaylistService
     {
-        // HTTP客户端实例，用于发送网络请求到后端API
         private readonly HttpClient _httpClient;
+        private readonly ILogger<PlaylistService> _logger;
 
-        /// <summary>
-        /// 构造函数，通过依赖注入获取HttpClient实例
-        /// </summary>
-        /// <param name="httpClient">用于发送HTTP请求的客户端</param>
-        public PlaylistService(HttpClient httpClient)
+        public PlaylistService(HttpClient httpClient, ILogger<PlaylistService> logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
         }
+
         public async Task<bool> UpdatePlaylistAsync(int playlistId, UpdatePlaylistDto dto)
         {
+            _logger.LogInformation(message: "正在更新播放列表 {PlaylistId}...", playlistId);
             try
             {
                 var response = await _httpClient.PutAsJsonAsync($"api/playlists/{playlistId}", dto);
-                return response.IsSuccessStatusCode;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("成功更新播放列表 {PlaylistId}。", playlistId);
+                    return true;
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("更新播放列表 {PlaylistId} 失败。状态码: {StatusCode}, 响应: {Response}",
+                        playlistId, response.StatusCode, errorContent);
+                    return false;
+                }
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to update playlist: {ex.Message}");
+                _logger.LogError(ex, "更新播放列表 {PlaylistId} 时发生网络异常。", playlistId);
                 return false;
             }
         }
 
-        // ======================= 新增：上传封面文件 =======================
-        // 这个方法实际上是调用 File.API，但为了内聚性，我们将其放在 PlaylistService 中
-        public async Task<string> UploadCoverAsync(string localFilePath)
+        public async Task<string?> UploadCoverAsync(string localFilePath)
         {
-            if (!File.Exists(localFilePath)) return null;
+            _logger.LogInformation("准备上传封面文件: '{LocalFilePath}'", localFilePath);
+            if (!File.Exists(localFilePath))
+            {
+                _logger.LogError("上传封面失败：本地文件不存在 '{LocalFilePath}'。", localFilePath);
+                return null;
+            }
 
-            // API 网关会将 /api/files/... 路由到 File.API
             var requestUri = "api/files/upload/covers";
-
             using var multipartFormContent = new MultipartFormDataContent();
-            var fileStreamContent = new StreamContent(File.OpenRead(localFilePath));
-            fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // 可动态设置
+            using var fileStreamContent = new StreamContent(File.OpenRead(localFilePath));
+            fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg"); // 可根据文件类型动态设置
 
             multipartFormContent.Add(fileStreamContent, name: "file", fileName: Path.GetFileName(localFilePath));
 
             try
             {
+                _logger.LogInformation("正在向 '{RequestUri}' POST 封面文件...", requestUri);
                 var response = await _httpClient.PostAsync(requestUri, multipartFormContent);
-                response.EnsureSuccessStatusCode();
 
-                var uploadResult = await response.Content.ReadFromJsonAsync<FileUploadResponseDto>();
-                // 返回【相对路径】，例如 "covers/guid.jpg"
-                return uploadResult?.RelativePath;
+                if (response.IsSuccessStatusCode)
+                {
+                    var uploadResult = await response.Content.ReadFromJsonAsync<FileUploadResponseDto>();
+                    _logger.LogInformation("封面上传成功，File.API返回相对路径: '{RelativePath}'", uploadResult?.RelativePath);
+                    return uploadResult?.RelativePath;
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("封面上传失败。状态码: {StatusCode}, 响应: {Response}",
+                        response.StatusCode, errorContent);
+                    return null;
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to upload cover: {ex.Message}");
+                _logger.LogError(ex, "上传封面时发生网络异常。");
                 return null;
             }
         }
 
         public async Task<bool> AddToFavoritesAsync(int songId)
         {
+            _logger.LogInformation("正在尝试将歌曲 {SongId} 添加到“我喜欢的音乐”...", songId);
             try
             {
                 var response = await _httpClient.PostAsync($"api/playlists/favorites/{songId}", null);
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("成功将歌曲 {SongId} 添加到“我喜欢的音乐”。", songId);
+                    return true;
+                }
+                _logger.LogWarning("将歌曲 {SongId} 添加到“我喜欢的音乐”失败。状态码: {StatusCode}", songId, response.StatusCode);
+                return false;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to add song to favorites: {ex.Message}");
+                _logger.LogError(ex, "将歌曲 {SongId} 添加到“我喜欢的音乐”时发生网络异常。", songId);
                 return false;
             }
         }
+
         public async Task<bool> RemoveFromFavoritesAsync(int songId)
         {
+            _logger.LogInformation("正在尝试从“我喜欢的音乐”中移除歌曲 {SongId}...", songId);
             try
             {
-                // 发送 DELETE 请求
                 var response = await _httpClient.DeleteAsync($"api/playlists/favorites/{songId}");
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("成功从“我喜欢的音乐”中移除歌曲 {SongId}。", songId);
+                    return true;
+                }
+                _logger.LogWarning("从“我喜欢的音乐”中移除歌曲 {SongId} 失败。状态码: {StatusCode}", songId, response.StatusCode);
+                return false;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to remove song from favorites: {ex.Message}");
+                _logger.LogError(ex, "从“我喜欢的音乐”中移除歌曲 {SongId} 时发生网络异常。", songId);
                 return false;
             }
         }
-        /// <summary>
-        /// 异步获取当前登录用户的播放列表摘要信息
-        /// </summary>
-        /// <returns>包含播放列表摘要的列表，如果请求失败则返回空列表</returns>
+
         public async Task<List<PlaylistSummaryDto>> GetMyPlaylistsAsync()
         {
+            _logger.LogInformation("正在获取当前用户的播放列表摘要...");
             try
             {
-                // 发送GET请求到后端API的"api/playlists/my"端点
-                // GetFromJsonAsync<T>：自动将API返回的JSON响应反序列化为List<PlaylistSummaryDto>类型
                 var playlists = await _httpClient.GetFromJsonAsync<List<PlaylistSummaryDto>>("api/playlists/my");
-                Debug.WriteLine($"Enter GetMyPlaylistsAsync(): {playlists}");
-
-                // 处理API返回null的情况：如果为null则返回空列表，避免后续出现空引用异常
-                return playlists ?? new List<PlaylistSummaryDto>();
+                if (playlists == null)
+                {
+                    _logger.LogWarning("获取播放列表摘要返回了 null。");
+                    return new List<PlaylistSummaryDto>();
+                }
+                _logger.LogInformation("成功获取到 {PlaylistCount} 个播放列表摘要。", playlists.Count);
+                return playlists;
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                // 捕获HTTP请求相关异常（如网络错误、401未授权、500服务器错误等）
-                // 输出错误信息到调试窗口，方便开发时排查问题
-                Debug.WriteLine($"获取播放列表失败: {ex.Message}");
-
-                // 失败时返回空列表，保证调用方不会收到异常，便于前端友好处理
+                _logger.LogError(ex, "获取 'api/playlists/my' 时发生网络异常。");
                 return new List<PlaylistSummaryDto>();
             }
         }
 
-        /// <summary>
-        /// 异步获取指定ID的播放列表详细信息
-        /// </summary>
-        /// <param name="playlistId">要查询的播放列表ID</param>
-        /// <returns>播放列表详情对象，如果请求失败则返回null</returns>
-        public async Task<PlaylistDetailDto> GetPlaylistDetailAsync(int playlistId)
+        public async Task<PlaylistDetailDto?> GetPlaylistDetailAsync(int playlistId)
         {
+            _logger.LogInformation("正在获取播放列表 {PlaylistId} 的详情...", playlistId);
             try
             {
-                // 发送GET请求到"api/playlists/{playlistId}"端点
-                // 使用字符串插值动态生成带参数的URL（例如：api/playlists/123）
-                return await _httpClient.GetFromJsonAsync<PlaylistDetailDto>($"api/playlists/{playlistId}");
-            }
-            catch (HttpRequestException ex)
-            {
-                // 捕获并记录HTTP请求异常
-                Debug.WriteLine($"获取播放列表详情失败: {ex.Message}");
-
-                // 失败时返回null，由调用方处理空值情况
-                return null;
-            }
-        }
-
-        public async Task<PlaylistSummaryDto> CreatePlaylistAsync(string name, bool isPrivate = false)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return null;
-            }
-
-            var createDto = new { Name = name, IsPrivate = isPrivate }; // 后端 CreatePlaylistDto 只需要 Name
-
-            try
-            {
-                var response = await _httpClient.PostAsJsonAsync("api/playlists", createDto);
-
-                if (response.IsSuccessStatusCode)
+                var playlistDetail = await _httpClient.GetFromJsonAsync<PlaylistDetailDto>($"api/playlists/{playlistId}");
+                if (playlistDetail == null)
                 {
-                    // 如果成功，后端会返回新创建的播放列表对象
-                    return await response.Content.ReadFromJsonAsync<PlaylistSummaryDto>();
-                }
-
-                Debug.WriteLine($"Failed to create playlist. Status: {response.StatusCode}");
-                return null;
-            }
-            catch (HttpRequestException ex)
-            {
-                Debug.WriteLine($"Error creating playlist: {ex.Message}");
-                return null;
-            }
-        }
-
-
-        public async Task<(bool Success, string ErrorMessage)> AddSongToPlaylistAsync(int playlistId, int songId)
-        {
-            try
-            {
-                // URL 格式必须与 Controller 中的路由模板完全匹配
-                var response = await _httpClient.PostAsync($"api/playlists/{playlistId}/songs/{songId}", null);
-
-                if (response.IsSuccessStatusCode) // 2xx 状态码 (包括 204)
-                {
-                    return (true, null);
+                    _logger.LogWarning("获取播放列表 {PlaylistId} 详情返回了 null。", playlistId);
                 }
                 else
                 {
-                    // 如果失败，尝试解析错误信息
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    return (false, errorContent); // 简单起见，直接返回错误内容
+                    _logger.LogInformation("成功获取播放列表 {PlaylistId} 的详情，包含 {SongCount} 首歌曲。", playlistId, playlistDetail.Songs?.Count ?? 0);
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                Debug.WriteLine($"Error adding song to playlist: {ex.Message}");
-                return (false, "Could not connect to the server.");
-            }
-        }
-
-
-        public async Task<bool> RemoveSongFromPlaylistAsync(int playlistId, int songId)
-        {
-            try
-            {
-                // 发送 DELETE 请求
-                var response = await _httpClient.DeleteAsync($"api/playlists/{playlistId}/songs/{songId}");
-                return response.IsSuccessStatusCode;
+                return playlistDetail;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to remove song from playlist: {ex.Message}");
+                _logger.LogError(ex, "获取播放列表 {PlaylistId} 详情时发生网络异常。", playlistId);
+                return null;
+            }
+        }
+
+        public async Task<PlaylistSummaryDto?> CreatePlaylistAsync(string name, bool isPrivate = false)
+        {
+            _logger.LogInformation("正在创建新播放列表，名称: '{PlaylistName}', 是否私密: {IsPrivate}", name, isPrivate);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                _logger.LogWarning("创建播放列表失败：名称为空。");
+                return null;
+            }
+
+            var createDto = new { Name = name, IsPrivate = isPrivate };
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/playlists", createDto);
+                if (response.IsSuccessStatusCode)
+                {
+                    var newPlaylist = await response.Content.ReadFromJsonAsync<PlaylistSummaryDto>();
+                    _logger.LogInformation("播放列表创建成功，新ID: {PlaylistId}", newPlaylist?.Id);
+                    return newPlaylist;
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("创建播放列表失败。状态码: {StatusCode}, 响应: {Response}",
+                    response.StatusCode, errorContent);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "创建播放列表时发生网络异常。");
+                return null;
+            }
+        }
+
+        public async Task<(bool Success, string ErrorMessage)> AddSongToPlaylistAsync(int playlistId, int songId)
+        {
+            _logger.LogInformation("正在尝试将歌曲 {SongId} 添加到播放列表 {PlaylistId}...", songId, playlistId);
+            try
+            {
+                var response = await _httpClient.PostAsync($"api/playlists/{playlistId}/songs/{songId}", null);
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("成功将歌曲 {SongId} 添加到播放列表 {PlaylistId}。", songId, playlistId);
+                    return (true, string.Empty);
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadFromJsonAsync<ErrorResponseDto>(); // 假设有这样一个DTO
+                    _logger.LogWarning("添加歌曲到播放列表失败。状态码: {StatusCode}, 错误信息: {ErrorMessage}",
+                        response.StatusCode, errorContent?.Message);
+                    return (false, errorContent?.Message ?? "未知错误");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "添加歌曲 {SongId} 到播放列表 {PlaylistId} 时发生网络异常。", songId, playlistId);
+                return (false, "无法连接到服务器。");
+            }
+        }
+
+        public async Task<bool> RemoveSongFromPlaylistAsync(int playlistId, int songId)
+        {
+            _logger.LogInformation("正在尝试从播放列表 {PlaylistId} 中移除歌曲 {SongId}...", playlistId, songId);
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"api/playlists/{playlistId}/songs/{songId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("成功从播放列表 {PlaylistId} 中移除歌曲 {SongId}。", playlistId, songId);
+                    return true;
+                }
+                _logger.LogWarning("从播放列表 {PlaylistId} 中移除歌曲 {SongId} 失败。状态码: {StatusCode}",
+                    playlistId, songId, response.StatusCode);
                 return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "从播放列表 {PlaylistId} 中移除歌曲 {SongId} 时发生网络异常。", playlistId, songId);
+                return false;
+            }
+        }
+
+        public async Task<List<Dtos.SongDto>?> GetAllSongsAsync()
+        {
+            _logger.LogInformation("正在从后端获取所有歌曲列表...");
+            try
+            {
+                var songs = await _httpClient.GetFromJsonAsync<List<Dtos.SongDto>>("api/songs");
+                _logger.LogInformation("成功获取到 {SongCount} 首歌曲。", songs?.Count ?? 0);
+                return songs;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "从 'api/songs' 获取所有歌曲时失败。");
+                return null;
             }
         }
     }
 
-
+    // (推荐) 在共享的 DTOs 项目中定义一个通用的错误响应模型
+    public class ErrorResponseDto
+    {
+        public string Message { get; set; }
+    }
 }

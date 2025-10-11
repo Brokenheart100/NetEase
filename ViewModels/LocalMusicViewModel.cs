@@ -193,8 +193,8 @@ namespace NetEase.ViewModels
                         if (!Songs.Any(s => s.FilePath == file))
                         {
                             // 在 UI 线程上创建 SongTag 和 Brushes
-                            song.Tags = new List<SongTag>
-                            {
+                            song.Tags =
+                            [
                                 new SongTag
                                 {
                                     Text = "超清母带",
@@ -209,7 +209,7 @@ namespace NetEase.ViewModels
                                     Background = Brushes.Transparent,
                                     BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF5C5C"))
                                 }
-                            };
+                            ];
 
                             song.Index = Songs.Count + 1;
                             Songs.Add(song);

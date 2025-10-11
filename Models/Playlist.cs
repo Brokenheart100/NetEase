@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NetEase.Services;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -17,17 +18,40 @@ namespace NetEase.Models
         [ObservableProperty]
         [JsonIgnore] // 确保这个属性不会被序列化
         private ImageSource _coverImageSource; // 这是【UI】绑定的图片源
-        async partial void OnCoverImageUrlChanged(string value)
+        private async Task LoadCoverImageAsync(ICacheService cacheService)
         {
-            var cacheService = App.ServiceProvider.GetRequiredService<CacheService>();
-            string localPath = await cacheService.GetFileAsync(value, CacheType.Image);
-            if (localPath == null) return;
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(localPath);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-            CoverImageSource = bitmap; // 更新UI绑定的属性
+            // a. 检查URL是否有效
+            if (string.IsNullOrWhiteSpace(CoverImageUrl))
+            {
+                CoverImageSource = null; // 清空图片
+                return;
+            }
+
+            // b. 调用缓存服务
+            var localPath = await cacheService.GetFileAsync(CoverImageUrl);
+
+            // c. 如果成功，在UI线程上创建并设置图片
+            if (localPath != null)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(localPath);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    CoverImageSource = bitmap; // 【修正】使用正确的属性名
+                });
+            }
+            else
+            {
+                CoverImageSource = null; // 【修正】加载失败，也使用正确的属性名
+            }
+        }
+
+        public Task StartImageLoadingAsync(ICacheService cacheService)
+        {
+            return LoadCoverImageAsync(cacheService);
         }
         public string Title { get; set; }
         public string Subtitle { get; set; } // 副标题，用于换行

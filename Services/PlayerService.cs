@@ -2,6 +2,8 @@
 using NetEase.Messages;
 using NetEase.Models;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
@@ -84,10 +86,7 @@ namespace NetEase.Services
         /// </summary>
         private List<Song> _currentPlaylist;
         private readonly CacheService _cacheService;
-        /// <summary>
-        /// 构造函数，初始化播放器服务
-        /// 设为public以允许依赖注入容器创建实例
-        /// </summary>
+   
         public PlayerService(CacheService cacheService)
         {
             // 初始化进度更新定时器
@@ -258,7 +257,7 @@ namespace NetEase.Services
         /// 设置音量
         /// </summary>
         /// <param name="newVolume">新音量值（会被限制在0.0-1.0之间）</param>
-        public void SetVolume(double newVolume)
+        public static void SetVolume(double newVolume)
         {
             // 触发音量变更事件，传递限制后的音量值
             //VolumeChanged?.Invoke(Math.Clamp(newVolume, 0.0, 1.0));
@@ -269,7 +268,7 @@ namespace NetEase.Services
         /// 调整播放进度
         /// </summary>
         /// <param name="percentage">进度百分比（0.0-1.0之间）</param>
-        public void Seek(double percentage)
+        public static void Seek(double percentage)
         {
             // 触发seek请求事件
             //SeekRequested?.Invoke(percentage);

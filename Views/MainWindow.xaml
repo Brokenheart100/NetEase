@@ -22,43 +22,40 @@
       
         <BitmapImage x:Key="DefaultAvatarImage" UriSource="/CoverImage/10.jpg" />
 
-        <Style TargetType="Grid" x:Key="NavContainerStyle">
-            <!-- 1. 默认状态 (收起) -->
-            <Setter Property="Width" Value="60"/>
-            <!-- 只够显示图标的宽度 -->
+        <Style x:Key="CollapsibleNavStyle" TargetType="Grid">
+            <!-- 默认状态：收起 -->
+            <Setter Property="Width" Value="80"/>
 
             <Style.Triggers>
-                <!-- 触发器 1: 当 IsLeftSidebarExpanded 为 true 时 (“钉住”状态) -->
-                <!-- 无论鼠标是否悬浮，都强制展开 -->
-                <DataTrigger Binding="{Binding IsLeftSidebarExpanded}" Value="True">
-                    <Setter Property="Width" Value="200"/>
-                    <!-- 展开后的宽度 -->
-                </DataTrigger>
-
-                <!-- 触发器 2: 当未被“钉住” 且 鼠标悬浮时 -->
-                <MultiDataTrigger>
-                    <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding IsLeftSidebarExpanded}" Value="False"/>
-                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
-                    </MultiDataTrigger.Conditions>
-
-                    <!-- 平滑展开的动画 -->
-                    <MultiDataTrigger.EnterActions>
+                <!-- 触发器 1: 当鼠标悬浮时，平滑展开 -->
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
                         <BeginStoryboard>
                             <Storyboard>
-                                <DoubleAnimation Storyboard.TargetProperty="Width" To="200" Duration="0:0:0.2"/>
+                                <DoubleAnimation Storyboard.TargetProperty="Width" To="220" Duration="0:0:1"/>
                             </Storyboard>
                         </BeginStoryboard>
-                    </MultiDataTrigger.EnterActions>
+                    </Trigger.EnterActions>
+                </Trigger>
 
-                    <!-- 平滑收起的动画 -->
-                    <MultiDataTrigger.ExitActions>
+                <!-- 触发器 2: 当被“钉住”时，强制展开 (无动画) -->
+                <DataTrigger Binding="{Binding DataContext.IsLeftSidebarPinned, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="Width" Value="220"/>
+                </DataTrigger>
+
+                <!-- 触发器 3: (关键) 当鼠标移开 且 未被钉住 时，平滑收起 -->
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="False"/>
+                        <Condition Binding="{Binding DataContext.IsLeftSidebarPinned, RelativeSource={RelativeSource Self}}" Value="False"/>
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.EnterActions>
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetProperty="Width" To="60" Duration="0:0:0.2"/>
                             </Storyboard>
                         </BeginStoryboard>
-                    </MultiDataTrigger.ExitActions>
+                    </MultiDataTrigger.EnterActions>
                 </MultiDataTrigger>
             </Style.Triggers>
         </Style>
@@ -482,7 +479,8 @@
                     <!-- ========================== -->
                     <!-- 左侧导航栏 (Grid.Column="0") -->
                     <!-- ========================== -->
-                    <Grid x:Name="LeftNavContainer" Grid.Column="0" Background="#2D2D30" Style="{StaticResource NavContainerStyle}">
+                    <Grid x:Name="LeftNavContainer" Grid.Column="0" Background="#2D2D30" 
+                          >
                         <ScrollViewer Grid.Column="0"
                                   Style="{StaticResource for_scrollviewer}"
                                   x:Name="LeftNavScrollViewer" 
@@ -493,20 +491,8 @@
                             <StackPanel x:Name="NavStackPanel" 
                                         VerticalAlignment="Top"
                                         Margin="10,20,10,10">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Width" Value="200"/>
-                                        <!-- 默认展开宽度 -->
-                                        <Style.Triggers>
-                                            <!-- 当 IsLeftSidebarExpanded 为 false 时，改变宽度 -->
-                                            <DataTrigger Binding="{Binding DataContext.IsLeftSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
-                                                <Setter Property="Width" Value="60"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
                                 <!-- 在顶部添加一个用于切换的按钮 -->
-                                <Button Command="{Binding ToggleLeftSidebarCommand}" HorizontalAlignment="Left" Style="{StaticResource NavButtonStyle}" Padding="10">
+                                    <Button Command="{Binding ToggleLeftSidebarPinCommand}" HorizontalAlignment="Left" Style="{StaticResource NavButtonStyle}" Padding="10">
                                     <TextBlock Text="&#xE700;" FontFamily="Segoe MDL2 Assets"/>
                                 </Button>
                                 <ListBox ItemsSource="{Binding MainNavigationItems}"
@@ -527,7 +513,7 @@
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding DataContext.IsLeftSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                                <DataTrigger Binding="{Binding DataContext.IsLeftSidebarPinned, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
                                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
